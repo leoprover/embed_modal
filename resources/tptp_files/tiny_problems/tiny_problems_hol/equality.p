@@ -1,0 +1,1 @@
+thf( equality , conjecture , ( ! [ A : $i ] : ( A = A ) ) ).

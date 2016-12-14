@@ -1,0 +1,1 @@
+thf( equality2 , conjecture , ( ? [ A : $i , B : $i ] : ( A = B ) ) ).

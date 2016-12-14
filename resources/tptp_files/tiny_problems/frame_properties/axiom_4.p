@@ -1,0 +1,1 @@
+thf( axiom_4 , conjecture , ( ! [ A:$o ] : ( ( $box @ A ) => ( $box @ ( $box @ A ) ) ) ) ).

@@ -1,0 +1,1 @@
+thf( axiom_T , conjecture , ( ! [ A:$o ] : ( ( $box @ A ) => A ) ) ).

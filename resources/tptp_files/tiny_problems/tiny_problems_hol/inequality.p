@@ -1,0 +1,1 @@
+thf ( inequality , conjecture , ( ~ ( ! [ A : $i , B : $i ] : ( A != B ) ) ) ).

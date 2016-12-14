@@ -1,0 +1,1 @@
+thf( excluded_middle , conjecture , ( ! [ A : $o ] : ( $dia @ ( A | ~(A) ) ) ) ).

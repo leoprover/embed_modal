@@ -1,0 +1,1 @@
+thf( equivalence_definition_part2 , conjecture , ( ! [ A : $o , B : $o ] : ( ( A <=> B ) <= ( ( A => B ) & ( B => A ) ) ) ) ).

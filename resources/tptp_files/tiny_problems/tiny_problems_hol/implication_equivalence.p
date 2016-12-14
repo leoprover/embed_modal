@@ -1,0 +1,1 @@
+thf( implication_equivalence , conjecture , ( ! [ A : $o , B : $o ] : ( ( A => B ) <=> ( ( ~(A) | B ) ) ) ) ).
