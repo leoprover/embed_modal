@@ -58,7 +58,7 @@ public class Wrappers {
                 try(Stream<Path> pathsNew = Files.walk(inPath)){
                     log.info("Converting problems.");
                     pathsNew.filter(Files::isRegularFile).filter(f->f.toString().endsWith(".p")).forEach(f->{
-                        log.info("processing " + f.toString());
+                        log.info("Processing " + problems.get() + ": " + f.toString());
                         problems.getAndIncrement();
                         String subdir = f.toString().substring(inPath.getParent().toString().length());
                         Path outPath = Paths.get(oPath,subdir);

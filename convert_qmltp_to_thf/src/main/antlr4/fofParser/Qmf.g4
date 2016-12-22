@@ -109,7 +109,12 @@ formula_role                : lower_word
 
 fof_formula          : fof_logic_formula; //| fof_sequent;
 fof_logic_formula    : fof_binary_formula | fof_unitary_formula | fof_modal;
-fof_modal: MODAL_OPERATOR ':' L_PAREN fof_logic_formula R_PAREN;
+fof_modal: MODAL_OPERATOR ':' L_PAREN fof_logic_formula R_PAREN
+         //| MODAL_OPERATOR ':' fof_logic_formula;
+         | MODAL_OPERATOR ':' constant
+         | MODAL_OPERATOR ':' defined_constant
+         | MODAL_OPERATOR ':' system_constant;
+
 MODAL_OPERATOR : '#box'|'#dia';
 //----Future answer variable ideas | <answer_formula
 fof_binary_formula   : fof_binary_nonassoc | fof_binary_assoc;
