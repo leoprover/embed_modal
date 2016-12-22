@@ -101,6 +101,7 @@ public class ProblemTesterSatallax {
                 System.err.println("Could not write Satisfiable file");
                 e.printStackTrace();
             }
+            /*
             try {
                 Files.write(Paths.get(outPath.toString(),"NotSatisfiable"),this.all.stream()
                         .filter(p->!p.s.isSatisfiable())
@@ -110,6 +111,7 @@ public class ProblemTesterSatallax {
                 System.err.println("Could not write NotSatisfiable file");
                 e.printStackTrace();
             }
+            */
             // save all failed files to one file
             try {
                 Files.write(Paths.get(outPath.toString(),"UnknownStatus"),this.all.stream()
