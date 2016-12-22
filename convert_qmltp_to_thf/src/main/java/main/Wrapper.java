@@ -2,6 +2,7 @@ package main;
 
 import exceptions.ParseException;
 import fofParser.QmfAstGen;
+import javafx.util.Pair;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import parser.ParseContext;
 import util.tree.Node;
@@ -10,8 +11,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 
@@ -21,6 +25,8 @@ public class Wrapper {
 
     public static void convertQmfTraverseDirectories(Path inPath, String oPath, boolean dotin, boolean dotout, String dotBin ){
         log.info("traversing directories.");
+        AtomicInteger totalProblems = new AtomicInteger();
+        List<Pair<String,String>> missedProblems = new ArrayList<>();
         if (Files.isDirectory(inPath)){
             log.info("Input is a directory " + inPath.toString());
             log.info("Creating subdirectories.");
@@ -43,6 +49,7 @@ public class Wrapper {
                 try(Stream<Path> pathsNew = Files.walk(inPath)){
                     log.info("Converting problems.");
                     pathsNew.filter(Files::isRegularFile).forEach(f->{
+                        totalProblems.getAndIncrement();
                         String subdir = f.toString().substring(inPath.getParent().toString().length());
                         Path outPath = Paths.get(oPath,subdir);
                         Path inDot = Paths.get(outPath.toString()+".in.dot");
@@ -55,13 +62,27 @@ public class Wrapper {
                                 log.warning("Parse error in problem " + f.toString());
                             }
                         } catch (ParseException e) {
-                            log.warning("ParseException: Could not convert " + f.toString() + " ::: " + e.toString() + " ::: " + e.getMessage());
+                            String error = "ParseException: Could not convert \"" + f.toString() + "\" ::: \"" + e.toString() + "\" ::: \"" + e.getMessage();
+                            log.warning(error);
+                            missedProblems.add(new Pair<>(f.toString(),error));
                             //e.printStackTrace();
                             //System.exit(1);
                         } catch (IOException e) {
-                            log.warning("Could not convert " + f.toString() + " ::: " + e.toString() + " ::: " + e.getMessage());
+                            String error = "IOException: Could not convert " + f.toString() + " ::: " + e.toString() + " ::: " + e.getMessage();
+                            log.warning(error);
+                            missedProblems.add(new Pair<>(f.toString(),error));
+
                         }
                     });
+                    // write errors to file
+                    try {
+                        Files.write(Paths.get(oPath,"Errors"),missedProblems.stream()
+                                .map(p->p.getKey() + " ::: " + p.getValue())
+                                .collect(Collectors.joining("\n")).getBytes());
+                    } catch (IOException e) {
+                        System.err.println("Could not write Errors file");
+                        e.printStackTrace();
+                    }
                     System.exit(0);
                 } catch (IOException e){
                     log.severe("Could not traverse directory " + inPath.toString() + " ::: " + e.getMessage());
