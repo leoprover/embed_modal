@@ -11,9 +11,10 @@ public class Converter {
     Node original;
     Node converted = null;
     String name;
-    HashMap<String,Integer> predicateMap;
-    HashMap<String,Integer> functionMap;
-    HashSet<String> propositions;
+    HashMap<String,Integer> predicateMap; // {$i}^n -> $o
+    HashMap<String,Integer> functionMap; // {$i}^n -> $i
+    HashSet<String> propositions; // constants of $o
+    HashSet<String> constantIndividuals; // constants of $i
     HashSet<String> usedNames;
 
     private static final Logger log = Logger.getLogger( "default" );
@@ -52,8 +53,25 @@ public class Converter {
             n.addChildAt(type,1);
         });
 
+        // collect individual constants
+        // filter: on all constants go up in tree until a rule "arguments" is found then its inside a function/proposition
+        // or a branching node is found
+        this.constantIndividuals = new HashSet<String>(converted.dfsRuleAll("constant").stream()
+                .filter(p->{
+                    Node parent = p.getParent();
+                    while (parent.getChildren().size() == 1){
+                        if (parent.getRule().equals("arguments")) return true;
+                        parent = parent.getParent();
+                    }
+                    return false;
+                })
+                .map(p->p.getFirstLeaf().getLabel()).collect(Collectors.toList()));
+
         // collect propositions
-        this.propositions = new HashSet<String>(converted.dfsRuleAll("constant").stream().map(p->p.getFirstLeaf().getLabel()).collect(Collectors.toList()));
+        // filter: constants which are not individual constants
+        this.propositions = new HashSet<String>(converted.dfsRuleAll("constant").stream()
+                .filter(p->!this.constantIndividuals.contains(p.getFirstLeaf().getLabel()))
+                .map(p->p.getFirstLeaf().getLabel()).collect(Collectors.toList()));
 
         // convert applied predicates
         List<Node> predicates = converted.dfsRuleAllToplevel("plain_term");
@@ -73,7 +91,8 @@ public class Converter {
         functions.stream().filter(p->p.getChildren().size()!=1).forEach(p->convertFunctor(p,false));
 
         // check if thf formula names interfere with newly defined symbols
-        HashSet<String> usedSymbols = new HashSet(propositions);
+        HashSet<String> usedSymbols = new HashSet(this.propositions);
+        usedSymbols.addAll(this.constantIndividuals);
         usedSymbols.addAll(this.predicateMap.keySet());
         usedSymbols.addAll(this.functionMap.keySet());
         for (Node n : this.converted.dfsRuleAll("name")){
@@ -88,19 +107,29 @@ public class Converter {
             usedSymbols.add(name);
             leaf.setLabel(name);
         }
+
         StringBuilder definitions = new StringBuilder();
         // add types for propositions
         definitions.append("% propositions\n");
-        propositions.forEach(p->{
+        this.propositions.forEach(p->{
             definitions.append("thf(");
             definitions.append(p);
             definitions.append("_type,type,(");
             definitions.append(p);
             definitions.append(" : ($o))).\n");
         });
+        // add types for individual constants
+        definitions.append("\n% individual constants\n");
+        this.constantIndividuals.forEach(p->{
+            definitions.append("thf(");
+            definitions.append(p);
+            definitions.append("_type,type,(");
+            definitions.append(p);
+            definitions.append(" : ($i))).\n");
+        });
         // add types for predicates
         definitions.append("\n% predicates\n");
-        predicateMap.keySet().forEach(k->{
+        this.predicateMap.keySet().forEach(k->{
             definitions.append("thf(");
             definitions.append(k);
             definitions.append("_type,type,(");
@@ -113,7 +142,7 @@ public class Converter {
         });
         // add types for functions
         definitions.append("\n% functions\n");
-        functionMap.keySet().forEach(k->{
+        this.functionMap.keySet().forEach(k->{
             definitions.append("thf(");
             definitions.append(k);
             definitions.append("_type,type,(");
@@ -124,7 +153,6 @@ public class Converter {
             }
             definitions.append("$i))).\n");
         });
-
 
         ConvertContext context = new ConvertContext(original,converted,name,definitions.toString());
         //System.out.println(context.getNewProblem());
