@@ -16,6 +16,10 @@ public class ConvertContext {
     }
 
     public String getNewProblem(){
-        return definitions + "\n\n" + converted.toStringWithLinebreaks();
+        return definitions + "\n% converted problem\n" + converted.toStringWithLinebreaks();
+    }
+
+    public String getNewProblemWithOriginalProblem(){
+        return this.getNewProblem() + "\n\n% original problem\n" + this.original.toStringWithLinebreaksCommented();
     }
 }

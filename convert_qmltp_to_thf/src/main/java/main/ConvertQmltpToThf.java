@@ -28,6 +28,7 @@ public class ConvertQmltpToThf {
                     "/path/to/tptp/Problems/directory\n" +
                     "/path/to/result/");
             System.err.println(qmltpPath + " is not a valid directory");
+            System.exit(1);
         }
 
         if (!Files.isDirectory(Paths.get(resultPath))){
@@ -35,6 +36,7 @@ public class ConvertQmltpToThf {
                     "/path/to/tptp/Problems/directory\n" +
                     "/path/to/result/");
             System.err.println(resultPath + " is not a valid directory");
+            System.exit(1);
         }
 
         Path problemsPath = Paths.get(qmltpPath);
