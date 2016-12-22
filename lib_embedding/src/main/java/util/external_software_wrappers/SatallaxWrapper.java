@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class SatallaxWrapper {
@@ -18,6 +19,8 @@ public class SatallaxWrapper {
     public String stderrSAT = "";
     public String status = "";
     public String sat = "";
+
+    private static final Logger log = Logger.getLogger( "default" );
 
     public void call(Path filename,long timeout,TimeUnit unit) throws WrapperException, InterruptedException {
         this.stdout = "";
@@ -31,6 +34,7 @@ public class SatallaxWrapper {
             BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
             BufferedReader stdError = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
             if (!proc.waitFor(timeout, unit)){
+                log.info(filename.toString() + " : Proof Timeout");
                 proc.destroy();
             }
             String s = null;
@@ -41,7 +45,14 @@ public class SatallaxWrapper {
                 stderr += s;
             }
             this.status = extractSZSStatus(this.stdout);
+            log.info(filename.toString() + " : SZS: " + this.status);
+        } catch (IOException e) {
+            this.stdout = null;
+            //e.printStackTrace();
+            //throw new WrapperException(e.getMessage()+"\nStacktrace:\n"+e.getStackTrace().toString());
+        }
 
+        try{
             // Call satallax on problem without conjecture and extract status (for sat)
             List<String> problem = Files.readAllLines(filename);
             String problemWithoutConjecture = problem.stream().filter(p->!p.contains(", conjecture ,")).collect(Collectors.joining("\n"));
@@ -52,10 +63,11 @@ public class SatallaxWrapper {
             Process procSAT = satallaxSAT.start();
             BufferedReader stdInputSAT = new BufferedReader(new InputStreamReader(procSAT.getInputStream()));
             BufferedReader stdErrorSAT = new BufferedReader(new InputStreamReader(procSAT.getErrorStream()));
-            if (!proc.waitFor(timeout, unit)){
-                proc.destroy();
+            if (!procSAT.waitFor(timeout, unit)){
+                log.info(filename.toString() + " : SAT Timeout");
+                procSAT.destroy();
             }
-            s = null;
+            String s = null;
             while ((s = stdInputSAT.readLine()) != null) {
                 stdoutSAT += s;
             }
@@ -63,13 +75,14 @@ public class SatallaxWrapper {
                 stderrSAT += s;
             }
             this.sat = extractSZSStatus(this.stdoutSAT);
+            log.info(filename.toString() + " : SAT-SZS: " + this.sat);
             //System.out.println("status:"+this.status);
             //System.out.println("status:"+this.sat);
             //System.out.println(problemWithoutConjecture);
         } catch (IOException e) {
             this.stdout = null;
-            e.printStackTrace();
-            throw new WrapperException(e.getMessage()+"\nStacktrace:\n"+e.getStackTrace().toString());
+            //e.printStackTrace();
+            //throw new WrapperException(e.getMessage()+"\nStacktrace:\n"+e.getStackTrace().toString());
         }
     }
 

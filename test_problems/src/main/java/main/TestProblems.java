@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class TestProblems {
@@ -41,6 +42,9 @@ public class TestProblems {
     }*/
 
     public static void main(String[] args) {
+        //log.setUseParentHandlers(false);
+        log.setLevel(Level.ALL);
+
         if (args.length != 2){
             System.err.println("Unmatched argument size\nTwo arguments needed: \n" +
                     "/path/to/tptp/Problems/directory\n" +
@@ -68,7 +72,7 @@ public class TestProblems {
 
         ProblemTesterSatallax tester = new ProblemTesterSatallax();
         try {
-            tester.testProblemDirectory(Paths.get(inPathString),Paths.get(outputPathString),20,TimeUnit.SECONDS);
+            tester.testProblemDirectory(Paths.get(inPathString),Paths.get(outputPathString),10,TimeUnit.SECONDS);
         } catch (IOException e) {
             System.err.println("Could not traverse files");
             e.printStackTrace();

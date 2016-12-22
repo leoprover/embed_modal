@@ -10,6 +10,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -17,6 +18,8 @@ public class ProblemTesterSatallax {
 
     public List<ThfProblem> all;
     private final String errorPrefix = "Error_";
+
+    private static final Logger log = Logger.getLogger( "default" );
 
     public ProblemTesterSatallax(){
         this.all = new ArrayList<>();
@@ -43,15 +46,15 @@ public class ProblemTesterSatallax {
                     s.call(f,timoutPerProblem,timeUnit);
                     this.all.add(new ThfProblem(f,s));
                 } catch (WrapperException e) {
-                    System.err.println("Wrapper Exception");
-                    System.err.println(e.getMessage());
-                    System.err.println(e.getCause());
-                    e.printStackTrace();
+                    //System.err.println("Wrapper Exception");
+                    //System.err.println(e.getMessage());
+                    //System.err.println(e.getCause());
+                    //e.printStackTrace();
                 } catch (InterruptedException e) {
-                    System.err.println("InterruptedException");
-                    System.err.println(e.getMessage());
-                    System.err.println(e.getCause());
-                    e.printStackTrace();
+                    //System.err.println("InterruptedException");
+                    //System.err.println(e.getMessage());
+                    //System.err.println(e.getCause());
+                    //e.printStackTrace();
                 }
             });
 
@@ -112,7 +115,7 @@ public class ProblemTesterSatallax {
                 e.printStackTrace();
             }
             */
-            // save all failed files to one file
+            // save all files of unknown to one file
             try {
                 Files.write(Paths.get(outPath.toString(),"UnknownStatus"),this.all.stream()
                         .filter(p->p.s.hasUnknownStatus())
@@ -120,6 +123,25 @@ public class ProblemTesterSatallax {
                         .collect(Collectors.joining("\n")).getBytes());
             } catch (IOException e) {
                 System.err.println("Could not write UnknownStatus file");
+                e.printStackTrace();
+            }
+            // save all failed files to one file
+            try {
+                Files.write(Paths.get(outPath.toString(),"Failed"),this.all.stream()
+                        .filter(p->p.s.hasUnknownStatus()||p.s.hasTypeError()||p.s.hasParserError())
+                        .map(p->p.s.status + "," + p.path.toString())
+                        .collect(Collectors.joining("\n")).getBytes());
+            } catch (IOException e) {
+                System.err.println("Could not write Failed file");
+                e.printStackTrace();
+            }
+
+            try {
+                Files.write(Paths.get(outPath.toString(),"Total"),this.all.stream()
+                        .map(p->p.s.status + "," + p.path.toString())
+                        .collect(Collectors.joining("\n")).getBytes());
+            } catch (IOException e) {
+                System.err.println("Could not write Total file");
                 e.printStackTrace();
             }
             // save output of failed files separately
