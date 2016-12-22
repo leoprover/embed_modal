@@ -3,6 +3,7 @@ package transformation;
 
 import exceptions.AnalysisException;
 import exceptions.TransformationException;
+import javafx.util.Pair;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import parser.ParseContext;
 import parser.ThfAstGen;
@@ -12,7 +13,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Wrappers {
@@ -29,6 +34,11 @@ public class Wrappers {
         if (Files.isDirectory(inPath)){
             log.info("Input is a directory " + inPath.toString());
             log.info("Creating subdirectories.");
+            AtomicInteger problems = new AtomicInteger();
+            AtomicInteger problemsParseErrors = new AtomicInteger();
+            AtomicInteger problemsOtherErrors = new AtomicInteger();
+            List<String> parseErrors = new ArrayList<>();
+            List<Pair<String,String>> otherErrors = new ArrayList<>();
             try(Stream<Path> paths = Files.walk(inPath)){
 
                 // create subdirectories
@@ -49,6 +59,7 @@ public class Wrappers {
                     log.info("Converting problems.");
                     pathsNew.filter(Files::isRegularFile).filter(f->f.toString().endsWith(".p")).forEach(f->{
                         log.info("processing " + f.toString());
+                        problems.getAndIncrement();
                         String subdir = f.toString().substring(inPath.getParent().toString().length());
                         Path outPath = Paths.get(oPath,subdir);
                         Path inDot = Paths.get(outPath.toString()+".in.dot");
@@ -57,13 +68,38 @@ public class Wrappers {
                         if (!dotout) outDot = null;
                         try {
                             boolean success = convertModalMultipleSemantics(f,outPath,inDot,outDot,dotBin,semantics);
-                            if (!success) log.warning("ParseError: Could not convert " + f.toString());
+                            if (!success){
+                                log.warning("ParseError: Could not convert " + f.toString());
+                                parseErrors.add(f.toString());
+                                problemsParseErrors.getAndIncrement();
+                            }
                         } catch (Exception e) {
-                            log.warning("Could not convert " + f.toString() + " ::: " + e.toString() + " ::: " + e.getMessage());
+                            String error = "Could not convert " + f.toString() + " ::: " + e.toString() + " ::: " + e.getMessage();
+                            log.warning(error);
+                            otherErrors.add(new Pair<String, String>(f.toString(),error));
+                            problemsOtherErrors.getAndIncrement();
                             //e.printStackTrace();
                             //System.exit(1);
                         }
                     });
+                    // write errors to file
+                    try {
+                        Files.write(Paths.get(oPath,"OtherErrors"),otherErrors.stream()
+                                .map(p->p.getKey() + " ::: " + p.getValue())
+                                .collect(Collectors.joining("\n")).getBytes());
+                    } catch (IOException e) {
+                        System.err.println("Could not write OtherErrors file");
+                        e.printStackTrace();
+                    }
+                    try {
+                        Files.write(Paths.get(oPath,"ParseErrors"),parseErrors.stream()
+                                .collect(Collectors.joining("\n")).getBytes());
+                    } catch (IOException e) {
+                        System.err.println("Could not write ParseErrors file");
+                        e.printStackTrace();
+                    }
+                    System.out.println("Problems total:" + problems.get() + " parseErrors:" + problemsParseErrors.get() + " otherErrors:" + problemsOtherErrors.get());
+
                     System.exit(0);
                 } catch (IOException e){
                     log.severe("Could not traverse directory " + inPath.toString() + " ::: " + e.getMessage());

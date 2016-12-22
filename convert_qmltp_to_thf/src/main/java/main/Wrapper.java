@@ -53,6 +53,7 @@ public class Wrapper {
                     log.info("Converting problems.");
                     pathsNew.filter(Files::isRegularFile).forEach(f->{
                         totalProblems.getAndIncrement();
+                        log.info("Processing " +totalProblems.get() + ": " + f.toString());
                         String subdir = f.toString().substring(inPath.getParent().toString().length());
                         Path outPath = Paths.get(oPath,subdir);
                         Path inDot = Paths.get(outPath.toString()+".in.dot");
@@ -115,7 +116,6 @@ public class Wrapper {
     }
 
     public static boolean convertQmfToThf(Path inPath, Path oPath, Path dotin, Path dotout, String dotBin) throws IOException, ParseException {
-        log.info("Processing " + inPath);
         if (!Files.isRegularFile(inPath)){
             log.info("Not a regular file:" + inPath.toString());
             return false;
