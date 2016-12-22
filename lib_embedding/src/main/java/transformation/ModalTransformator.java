@@ -107,10 +107,14 @@ public class ModalTransformator {
                 }
             }
 
-            // substitute binary tuples (or,and,apply)
-            for (Node thf_binary_tuple : statement.dfsRuleAll("thf_binary_tuple")){
+            // substitute binary tuples (or,and,apply), apply does not need to be embedded
+            for (Node thf_binary_tuple : statement.dfsRuleAll("thf_and_formula")){
                 embed_thf_binary_tuple(thf_binary_tuple);
             }
+            for (Node thf_binary_tuple : statement.dfsRuleAll("thf_or_formula")){
+                embed_thf_binary_tuple(thf_binary_tuple);
+            }
+
 
             // substitute quantifications (! ?)
             for (Node thf_quantified_formula : statement.dfsRuleAll("thf_quantified_formula")){
