@@ -26,7 +26,10 @@ public class Wrapper {
     public static void convertQmfTraverseDirectories(Path inPath, String oPath, boolean dotin, boolean dotout, String dotBin ){
         log.info("traversing directories.");
         AtomicInteger totalProblems = new AtomicInteger();
-        List<Pair<String,String>> missedProblems = new ArrayList<>();
+        AtomicInteger parseErrors = new AtomicInteger();
+        AtomicInteger otherErrors = new AtomicInteger();
+        List<Pair<String,String>> missedProblems = new ArrayList<>(); // other than parse Errors
+        List<String> missedProblemsParseError = new ArrayList<>();
         if (Files.isDirectory(inPath)){
             log.info("Input is a directory " + inPath.toString());
             log.info("Creating subdirectories.");
@@ -60,29 +63,42 @@ public class Wrapper {
                             boolean success = convertQmfToThf(f,outPath,inDot,outDot,dotBin );
                             if (!success){
                                 log.warning("Parse error in problem " + f.toString());
+                                missedProblemsParseError.add(f.toString());
+                                parseErrors.getAndIncrement();
                             }
                         } catch (ParseException e) {
                             String error = "ParseException: Could not convert \"" + f.toString() + "\" ::: \"" + e.toString() + "\" ::: \"" + e.getMessage();
                             log.warning(error);
                             missedProblems.add(new Pair<>(f.toString(),error));
+                            otherErrors.getAndIncrement();
                             //e.printStackTrace();
                             //System.exit(1);
                         } catch (IOException e) {
                             String error = "IOException: Could not convert " + f.toString() + " ::: " + e.toString() + " ::: " + e.getMessage();
                             log.warning(error);
                             missedProblems.add(new Pair<>(f.toString(),error));
+                            otherErrors.getAndIncrement();
 
                         }
                     });
+                    System.out.println();
                     // write errors to file
                     try {
-                        Files.write(Paths.get(oPath,"Errors"),missedProblems.stream()
+                        Files.write(Paths.get(oPath,"OtherErrors"),missedProblems.stream()
                                 .map(p->p.getKey() + " ::: " + p.getValue())
                                 .collect(Collectors.joining("\n")).getBytes());
                     } catch (IOException e) {
-                        System.err.println("Could not write Errors file");
+                        System.err.println("Could not write OtherErrors file");
                         e.printStackTrace();
                     }
+                    try {
+                        Files.write(Paths.get(oPath,"ParseErrors"),missedProblemsParseError.stream()
+                                .collect(Collectors.joining("\n")).getBytes());
+                    } catch (IOException e) {
+                        System.err.println("Could not write ParseErrors file");
+                        e.printStackTrace();
+                    }
+                    System.out.println("Problems total:" + totalProblems.get() + " parseErrors:" + parseErrors.get() + " otherErrors:" + otherErrors.get());
                     System.exit(0);
                 } catch (IOException e){
                     log.severe("Could not traverse directory " + inPath.toString() + " ::: " + e.getMessage());
