@@ -10,7 +10,7 @@ public class EmbeddingDefinitions {
      ***************************************************************************/
     public static final String w = "w_type";
     public static final String world_type = "" +
-            "thf( w , type , ( " + w + ":$tType ) ).";
+            "thf( w_type_type , type , ( " + w + ":$tType ) ).";
     public static final String truth_type = "(" + w + ">$o)";
 
     /***************************************************************************
@@ -134,13 +134,13 @@ public class EmbeddingDefinitions {
     public static final String mbox = "" +
             "thf( mbox_type , type , ( mbox: (" + w + ">$o)>" + w + ">$o) ).\n" +
             "thf( mbox , definition , ( mbox = (" +
-            "^ [A:" + w + ">$o,W:" + w + "] : ! [V:" + w + "] : ( (r@W@V) => (A@V) )" +
+            "^ [A:" + w + ">$o,W:" + w + "] : ! [V:" + w + "] : ( (rel_r@W@V) => (A@V) )" +
             "))).";
 
     public static final String mdia = "" +
             "thf( mdia_type , type , ( mdia: (" + w + ">$o)>" + w + ">$o) ).\n" +
             "thf( mdia , definition , ( mdia = (" +
-            "^ [A:" + w + ">$o,W:" + w + "] : ? [V:" + w + "] : ( (r@W@V) & (A@V) )" +
+            "^ [A:" + w + ">$o,W:" + w + "] : ? [V:" + w + "] : ( (rel_r@W@V) & (A@V) )" +
             "))).";
 
     /***************************************************************************
@@ -280,7 +280,7 @@ public class EmbeddingDefinitions {
     public static String declareRelation(String relation){
         // TODO alter for multimodal systems
         String escapedRelation = escapeRelation(relation);
-        return "thf( " + escapedRelation + " , type , (" + escapedRelation + ":" + w + ">" + w + ">$o) ).";
+        return "thf( rel_" + escapedRelation + "_type , type , ( rel_" + escapedRelation + ":" + w + ">" + w + ">$o) ).";
     }
 
     public static String applyPropertyToRelation(SemanticsAnalyzer.AccessibilityRelationProperty p, String relation){

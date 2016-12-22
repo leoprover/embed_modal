@@ -398,7 +398,7 @@ public class ModalTransformator {
         }
         for(SemanticsAnalyzer.AccessibilityRelationProperty p : semanticsAnalyzer.modalityToAxiomList.get(SemanticsAnalyzer.modalitiesDefault)){
             if (p != SemanticsAnalyzer.AccessibilityRelationProperty.K) {
-                def.append(EmbeddingDefinitions.applyPropertyToRelation(p, "r"));
+                def.append(EmbeddingDefinitions.applyPropertyToRelation(p, "rel_r"));
                 def.append("\n");
             }
         }
