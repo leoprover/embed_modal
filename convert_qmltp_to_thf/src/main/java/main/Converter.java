@@ -3,10 +3,7 @@ package main;
 
 import util.tree.Node;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -16,6 +13,8 @@ public class Converter {
     String name;
     HashMap<String,Integer> predicateMap;
     HashMap<String,Integer> functionMap;
+    HashSet<String> propositions;
+    HashSet<String> usedNames;
 
     private static final Logger log = Logger.getLogger( "default" );
 
@@ -24,6 +23,7 @@ public class Converter {
         this.name = name;
         this.predicateMap = new HashMap<>();
         this.functionMap = new HashMap<>();
+        this.propositions = new HashSet<>();
     }
 
     public ConvertContext convert(){
@@ -52,13 +52,16 @@ public class Converter {
             n.addChildAt(type,1);
         });
 
-        // applied predicates
+        // collect propositions
+        this.propositions = new HashSet<String>(converted.dfsRuleAll("constant").stream().map(p->p.getFirstLeaf().getLabel()).collect(Collectors.toList()));
+
+        // convert applied predicates
         List<Node> predicates = converted.dfsRuleAllToplevel("plain_term");
         predicates.addAll(converted.dfsRuleAllToplevel("defined_plain_term"));
         predicates.addAll(converted.dfsRuleAllToplevel("system_term"));
         predicates.stream().filter(p->p.getChildren().size()!=1).forEach(p->convertFunctor(p,true));
 
-        // applied functions
+        // convert applied functions
         List<Node> functions = new ArrayList<>();
         for (Node p : predicates){
             for (Node c : p.getChildren()){
@@ -69,8 +72,34 @@ public class Converter {
         }
         functions.stream().filter(p->p.getChildren().size()!=1).forEach(p->convertFunctor(p,false));
 
+        // check if thf formula names interfere with newly defined symbols
+        HashSet<String> usedSymbols = new HashSet(propositions);
+        usedSymbols.addAll(this.predicateMap.keySet());
+        usedSymbols.addAll(this.functionMap.keySet());
+        for (Node n : this.converted.dfsRuleAll("name")){
+            Node leaf = n.getFirstLeaf();
+            String name = leaf.getLabel();
+            int i = 0;
+            String t_name = name;
+            while (usedSymbols.contains(name)){
+                name = t_name + "_" + String.valueOf(i);
+                i++;
+            }
+            usedSymbols.add(name);
+            leaf.setLabel(name);
+        }
         StringBuilder definitions = new StringBuilder();
-        definitions.append("% predicates\n");
+        // add types for propositions
+        definitions.append("% propositions\n");
+        propositions.forEach(p->{
+            definitions.append("thf(");
+            definitions.append(p);
+            definitions.append("_type,type,(");
+            definitions.append(p);
+            definitions.append(" : ($o))).\n");
+        });
+        // add types for predicates
+        definitions.append("\n% predicates\n");
         predicateMap.keySet().forEach(k->{
             definitions.append("thf(");
             definitions.append(k);
@@ -82,6 +111,7 @@ public class Converter {
             }
             definitions.append("$o))).\n");
         });
+        // add types for functions
         definitions.append("\n% functions\n");
         functionMap.keySet().forEach(k->{
             definitions.append("thf(");

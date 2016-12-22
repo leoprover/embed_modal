@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
@@ -13,6 +14,10 @@ public class ConvertQmltpToThf {
     private static final Logger log = Logger.getLogger( "default" );
 
     public static void main(String[] args) {
+
+        log.setUseParentHandlers(false);
+        log.setLevel(Level.ALL);
+
         if (args.length != 2){
             System.err.println("Unmatched argument size\nTwo arguments needed: \n" +
                     "/path/to/tptp/Problems/directory\n" +
