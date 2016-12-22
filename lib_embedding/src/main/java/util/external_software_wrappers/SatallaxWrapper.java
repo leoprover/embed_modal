@@ -47,7 +47,7 @@ public class SatallaxWrapper {
             this.status = extractSZSStatus(this.stdout);
             log.info(filename.toString() + " : SZS: " + this.status);
         } catch (IOException e) {
-            this.stdout = null;
+            this.stdout = "";
             //e.printStackTrace();
             //throw new WrapperException(e.getMessage()+"\nStacktrace:\n"+e.getStackTrace().toString());
         }
@@ -80,7 +80,7 @@ public class SatallaxWrapper {
             //System.out.println("status:"+this.sat);
             //System.out.println(problemWithoutConjecture);
         } catch (IOException e) {
-            this.stdout = null;
+            this.stdoutSAT = "";
             //e.printStackTrace();
             //throw new WrapperException(e.getMessage()+"\nStacktrace:\n"+e.getStackTrace().toString());
         }

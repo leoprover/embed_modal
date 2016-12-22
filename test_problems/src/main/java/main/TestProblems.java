@@ -72,7 +72,7 @@ public class TestProblems {
 
         ProblemTesterSatallax tester = new ProblemTesterSatallax();
         try {
-            tester.testProblemDirectory(Paths.get(inPathString),Paths.get(outputPathString),10,TimeUnit.SECONDS);
+            tester.testProblemDirectory(Paths.get(inPathString),Paths.get(outputPathString),3,TimeUnit.SECONDS);
         } catch (IOException e) {
             System.err.println("Could not traverse files");
             e.printStackTrace();
