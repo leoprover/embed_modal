@@ -47,7 +47,7 @@ grammar Hmf;
 // comments
 // annotations
 // tpi
-// restructure semantics grammar
+// restructure semantics grammar2
 // include
 // remove last cases from rules using defined expressions only (and check its actual usage before) e.g. remove lower_word from formula_role
 // restructure lexer rules especially from middle section and end, maybe move all lexer rules to the end

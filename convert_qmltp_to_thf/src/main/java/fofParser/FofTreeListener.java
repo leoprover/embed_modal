@@ -1,9 +1,9 @@
-package parser;
+package fofParser;
 
-import util.tree.*;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import util.tree.Node;
 
 import java.util.Stack;
 import java.util.function.Predicate;
@@ -11,7 +11,7 @@ import java.util.function.Predicate;
 /**
  * default tree listener implementation
  */
-public class DefaultTreeListener extends DefaultListener {
+public class FofTreeListener extends DefaultListener {
 
     private Stack<String> sctx = new Stack<String>();
 
@@ -23,7 +23,7 @@ public class DefaultTreeListener extends DefaultListener {
     /**
      * constructor
      */
-    public DefaultTreeListener() {
+    public FofTreeListener() {
         this(x -> !x.isEmpty());
     }
 
@@ -31,7 +31,7 @@ public class DefaultTreeListener extends DefaultListener {
      * construtor
      * @param filter condition that has to hold for every node
      */
-    public DefaultTreeListener(Predicate<String> filter) {
+    public FofTreeListener(Predicate<String> filter) {
         this.sctx.add("S");
         Node root = new Node("root","root");
         this.root = root;

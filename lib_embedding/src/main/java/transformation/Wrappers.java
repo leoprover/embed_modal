@@ -47,7 +47,8 @@ public class Wrappers {
                 // embed problems
                 try(Stream<Path> pathsNew = Files.walk(inPath)){
                     log.info("Converting problems.");
-                    pathsNew.filter(Files::isRegularFile).forEach(f->{
+                    pathsNew.filter(Files::isRegularFile).filter(f->f.toString().endsWith(".p")).forEach(f->{
+                        log.info("processing " + f.toString());
                         String subdir = f.toString().substring(inPath.getParent().toString().length());
                         Path outPath = Paths.get(oPath,subdir);
                         Path inDot = Paths.get(outPath.toString()+".in.dot");
@@ -55,11 +56,12 @@ public class Wrappers {
                         if (!dotin) inDot = null;
                         if (!dotout) outDot = null;
                         try {
-                            convertModalMultipleSemantics(f,outPath,inDot,outDot,dotBin,semantics);
+                            boolean success = convertModalMultipleSemantics(f,outPath,inDot,outDot,dotBin,semantics);
+                            if (!success) log.warning("ParseError: Could not convert " + f.toString());
                         } catch (Exception e) {
-                            //log.warning("Could not convert " + f.toString() + " ::: " + e.toString() + " ::: " + e.getMessage());
-                            e.printStackTrace();
-                            System.exit(1);
+                            log.warning("Could not convert " + f.toString() + " ::: " + e.toString() + " ::: " + e.getMessage());
+                            //e.printStackTrace();
+                            //System.exit(1);
                         }
                     });
                     System.exit(0);
@@ -81,13 +83,13 @@ public class Wrappers {
      * Wrapper for convertModel which creates multiple problems from one problem and an array containing semantics
      * The problem must not include semantics since multiple semantics declaration results in undefined behavior
      */
-    public static void convertModalMultipleSemantics(Path inPath, Path outPath, Path inDot, Path outDot, String dotBin, String[] semantics) throws IOException, exceptions.ParseException, AnalysisException, TransformationException {
-        if (semantics == null) convertModal(inPath,outPath,inDot,outDot,dotBin,null);
+    public static boolean convertModalMultipleSemantics(Path inPath, Path outPath, Path inDot, Path outDot, String dotBin, String[] semantics) throws IOException, exceptions.ParseException, AnalysisException, TransformationException {
+        if (semantics == null) return convertModal(inPath,outPath,inDot,outDot,dotBin,null);
         else{
             if (semantics.length == 1){
-                convertModal(inPath,outPath,inDot,outDot,dotBin,semantics[0]);
-                return;
+                return convertModal(inPath,outPath,inDot,outDot,dotBin,semantics[0]);
             }
+            boolean success = false;
             for (int i = 0; i < semantics.length ; i++){
                 Path t_outPath = Paths.get(outPath.toString() + "." + i);
                 Path t_inDot = null;
@@ -96,8 +98,9 @@ public class Wrappers {
                 if (outDot != null) t_outDot = Paths.get(outDot.toString() + "." + i);
                 //System.out.println(t_inDot);
                 //System.out.println(t_outDot);
-                convertModal(inPath,t_outPath,t_inDot,t_outDot,dotBin,semantics[i]);
+                success |= convertModal(inPath,t_outPath,t_inDot,t_outDot,dotBin,semantics[i]);
             }
+            return success;
         }
     }
 
@@ -106,8 +109,8 @@ public class Wrappers {
      * inDot outDot dotBin can be null
      * semantics can be null ( semantics is already in the problem file )
      */
-    public static void convertModal(Path inPath, Path outPath, Path inDot, Path outDot, String dotBin, String semantics) throws IOException, exceptions.ParseException, AnalysisException, TransformationException {
-
+    public static boolean convertModal(Path inPath, Path outPath, Path inDot, Path outDot, String dotBin, String semantics) throws IOException, exceptions.ParseException, AnalysisException, TransformationException {
+        log.info("Processing " + inPath.toString());
         // read file
         if (!Files.isRegularFile(inPath)){
             throw new IOException("Could not read file " + inPath + " ::: " + "Not a regular file or does not exist");
@@ -127,10 +130,6 @@ public class Wrappers {
         String rule = "tPTP_file";
         ANTLRInputStream inputStream = new ANTLRInputStream(problem);
         ParseContext parseContext = ThfAstGen.parse(inputStream, rule, inPath.getFileName().toString());
-        if (parseContext.getParseError() != null){
-            System.err.println(parseContext.getParseError());
-            System.exit(1);
-        }
         Node root = parseContext.getRoot();
 
         // create input dot
@@ -141,6 +140,12 @@ public class Wrappers {
                 String cmd = dotBin + " -Tps " + inDot + " -o " + inDot + ".ps";
                 Runtime.getRuntime().exec(cmd);
             }
+        }
+
+        // check for parse error
+        if (parseContext.hasParseError()){
+            log.warning("Parse Error " + parseContext.getParseError() + " in file " + inPath.toString());
+            return false;
         }
 
         // embed
@@ -164,5 +169,7 @@ public class Wrappers {
         String newProblem = transformContext.getProblemIncludingOld();
         //System.out.println(newProblem);
         Files.write(outPath,newProblem.getBytes());
+
+        return true;
     }
 }

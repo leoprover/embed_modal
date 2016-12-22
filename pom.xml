@@ -19,7 +19,6 @@
         <module>embed</module>
         <module>test_problems</module>
         <module>test_parser</module>
-        <module>test_qmltp</module>
         <module>convert_qmltp_to_thf</module>
     </modules>
 

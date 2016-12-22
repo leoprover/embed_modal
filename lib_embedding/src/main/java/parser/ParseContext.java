@@ -17,20 +17,24 @@ public class ParseContext {
         parserRuleContext = null;
     }
 
-    void setName(String name) {
+    public void setName(String name) {
         this.name = name;
     }
 
-    void setParseError(String parseError) {
+    public void setParseError(String parseError) {
         this.parseError = parseError;
     }
 
-    void setRoot(Node root) {
+    public void setRoot(Node root) {
         this.root = root;
     }
 
-    void setParserRuleContext(ParserRuleContext parserRuleContext) {
+    public void setParserRuleContext(ParserRuleContext parserRuleContext) {
         this.parserRuleContext = parserRuleContext;
+    }
+
+    public boolean hasParseError(){
+        return parseError != null;
     }
 
     public String getName() {

@@ -63,9 +63,9 @@ public class SatallaxWrapper {
                 stderrSAT += s;
             }
             this.sat = extractSZSStatus(this.stdoutSAT);
-            System.out.println("status:"+this.status);
-            System.out.println("status:"+this.sat);
-            System.out.println(problemWithoutConjecture);
+            //System.out.println("status:"+this.status);
+            //System.out.println("status:"+this.sat);
+            //System.out.println(problemWithoutConjecture);
         } catch (IOException e) {
             this.stdout = null;
             e.printStackTrace();

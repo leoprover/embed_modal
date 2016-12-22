@@ -5,53 +5,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 public class ConvertQmltpToThf {
 
-    public static String resultPath = null;
-
-    public static void convert(Path inPath){
-        System.out.println("processing " + inPath);
-        Path directory = Paths.get(resultPath,inPath.getParent().getFileName().toString());
-        if (!Files.exists(directory)){
-            try {
-                Files.createDirectories(directory);
-            } catch (IOException e) {
-                System.err.println("Could not create directory "+ directory.toString());
-                e.printStackTrace();
-            }
-        }
-        Path outPath = Paths.get(directory.toString(),inPath.getFileName().toString());
-        try {
-            String problem = new String(Files.readAllBytes(inPath));
-            if (problem.contains("meets") ||
-                    problem.contains("a_truth") ||
-                    problem.contains("equiv") ||
-                    problem.contains("implies") ||
-                    problem.contains("is_a_theorem") ||
-                    problem.contains("a_truth") ||
-                    problem.contains("a_truth") ||
-                    problem.contains("a_truth") ||
-                    problem.contains("a_truth") ||
-                    problem.contains("a_truth") ||
-                    problem.contains("a_truth") ||
-
-                    problem.contains("qmltpeq")){
-                return;
-            }
-            problem = problem.replaceAll("#box[ ]*: ","\\$box @ ").replaceAll("qmf","thf");
-            try{
-                Files.write(outPath,problem.getBytes());
-            }catch (IOException f){
-                System.err.println("Could not write to file " + outPath.toString());
-                f.printStackTrace();
-            }
-        } catch (IOException e) {
-            System.err.println("Could not open file " + inPath.toString());
-            e.printStackTrace();
-        }
-    }
+    private static final Logger log = Logger.getLogger( "default" );
 
     public static void main(String[] args) {
         if (args.length != 2){
@@ -63,10 +22,9 @@ public class ConvertQmltpToThf {
 
         String qmltpPath = args[0]; // "/home/tg/university/bachelor_thesis/QMLTP-v1.1/";
         String resultPath = args[1]; // "/home/tg/university/bachelor_thesis/software/output/convert_qmltp_to_thf/";
-        ConvertQmltpToThf.resultPath = resultPath;
 
         if (!Files.isDirectory(Paths.get(qmltpPath))){
-            System.err.println("qmltp path is not a directory\nTwo arguments needed: \n" +
+            System.err.println("path is not a directory\nTwo arguments needed: \n" +
                     "/path/to/tptp/Problems/directory\n" +
                     "/path/to/result/");
             System.err.println(qmltpPath + " is not a valid directory");
@@ -79,13 +37,8 @@ public class ConvertQmltpToThf {
             System.err.println(resultPath + " is not a valid directory");
         }
 
-        Path problemsPath = Paths.get(qmltpPath,"Problems");
-        try (Stream<Path> paths = Files.walk(problemsPath)) {
-            paths.filter(Files::isRegularFile).filter(p->!p.toString().contains("/MML/")).forEach(ConvertQmltpToThf::convert);
-        } catch (IOException e) {
-            System.err.println("Could not scan directory properly");
-            e.printStackTrace();
-        }
+        Path problemsPath = Paths.get(qmltpPath);
+        Wrapper.convertQmfTraverseDirectories(problemsPath,resultPath,true,true,"dot");
 
     }
 

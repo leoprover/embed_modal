@@ -16,6 +16,26 @@
 
     <build>
         <plugins>
+            <!-- antlr -->
+            <plugin>
+                <groupId>org.antlr</groupId>
+                <artifactId>antlr4-maven-plugin</artifactId>
+                <version>4.5</version>
+                <configuration>
+                    <arguments>
+                        <argument>-package</argument>
+                        <argument>parser</argument>
+                    </arguments>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>antlr</id>
+                        <goals>
+                            <goal>antlr4</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -28,7 +48,7 @@
                             <shadedArtifactAttached>true</shadedArtifactAttached>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>main.EmbedModal</mainClass>
+                                    <mainClass>main.ConvertQmltpToThf</mainClass>
                                 </transformer>
                             </transformers>
                             <minimizeJar>true</minimizeJar>
@@ -40,6 +60,13 @@
     </build>
 
     <dependencies>
+
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr4-maven-plugin</artifactId>
+            <version>4.5.1-1</version>
+            <type>maven-plugin</type>
+        </dependency>
         <dependency>
             <groupId>root</groupId>
             <artifactId>lib_embedding</artifactId>

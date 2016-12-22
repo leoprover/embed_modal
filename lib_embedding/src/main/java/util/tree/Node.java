@@ -675,6 +675,9 @@ public class Node {
         return String.join("", output).trim();
     }
 
+    /*
+     * puts % before every line
+     */
     public String toStringWithLinebreaksCommented() {
         List<Node> tPTPInputs = findtPTP_inputs();
         List<String> output = new ArrayList<>();

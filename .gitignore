@@ -1,4 +1,3 @@
 *.iml
-.idea/
-output/
 *target/
+.idea
