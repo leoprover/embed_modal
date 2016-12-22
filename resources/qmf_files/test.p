@@ -1,8 +1,8 @@
-qmf(query_23,conjecture,
-( ? [X] : (unaryA(unaryB(X))))).
-qmf(query_23,conjecture,
-( ? [X] : (binaryC(unaryA(X),X)))).
-qmf(query_23,conjecture,
-( ? [X] : (ternaryD(unaryA(X),X,binaryB(X,unaryA(X)))))).
+qmf(query_23,axiom,
+( ? [X] : (unaryPredA(unaryFuncB(X))))).
+qmf(query_23,axiom,
+( ? [X] : (binaryPredC(unaryFuncD(X),X)))).
+qmf(query_23,axiom,
+( ? [X] : (ternaryPredE(unaryFuncB(X),X,binaryFuncF(X,unaryFuncB(X)))))).
 
 

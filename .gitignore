@@ -1,3 +1,5 @@
 *.iml
-*target/
+*target
 .idea
+QMLTP-v1.1
+TPTP-v6.4.0
