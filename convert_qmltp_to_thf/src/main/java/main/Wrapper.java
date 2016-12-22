@@ -96,6 +96,7 @@ public class Wrapper {
         Node root = parseContext.getRoot();
 
         // create input dot
+        /*
         if (dotin != null){
             String dotInContent = root.toDot();
             Files.write(dotin, dotInContent.getBytes());
@@ -103,7 +104,7 @@ public class Wrapper {
                 String cmd = dotBin + " -Tps " + dotin + " -o " + dotin + ".ps";
                 Runtime.getRuntime().exec(cmd);
             }
-        }
+        }*/
 
         // check for parse error
         if ( parseContext.hasParseError()) return false;
@@ -114,6 +115,7 @@ public class Wrapper {
         //System.out.println(context.getNewProblem());
 
         // create output dot
+        /*
         if (dotout != null){
             String dotOutContent = context.converted.toDot();
             Files.write(dotout, dotOutContent.getBytes());
@@ -121,7 +123,7 @@ public class Wrapper {
                 String cmd = dotBin + " -Tps " + dotout + " -o " + dotout + ".ps";
                 Runtime.getRuntime().exec(cmd);
             }
-        }
+        }*/
 
 
         // output

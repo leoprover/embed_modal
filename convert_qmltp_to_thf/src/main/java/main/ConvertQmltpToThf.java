@@ -15,7 +15,6 @@ public class ConvertQmltpToThf {
 
     public static void main(String[] args) {
 
-        log.setUseParentHandlers(false);
         log.setLevel(Level.ALL);
 
         if (args.length != 2){
