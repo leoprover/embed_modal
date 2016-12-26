@@ -30,6 +30,9 @@ public class Converter {
     public ConvertContext convert(){
         converted = original.deepCopy();
 
+        // correct Fof errors
+        correctSyntax();
+
         // replace qmf by thf
         converted.dfsRuleAllToplevel("qmf_annotated").stream().forEach(q->{
             q.getFirstChild().getFirstLeaf().setLabel("thf");
@@ -157,6 +160,16 @@ public class Converter {
         ConvertContext context = new ConvertContext(original,converted,name,definitions.toString());
         //System.out.println(context.getNewProblem());
         return context;
+    }
+
+    private void correctSyntax(){
+        // surround negated operand with parentheses
+        this.converted.dfsRuleAll("fof_unary_formula").forEach(n->{
+            Node oParen = new Node ("t_o_paren","(");
+            n.addChildAt(oParen,1);
+            Node cParen = new Node ("t_c_paren",")");
+            n.addChild(cParen);
+        });
     }
 
     private void convertFunctor(Node functor, boolean isPredicate){
