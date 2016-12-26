@@ -99,8 +99,8 @@ public class EmbedModal {
                 .build()
         );
         CommandLineParser parser = new DefaultParser();
-        log.setUseParentHandlers(false);
-        log.setLevel(Level.ALL);
+        //log.setUseParentHandlers(false);
+        //log.setLevel(Level.ALL);
         ConsoleHandler cHandler = new ConsoleHandler();
         log.addHandler(cHandler);
         cHandler.setLevel(Level.ALL);
