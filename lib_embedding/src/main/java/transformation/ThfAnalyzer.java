@@ -43,7 +43,7 @@ public class ThfAnalyzer {
     }
 
     private void analyzeAst() throws AnalysisException {
-        log.info("Analyzing root.");
+        log.fine("Analyzing root.");
         if (this.root.getFirstChild() == null){
             throw new AnalysisException("tptp_file has no children");
         }

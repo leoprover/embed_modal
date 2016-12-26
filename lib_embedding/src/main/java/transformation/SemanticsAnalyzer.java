@@ -97,8 +97,8 @@ public class SemanticsAnalyzer {
     }
 
     public void analyzeModalSemantics() throws AnalysisException{
-        log.info("Analyzing modal semantics.");
-        log.info("There are " + this.semanticsNodes.size() + " semantical thf sentences.");
+        log.fine("Analyzing modal semantics.");
+        log.fine("There are " + this.semanticsNodes.size() + " semantical thf sentences.");
 
         // iterate over all thf sentences containing semantics
         for (Node semanticsNode : this.semanticsNodes){
@@ -143,7 +143,7 @@ public class SemanticsAnalyzer {
                 }
             }
         }
-        log.info("Semantics summary:\n" + this.toString());
+        log.fine("Semantics summary:\n" + this.toString());
     }
 
     private void analyzeConstant(Node node){

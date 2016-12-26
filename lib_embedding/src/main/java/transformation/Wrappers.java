@@ -58,8 +58,8 @@ public class Wrappers {
                 try(Stream<Path> pathsNew = Files.walk(inPath)){
                     log.info("Converting problems.");
                     pathsNew.filter(Files::isRegularFile).filter(f->f.toString().endsWith(".p")).forEach(f->{
-                        log.info("Processing " + problems.get() + ": " + f.toString());
                         problems.getAndIncrement();
+                        log.info("Processing " + String.valueOf(problems.get()) + ": " + f.toString());
                         String subdir = f.toString().substring(inPath.getParent().toString().length());
                         Path outPath = Paths.get(oPath,subdir);
                         Path inDot = Paths.get(outPath.toString()+".in.dot");
@@ -146,7 +146,7 @@ public class Wrappers {
      * semantics can be null ( semantics is already in the problem file )
      */
     public static boolean convertModal(Path inPath, Path outPath, Path inDot, Path outDot, String dotBin, String semantics) throws IOException, exceptions.ParseException, AnalysisException, TransformationException {
-        log.info("Processing " + inPath.toString());
+        //log.info("Processing " + inPath.toString());
         // read file
         if (!Files.isRegularFile(inPath)){
             throw new IOException("Could not read file " + inPath + " ::: " + "Not a regular file or does not exist");
