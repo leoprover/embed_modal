@@ -26,7 +26,10 @@ public class ConvertQmltpToThf {
 
         String qmltpPath = args[0]; // "/home/tg/university/bachelor_thesis/QMLTP-v1.1/";
         String resultPath = args[1]; // "/home/tg/university/bachelor_thesis/software/output/convert_qmltp_to_thf/";
-
+        Boolean makeDot = false;
+        if (args.length == 3){
+            makeDot = true;
+        }
         if (!Files.isDirectory(Paths.get(qmltpPath))){
             System.err.println("path is not a directory\nTwo arguments needed: \n" +
                     "/path/to/tptp/Problems/directory\n" +
@@ -44,7 +47,7 @@ public class ConvertQmltpToThf {
         }
 
         Path problemsPath = Paths.get(qmltpPath);
-        Wrapper.convertQmfTraverseDirectories(problemsPath,resultPath,true,true,"dot");
+        Wrapper.convertQmfTraverseDirectories(problemsPath,resultPath,makeDot,makeDot,"dot");
 
     }
 
