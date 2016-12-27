@@ -17,7 +17,7 @@ public class ConvertQmltpToThf {
 
         log.setLevel(Level.ALL);
 
-        if (args.length != 2){
+        if (args.length != 2 && args.length != 3){
             System.err.println("Unmatched argument size\nTwo arguments needed: \n" +
                     "/path/to/tptp/Problems/directory\n" +
                     "/path/to/result\n");

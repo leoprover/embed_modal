@@ -1,6 +1,8 @@
 package main;
 
 
+import exceptions.ParseException;
+import parser.ParseContext;
 import util.tree.Node;
 
 import java.util.*;
@@ -15,7 +17,9 @@ public class Converter {
     HashMap<String,Integer> functionMap; // {$i}^n -> $i
     HashSet<String> propositions; // constants of $o
     HashSet<String> constantIndividuals; // constants of $i
-    HashSet<String> usedNames;
+    HashSet<String> usedSymbols;
+    HashSet<String> modal_identifiers; // box @ modal_identifier @ modal_body
+    String defaultIndexType;
 
     private static final Logger log = Logger.getLogger( "default" );
 
@@ -25,10 +29,15 @@ public class Converter {
         this.predicateMap = new HashMap<>();
         this.functionMap = new HashMap<>();
         this.propositions = new HashSet<>();
+        this.usedSymbols = new HashSet<>();
+        this.modal_identifiers = new HashSet<>();
+        this.defaultIndexType = "index_type";
+        this.defaultIndexType = getUnusedName(defaultIndexType);
     }
 
-    public ConvertContext convert(){
+    public ConvertContext convert() throws ConversionException{
         converted = original.deepCopy();
+        // if (true) return new ConvertContext(original,converted,"asd","asd"); // parser debug mode
 
         // correct Fof errors
         correctSyntax();
@@ -38,15 +47,33 @@ public class Converter {
             q.getFirstChild().getFirstLeaf().setLabel("thf");
         });
 
-        // replace box dia colon
+        // replace single box dia
         List<Node> modal_nodes = converted.dfsRuleAll("fof_modal");
-        modal_nodes.stream().forEach(n->{
+        modal_nodes.forEach(n->{
             if (n.getChild(0).getLabel().equals("#box")){
                 n.getChild(0).setLabel("$box");
             } else if (n.getChild(0).getLabel().equals(("#dia"))){
                 n.getChild(0).setLabel("$dia");
             }
-            n.getChild(1).setLabel("@");
+            n.getChild(1).setLabel("@"); // open paren -> @
+        });
+
+        // replace multimodal box and dia
+        List<Node> multimodal_nodes = converted.dfsRuleAll("fof_multimodal");
+        multimodal_nodes.forEach(n->{
+            if (n.getChild(0).getLabel().equals("#box")){
+                n.getChild(0).setLabel("$box");
+            } else if (n.getChild(0).getLabel().equals(("#dia"))){
+                n.getChild(0).setLabel("$dia");
+            }
+            modal_identifiers.add(n.getChild(2).getLastChild().getLabel());
+            n.getChild(1).setLabel("@"); // open paren -> @
+            n.getChild(3).setLabel("@"); // closing paren -> @
+            n.delChildAt(4); // remove :
+            Node index_type = new Node("t_modal_index_type",defaultIndexType);
+            n.addChildAt(index_type,1);
+            Node at_index_type = new Node("t_modal_index_type_at","@");
+            n.addChildAt(at_index_type,1);
         });
 
         // add types to all quantified variables
@@ -94,26 +121,76 @@ public class Converter {
         functions.stream().filter(p->p.getChildren().size()!=1).forEach(p->convertFunctor(p,false));
 
         // check if thf formula names interfere with newly defined symbols
-        HashSet<String> usedSymbols = new HashSet(this.propositions);
-        usedSymbols.addAll(this.constantIndividuals);
-        usedSymbols.addAll(this.predicateMap.keySet());
-        usedSymbols.addAll(this.functionMap.keySet());
+        this.usedSymbols = new HashSet(this.propositions);
+        this.usedSymbols.addAll(this.constantIndividuals);
+        this.usedSymbols.addAll(this.predicateMap.keySet());
+        this.usedSymbols.addAll(this.functionMap.keySet());
         for (Node n : this.converted.dfsRuleAll("name")){
             Node leaf = n.getFirstLeaf();
             String name = leaf.getLabel();
-            int i = 0;
-            String t_name = name;
-            while (usedSymbols.contains(name)){
-                name = t_name + "_" + String.valueOf(i);
-                i++;
-            }
-            usedSymbols.add(name);
+            name = this.getUnusedName(name);
             leaf.setLabel(name);
         }
 
         StringBuilder definitions = new StringBuilder();
+        // convert semantics
+        definitions.append("% semantics\n");
+        List<Node> semantics = converted.dfsRuleAll("tpi_sem_formula");
+        for (Node s : semantics){
+            definitions.append("thf(");
+            definitions.append(getUnusedName("semantics"));
+            definitions.append(",logic,($modal :=\n");
+            List<String> modal_keywords = s.dfsRuleAll("modal_keyword").stream().map(k->k.getLastChild().getFirstLeaf().getLabel()).collect(Collectors.toList());
+            //modal_keywords.forEach(n-> System.out.println(":" + n + ":"));
+            definitions.append("[$constants := ");
+            if (modal_keywords.contains("rigid")) definitions.append("$rigid");
+            else definitions.append("$flexible");
+            definitions.append(",\n");
+            definitions.append("$quantification := ");
+            if (modal_keywords.contains("cumulative")) definitions.append("$cumulative");
+            else if (modal_keywords.contains("decreasing")) definitions.append("$decreasing");
+            else if (modal_keywords.contains("varying")) definitions.append("$varying");
+            else definitions.append("$constant");
+            definitions.append(",\n");
+            definitions.append("$consequence := ");
+            if (modal_keywords.contains("local")) definitions.append("$local");
+            else definitions.append("$global");
+            definitions.append(",\n");
+            List<Node> modality_pairs = s.dfsRuleAll("modality_pair");
+            definitions.append("$modalities := [");
+            for (int i = 1;i <= modality_pairs.size();i++){
+                String modal_identifier = modality_pairs.get(i-1).getChild(1).getFirstLeaf().getLabel();
+                String modal_system = modality_pairs.get(i-1).getChild(3).getFirstLeaf().getLabel();
+                //System.out.println(modal_identifier + ":" + modal_system);
+                definitions.append(modal_identifier);
+                definitions.append(" := ");
+                definitions.append(mapModalSystem(modal_system));
+                if (i != modality_pairs.size()) definitions.append(" , ");
+            }
+            definitions.append("])).\n\n");
+        }
+        // declare multimodal accessibility relations
+        definitions.append("% modalities\n");
+        definitions.append("thf(");
+        definitions.append(getUnusedName("index_type_type"));
+        definitions.append(" , type , (");
+        definitions.append(defaultIndexType);
+        definitions.append(" : $tType ) ).\n");
+        for (Node s : semantics){
+            List<String> modalitiy_identifiers = s.dfsRuleAll("modality_pair").stream()
+                    .map(p->p.getChild(1).getFirstLeaf().getLabel()).collect(Collectors.toList());
+            for (String modality : modalitiy_identifiers){
+                definitions.append("thf(");
+                definitions.append(getUnusedName("rel_" + modality + "_type"));
+                definitions.append(",type,(");
+                definitions.append(modality);
+                definitions.append(" : ");
+                definitions.append(defaultIndexType);
+                definitions.append(")).\n");
+            }
+        }
         // add types for propositions
-        definitions.append("% propositions\n");
+        definitions.append("\n% propositions\n");
         this.propositions.forEach(p->{
             definitions.append("thf(");
             definitions.append(p);
@@ -172,6 +249,25 @@ public class Converter {
         });
     }
 
+    private String getUnusedName(String name){
+        int i = 0;
+        String t_name = name;
+        while (this.usedSymbols.contains(name)){
+            name = t_name + "_" + String.valueOf(i);
+            i++;
+        }
+        this.usedSymbols.add(name);
+        return name;
+    }
+
+    private String mapModalSystem(String system) throws ConversionException{
+        if (system.equals("k")) return "$modal_system_K";
+        else if (system.equals("t")) return "$modal_system_T";
+        else if (system.equals("d")) return "$modal_system_D";
+        else if (system.equals("s4")) return "$modal_system_S4";
+        else if (system.equals("s5")) return "$modal_system_S5";
+        else throw new ConversionException(system + " is not a valid modal system");
+    }
     private void convertFunctor(Node functor, boolean isPredicate){
         // iterate over arguements
         Node argument = functor.getChild(2);

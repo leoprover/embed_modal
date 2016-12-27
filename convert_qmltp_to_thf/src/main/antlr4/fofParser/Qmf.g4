@@ -62,6 +62,7 @@ grammar Qmf;
 tPTP_file            : tPTP_input*
                      ;
 tPTP_input           : annotated_formula
+                     | tpi_semantics
                      | include
                      | comment
                      ;
@@ -82,6 +83,21 @@ annotated_formula           : qmf_annotated
 // TPI GENERAL RULES
 // ==============================================================================
 // TODO add TPI
+
+
+tpi_semantics : 'tpi' L_PAREN name COMMA formula_role COMMA tpi_sem_formula R_PAREN '.';
+tpi_sem_formula: 'modal' L_PAREN L_SQUARE_BRACKET modal_keyword_list R_SQUARE_BRACKET ',' L_SQUARE_BRACKET modality_pair_list R_SQUARE_BRACKET R_PAREN;
+
+modal_keyword_list: modal_keyword | modal_keyword ',' modal_keyword_list;
+modal_keyword : lower_word;
+//MODAL_KEYWORD : 'cumulative'|'varying'|'constant'|'decreasing'
+//               |'rigid'|'flexible'
+//               |'global'|'local';
+modality_pair_list : modality_pair | modality_pair ',' modality_pair_list;
+modality_pair: L_PAREN fof_modal_identifier ',' modal_system R_PAREN;
+modal_system: lower_word;
+fof_modal_identifier : lower_word;
+
 
 /*
 tpi_annotated               : 'tpi' L_PAREN name COMMA formula_role COMMA tpi_formula R_PAREN '.' // annotation is not supported
@@ -108,14 +124,17 @@ formula_role                : lower_word
 //----FOF formulae.
 
 fof_formula          : fof_logic_formula; //| fof_sequent;
-fof_logic_formula    : fof_binary_formula | fof_unitary_formula | fof_modal;
-fof_modal: MODAL_OPERATOR ':' L_PAREN fof_logic_formula R_PAREN
-         //| MODAL_OPERATOR ':' fof_logic_formula;
-         | MODAL_OPERATOR ':' constant
-         | MODAL_OPERATOR ':' defined_constant
-         | MODAL_OPERATOR ':' system_constant;
+fof_logic_formula    : fof_binary_formula | fof_unitary_formula | fof_modal | fof_multimodal;
 
+fof_modal: MODAL_OPERATOR ':' fof_modal_body;
+fof_multimodal : MODAL_OPERATOR L_PAREN fof_modal_identifier R_PAREN ':' fof_modal_body;
+fof_modal_body : L_PAREN fof_logic_formula R_PAREN
+         //| MODAL_OPERATOR ':' fof_logic_formula;
+         | constant
+         | defined_constant
+         | system_constant;
 MODAL_OPERATOR : '#box'|'#dia';
+
 //----Future answer variable ideas | <answer_formula
 fof_binary_formula   : fof_binary_nonassoc | fof_binary_assoc;
 //----Only some binary connectives are associative
