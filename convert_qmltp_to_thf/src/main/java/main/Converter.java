@@ -171,11 +171,13 @@ public class Converter {
         }
         // declare multimodal accessibility relations
         definitions.append("% modalities\n");
-        definitions.append("thf(");
-        definitions.append(getUnusedName("index_type_type"));
-        definitions.append(" , type , (");
-        definitions.append(defaultIndexType);
-        definitions.append(" : $tType ) ).\n");
+        if (multimodal_nodes.size() != 0){
+            definitions.append("thf(");
+            definitions.append(getUnusedName("index_type_type"));
+            definitions.append(" , type , (");
+            definitions.append(defaultIndexType);
+            definitions.append(" : $tType ) ).\n");
+        }
         for (Node s : semantics){
             List<String> modalitiy_identifiers = s.dfsRuleAll("modality_pair").stream()
                     .map(p->p.getChild(1).getFirstLeaf().getLabel()).collect(Collectors.toList());
@@ -240,8 +242,8 @@ public class Converter {
     }
 
     private void correctSyntax(){
-        // surround negated operand with parentheses
-        this.converted.dfsRuleAll("fof_unary_formula").forEach(n->{
+        // surround negated operand with parentheses, exclude infix inequality terms
+        this.converted.dfsRuleAll("fof_unary_formula").stream().filter(n->n.getChildren().size()!=1).forEach(n->{
             Node oParen = new Node ("t_o_paren","(");
             n.addChildAt(oParen,1);
             Node cParen = new Node ("t_c_paren",")");
