@@ -10,6 +10,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -38,9 +39,11 @@ public class ProblemTesterSatallax {
         }
 
         // convert send all problems to satallax
+        AtomicInteger problems = new AtomicInteger();
         try(Stream<Path> paths = Files.walk(inPath)){
             paths.filter(Files::isRegularFile).filter(f->f.toString().contains(".p") && !f.toString().contains(".ps") && !f.toString().contains(".dot")).forEach(f->{
-                System.out.println("Processing " + f.toString());
+                problems.incrementAndGet();
+                System.out.println("Processing " + String.valueOf(problems.get()) + " " + f.toString());
                 SatallaxWrapper s = new SatallaxWrapper();
                 try {
                     s.call(f,timoutPerProblem,timeUnit);
