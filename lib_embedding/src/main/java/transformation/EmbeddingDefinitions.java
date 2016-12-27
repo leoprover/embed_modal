@@ -253,12 +253,130 @@ public class EmbeddingDefinitions {
         return mforall_const_th0(type).replaceAll("forall","exists").replaceAll("!","?");
     }
 
+    public static String eiw_th0(String type){
+        StringBuilder sb = new StringBuilder();
+        type = normalizeType(type);
+        String escapedType = escapeType(type);
+        // concrete type sentence from
+        // thf( exists_in_world_type , type , ( eiw : !> [T:$tType] : (T > " + w + " > $o) ) ).
+        sb.append("thf( exists_in_world_type_");
+        sb.append(escapedType);
+        sb.append(" , type , ( eiw_");
+        sb.append(escapedType);
+        sb.append(" : ( ( ( ");
+        sb.append(type);
+        sb.append(" ) > ( " + w + " > $o ) ) ) ) ).");
+        sb.append("\n");
+        // non-emptyness axiom
+        // thf( eiw_nonempty , axiom , ( eiw_nonempty = (
+        // ! [W:" + w + "]: ? [X:T] : eiw @ X @ W
+        //        ))).
+        sb.append("thf( eiw_nonempty_");
+        sb.append(escapedType);
+        sb.append(" , axiom , (");
+        sb.append("! [W:" + w + "]: ( ? [X:("+type+")] : (");
+        sb.append("eiw_");
+        sb.append(escapedType);
+        sb.append(" @ X @ W");
+        sb.append(")))).");
+        return sb.toString();
+    }
+
+    public static String eiw_symbol_th0(String constant, String type){
+        StringBuilder sb = new StringBuilder();
+        type = normalizeType(type);
+        String escapedType = escapeType(type);
+        // non-emptyness axiom
+        // thf( eiw_nonempty , axiom , ( eiw_nonempty = (
+        // ! [W:" + w + "]: ? [X:T] : eiw @ X @ W
+        //        ))).
+        sb.append("thf( eiw_");
+        sb.append(constant);
+        sb.append(" , axiom , (");
+        sb.append("! [W:" + w + "]: ( (");
+        sb.append("eiw_");
+        sb.append(escapedType);
+        sb.append(" @ ");
+        sb.append(constant);
+        sb.append("@ W");
+        sb.append(")))).");
+        return sb.toString();
+    }
+
+    public static String mforall_varying_th0(String type){
+        StringBuilder sb = new StringBuilder();
+        type = normalizeType(type);
+        String escapedType = escapeType(type);
+        // concrete type sentence from
+        // thf( mforall_const_type , type , ( mforall_const : !> [T:$tType] : (T > " + w + " > $o) > " + w + " > $o ) ).
+        sb.append("thf( mforall_vary_type_");
+        sb.append(escapedType);
+        sb.append(" , type , ( mforall_vary_");
+        sb.append(escapedType);
+        sb.append(" : ( ( ( ");
+        sb.append(type);
+        sb.append(" ) > ( " + w + " > $o ) ) > " + w + " > $o ) ) ).");
+        sb.append("\n");
+        // concrete definition sentence from
+        // thf( mforall_const , definition , ( mforall_const = (
+        // ^ [A:T>" + w + ">$o,W:" + w + "] : ! [X:T] : ((eiw  @ X @ W) => (A @ X @ W))
+        //        ))).
+        sb.append("thf( mforall_vary_");
+        sb.append(escapedType);
+        sb.append(" , definition , ( mforall_vary_");
+        sb.append(escapedType);
+        sb.append(" = ( ^ [A:(");
+        sb.append(type);
+        sb.append(")>" + w + ">$o,W:" + w + "] : ! [X:(");
+        sb.append(type);
+        sb.append(")] : ((eiw @ X @ W) => (A @ X @ W))");
+        sb.append("))).");
+        return sb.toString();
+    }
+
+    public static String mexists_varying_th0(String type){
+        StringBuilder sb = new StringBuilder();
+        type = normalizeType(type);
+        String escapedType = escapeType(type);
+        sb.append("thf( mexists_vary_type_");
+        sb.append(escapedType);
+        sb.append(" , type , ( mexists_vary_");
+        sb.append(escapedType);
+        sb.append(" : ( ( ( ");
+        sb.append(type);
+        sb.append(" ) > ( " + w + " > $o ) ) > " + w + " > $o ) ) ).");
+        sb.append("\n");
+        // concrete definition sentence from
+        // thf( mexists_const , definition , ( mexists_const = (
+        // ^ [A:T>" + w + ">$o,W:" + w + "] : ? [X:T] : ((eiw  @ X @ W) & (A @ X @ W))
+        //        ))).
+        sb.append("thf( mexists_vary_");
+        sb.append(escapedType);
+        sb.append(" , definition , ( mexists_vary_");
+        sb.append(escapedType);
+        sb.append(" = ( ^ [A:(");
+        sb.append(type);
+        sb.append(")>" + w + ">$o,W:" + w + "] : ? [X:(");
+        sb.append(type);
+        sb.append(")] : ((eiw @ X @ W) & (A @ X @ W))");
+        sb.append("))).");
+        return sb.toString();
+    }
+
     public static String embedded_forall(String type){
         return "mforall_const_" + escapeType(type);
     }
 
     public static String embedded_exists(String type){
         return "mexists_const_" + escapeType(type);
+    }
+
+    public static String embedded_forall_varying(String type){
+        return "mforall_vary_" + escapeType(type);
+    }
+
+    public static String embedded_exists_varying(String type){
+        return "mexists_vary_" + escapeType(type);
     }
 
     public static String normalizeType(String type){
