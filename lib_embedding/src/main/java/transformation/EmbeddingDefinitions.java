@@ -252,7 +252,7 @@ public class EmbeddingDefinitions {
     public static String mexists_const_th0(String type){
         return mforall_const_th0(type).replaceAll("forall","exists").replaceAll("!","?");
     }
-
+    /** Exists in world predicate for a certain type */
     public static String eiw_th0(String type){
         StringBuilder sb = new StringBuilder();
         type = normalizeType(type);
@@ -282,7 +282,8 @@ public class EmbeddingDefinitions {
         return sb.toString();
     }
 
-    public static String eiw_symbol_th0(String constant, String type){
+    /** Axiom for the existence of a constant `constant` of type `type`. */
+    public static String constant_eiw_th0(String constant, String type){
         StringBuilder sb = new StringBuilder();
         type = normalizeType(type);
         String escapedType = escapeType(type);
@@ -303,6 +304,7 @@ public class EmbeddingDefinitions {
         return sb.toString();
     }
 
+    /** Declaration of varying domain quantifier */
     public static String mforall_varying_th0(String type){
         StringBuilder sb = new StringBuilder();
         type = normalizeType(type);
@@ -334,6 +336,7 @@ public class EmbeddingDefinitions {
         return sb.toString();
     }
 
+    /** Declaration of varying domain quantifier */
     public static String mexists_varying_th0(String type){
         StringBuilder sb = new StringBuilder();
         type = normalizeType(type);
