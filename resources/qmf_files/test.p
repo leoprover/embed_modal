@@ -1,3 +1,3 @@
-qmf(mod48,hypothesis,
-    (#box : (#box : (#box : (#box : (#box : (#box : (#box : (#box : (#box : (#box : ((~ v11) | (#box : (#box : (#box : (#box : ((~ v7) | (#box : (#box : ((~ v5) | (#box : (#box : (#box : (#box : v1)))))))))))))))))))))))
-    ).
+qmf(con,conjecture,
+(((#dia : (? [X] : (#dia : (? [Y] : (X != Y))))) & (a & (#box : (! [X] : (#box : (a => e(X))))))) =>
+(? [X] : (? [Y] : (X != Y))))).
