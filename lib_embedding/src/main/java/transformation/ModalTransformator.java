@@ -19,6 +19,7 @@ public class ModalTransformator {
 
     private Set<String> typesExistsQuantifiers;
     private Set<String> typesForAllQuantifiers;
+    private Set<String> typesForVaryingQuantifiers;
     private Set<String> usedOperators;
     private Set<String> usedSymbols;
 
@@ -44,6 +45,7 @@ public class ModalTransformator {
         this.transformedRoot = root;
         typesExistsQuantifiers = new HashSet<>();
         typesForAllQuantifiers = new HashSet<>();
+        typesForVaryingQuantifiers = new HashSet<>();
         usedOperators = new HashSet<>();
         usedSymbols = new HashSet<>();
     }
@@ -208,18 +210,24 @@ public class ModalTransformator {
                 // add embedded quantifier functor and add quantifier for the type to
                 Node quant;
                 String normalizedType = EmbeddingDefinitions.normalizeType(type);
-                SemanticsAnalyzer.DomainType domainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(normalizedType, SemanticsAnalyzer.DomainType.CONSTANT);
+                SemanticsAnalyzer.DomainType defaultDomainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(
+                        SemanticsAnalyzer.domainDefault, SemanticsAnalyzer.DomainType.CONSTANT);
+                SemanticsAnalyzer.DomainType domainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(normalizedType, defaultDomainType);
                 if (quantifier.equals("!")){
                     if (domainType == SemanticsAnalyzer.DomainType.CONSTANT)
                         quant = new Node("t_quantifier",EmbeddingDefinitions.embedded_forall(type));
-                    else
-                        quant = new Node("t_quantifier",EmbeddingDefinitions.embedded_forall_varying(type));
+                    else {
+                        quant = new Node("t_quantifier", EmbeddingDefinitions.embedded_forall_varying(type));
+                        typesForVaryingQuantifiers.add(normalizedType);
+                    }
                     typesForAllQuantifiers.add(normalizedType);
                 }else{
                     if (domainType == SemanticsAnalyzer.DomainType.CONSTANT)
                         quant = new Node("t_quantifier",EmbeddingDefinitions.embedded_exists(type));
-                    else
+                    else {
                         quant = new Node("t_quantifier",EmbeddingDefinitions.embedded_exists_varying(type));
+                        typesForVaryingQuantifiers.add(normalizedType);
+                    }
                     typesExistsQuantifiers.add(normalizedType);
                 }
                 thf_typed_variable.addChildAt(quant,0);
@@ -428,9 +436,16 @@ public class ModalTransformator {
         //typesForAllQuantifiers.add("$o>$o");
         //typesExistsQuantifiers.add("plushie>$o");
         //typesForAllQuantifiers.add("plushie>$o");
-        def.append("% define exists quantifiers\n");
+        def.append("\n% define exists-in-world predicates for varying domain types\n");
+        for (String q: typesForVaryingQuantifiers) {
+            def.append(EmbeddingDefinitions.eiw_th0(q));
+            def.append("\n");
+        }
+        def.append("\n% define exists quantifiers\n");
         for (String q : typesExistsQuantifiers){
-            SemanticsAnalyzer.DomainType domainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(q, SemanticsAnalyzer.DomainType.CONSTANT);
+            SemanticsAnalyzer.DomainType defaultDomainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(
+                    SemanticsAnalyzer.domainDefault, SemanticsAnalyzer.DomainType.CONSTANT);
+            SemanticsAnalyzer.DomainType domainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(q, defaultDomainType);
             if (domainType == SemanticsAnalyzer.DomainType.CONSTANT)
                 def.append(EmbeddingDefinitions.mexists_const_th0(q));
             else
@@ -439,7 +454,9 @@ public class ModalTransformator {
         }
         def.append("\n% define for all quantifiers\n");
         for (String q: typesForAllQuantifiers){
-            SemanticsAnalyzer.DomainType domainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(q, SemanticsAnalyzer.DomainType.CONSTANT);
+            SemanticsAnalyzer.DomainType defaultDomainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(
+                    SemanticsAnalyzer.domainDefault, SemanticsAnalyzer.DomainType.CONSTANT);
+            SemanticsAnalyzer.DomainType domainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(q, defaultDomainType);
             if (domainType == SemanticsAnalyzer.DomainType.CONSTANT)
                 def.append(EmbeddingDefinitions.mforall_const_th0(q));
             else

@@ -331,7 +331,9 @@ public class EmbeddingDefinitions {
         sb.append(type);
         sb.append(")>" + w + ">$o,W:" + w + "] : ! [X:(");
         sb.append(type);
-        sb.append(")] : ((eiw @ X @ W) => (A @ X @ W))");
+        sb.append(")] : ((eiw_");
+        sb.append(escapedType);
+        sb.append(" @ X @ W) => (A @ X @ W))");
         sb.append("))).");
         return sb.toString();
     }
@@ -361,7 +363,9 @@ public class EmbeddingDefinitions {
         sb.append(type);
         sb.append(")>" + w + ">$o,W:" + w + "] : ? [X:(");
         sb.append(type);
-        sb.append(")] : ((eiw @ X @ W) & (A @ X @ W))");
+        sb.append(")] : ((eiw_");
+        sb.append(escapedType);
+        sb.append(" @ X @ W) & (A @ X @ W))");
         sb.append("))).");
         return sb.toString();
     }
