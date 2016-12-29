@@ -4,6 +4,7 @@ import util.external_software_wrappers.ProblemTesterSatallax;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -45,7 +46,7 @@ public class TestProblems {
         //log.setUseParentHandlers(false);
         log.setLevel(Level.ALL);
 
-        if (args.length != 2){
+        if (!(args.length == 2 || args.length == 3)){
             System.err.println("Unmatched argument size\nTwo arguments needed: \n" +
                     "/path/to/tptp/Problems/directory\n" +
                     "/path/to/result\n");
@@ -71,8 +72,10 @@ public class TestProblems {
         }
 
         ProblemTesterSatallax tester = new ProblemTesterSatallax();
+        Path filterList = null;
+        if (args.length == 3) filterList = Paths.get(args[2]);
         try {
-            tester.testProblemDirectory(Paths.get(inPathString),Paths.get(outputPathString),3,TimeUnit.SECONDS);
+            tester.testProblemDirectory(Paths.get(inPathString),Paths.get(outputPathString),3,TimeUnit.SECONDS,filterList);
         } catch (IOException e) {
             System.err.println("Could not traverse files");
             e.printStackTrace();

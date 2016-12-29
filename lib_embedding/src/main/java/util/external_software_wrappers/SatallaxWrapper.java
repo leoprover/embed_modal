@@ -19,6 +19,7 @@ public class SatallaxWrapper {
     public String stderrSAT = "";
     public String status = "";
     public String sat = "";
+    public String allout = "";
 
     private static final Logger log = Logger.getLogger( "default" );
 
@@ -47,10 +48,12 @@ public class SatallaxWrapper {
             this.status = extractSZSStatus(this.stdout);
             log.info(filename.toString() + " : SZS: " + this.status);
         } catch (IOException e) {
-            this.stdout = "";
+            if (this.stderr == null) this.stderr = "";
+            if (this.stdout == null) this.stdout = "";
             //e.printStackTrace();
             //throw new WrapperException(e.getMessage()+"\nStacktrace:\n"+e.getStackTrace().toString());
         }
+        this.allout = stdout + "\n:::::::\n" + this.stderr;
 
         try{
             // Call satallax on problem without conjecture and extract status (for sat)
@@ -80,7 +83,8 @@ public class SatallaxWrapper {
             //System.out.println("status:"+this.sat);
             //System.out.println(problemWithoutConjecture);
         } catch (IOException e) {
-            this.stdoutSAT = "";
+            if (this.stdoutSAT == null) this.stdoutSAT = "";
+            if (this.stderrSAT == null) this.stderrSAT = "";
             //e.printStackTrace();
             //throw new WrapperException(e.getMessage()+"\nStacktrace:\n"+e.getStackTrace().toString());
         }
@@ -120,11 +124,15 @@ public class SatallaxWrapper {
     }
 
     public boolean hasTypeError(){
-        return this.status.contains("Error") && this.stdout.contains("expected type");
+        return this.status.contains("Error") && this.stdout.contains("type");
+    }
+
+    public boolean hasError(){
+        return this.status.contains("Error");
     }
 
     public boolean hasUnknownStatus(){
-        if (!(this.isTheorem() || this.isCounterSatisfiable() || this.hasParserError())){
+        if (!(this.isTheorem() || this.isCounterSatisfiable() || this.isSatisfiable() || this.hasError())){
             return true;
         }
         return false;
