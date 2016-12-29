@@ -118,7 +118,7 @@ public class ProblemTesterSatallax {
                 e.printStackTrace();
             }
             */
-            // save all files of unknown to one file
+            // save all files of unknown status to one file
             try {
                 Files.write(Paths.get(outPath.toString(),"UnknownStatus"),this.all.stream()
                         .filter(p->p.s.hasUnknownStatus())
@@ -128,17 +128,47 @@ public class ProblemTesterSatallax {
                 System.err.println("Could not write UnknownStatus file");
                 e.printStackTrace();
             }
-            // save all failed files to one file
+            // save all timeouts when testing for theorem
             try {
-                Files.write(Paths.get(outPath.toString(),"Failed"),this.all.stream()
-                        .filter(p->p.s.hasUnknownStatus()||p.s.hasTypeError()||p.s.hasParserError())
-                        .map(p->p.s.status + "," + p.path.toString())
+                Files.write(Paths.get(outPath.toString(),"TimeoutTheorem"),this.all.stream()
+                        .filter(p->p.s.status.contains("Timeout"))
+                        .map(p->p.path.toString())
+                        .collect(Collectors.joining("\n")).getBytes());
+            } catch (IOException e) {
+                System.err.println("Could not write UnknownStatus file");
+                e.printStackTrace();
+            }
+            // save all timeouts when testing for SAT
+            try {
+                Files.write(Paths.get(outPath.toString(),"TimeoutSAT"),this.all.stream()
+                        .filter(p->p.s.sat.contains("Timeout"))
+                        .map(p->p.path.toString())
+                        .collect(Collectors.joining("\n")).getBytes());
+            } catch (IOException e) {
+                System.err.println("Could not write UnknownStatus file");
+                e.printStackTrace();
+            }
+            // save all files with status error to one file
+            try {
+                Files.write(Paths.get(outPath.toString(),"Error"),this.all.stream()
+                        .filter(p->p.s.hasError())
+                        .map(p->p.path.toString())
                         .collect(Collectors.joining("\n")).getBytes());
             } catch (IOException e) {
                 System.err.println("Could not write Failed file");
                 e.printStackTrace();
             }
-
+            // save all files with status error to one file and keep stdout
+            try {
+                Files.write(Paths.get(outPath.toString(),"ErrorReason"),this.all.stream()
+                        .filter(p->p.s.hasError())
+                        .map(p->p.path.toString() + " ::: " + p.s.allout.replaceAll("\\t","").replaceAll("\\n"," :: "))
+                        .collect(Collectors.joining("\n")).getBytes());
+            } catch (IOException e) {
+                System.err.println("Could not write Failed file");
+                e.printStackTrace();
+            }
+            // save status all files
             try {
                 Files.write(Paths.get(outPath.toString(),"Total"),this.all.stream()
                         .map(p->p.s.status + "," + p.path.toString())
@@ -152,7 +182,7 @@ public class ProblemTesterSatallax {
                    .filter(p->p.s.hasUnknownStatus()||p.s.hasParserError()||p.s.hasTypeError())
                    .forEach(p->{
                        try {
-                           Files.write(Paths.get(outPath.toString(), errorPrefix + p.path.getFileName().toString()),p.s.stdout.getBytes());
+                           Files.write(Paths.get(outPath.toString(), errorPrefix + p.path.getFileName().toString()), p.s.allout.getBytes());
                        } catch (IOException e) {
                            e.printStackTrace();
                        }
@@ -161,31 +191,4 @@ public class ProblemTesterSatallax {
         }
     }
 
-    public static String testProblem(Path inPath, long timoutPerProblem, TimeUnit timeUnit) throws WrapperException, InterruptedException {
-        StringBuilder res = new StringBuilder();
-        SatallaxWrapper s = new SatallaxWrapper();
-        s.call(inPath,timoutPerProblem,timeUnit);
-        // csv which contains whether the following properties apply (1 for true, 0 for false)
-        // stdout , stderr , parseerror ,
-        res.append(s.hasStdout() ? 1 : 0);
-        res.append(",");
-        res.append(s.hasStderr()  ? 1 : 0);
-        res.append(",");
-        res.append(s.hasParserError() ? 1 : 0);
-        res.append(",");
-        res.append(s.hasTypeError() ? 1 : 0);
-        res.append(",");
-        res.append(s.isTheorem() ? 1 : 0);
-        res.append(",");
-        res.append(s.isCounterSatisfiable() ? 1 : 0);
-        return res.toString();
-    }
-
-    /*
-    public static String testProblemPrettyPrint(Path inPath, Path outPath, long timoutPerProblem, TimeUnit timeUnit) throws WrapperException, InterruptedException, IOException {
-        String ret = testProblem(inPath,outPath,timoutPerProblem,timeUnit);
-        String[] values = ret.split(",");
-
-    }
-    */
 }
