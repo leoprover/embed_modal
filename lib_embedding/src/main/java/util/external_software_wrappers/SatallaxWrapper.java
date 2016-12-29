@@ -120,7 +120,7 @@ public class SatallaxWrapper {
     }
 
     public boolean hasTypeError(){
-        return this.status.contains("Error") && this.stdout.contains("expected type");
+        return this.status.contains("Error") && this.stdout.contains("type");
     }
 
     public boolean hasUnknownStatus(){
