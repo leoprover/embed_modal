@@ -93,6 +93,7 @@ public class Converter {
                         if (parent.getRule().equals("arguments")) return true;
                         parent = parent.getParent();
                     }
+                    if (parent.getRule().equals("arguments")) return true;
                     return false;
                 })
                 .map(p->p.getFirstLeaf().getLabel()).collect(Collectors.toList()));

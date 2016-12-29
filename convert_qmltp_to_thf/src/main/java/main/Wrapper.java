@@ -80,6 +80,11 @@ public class Wrapper {
                             missedProblems.add(new Pair<>(f.toString(),error));
                             otherErrors.getAndIncrement();
 
+                        } catch (ConversionException e) {
+                            String error = "ConversionException: Could not convert " + f.toString() + " ::: " + e.toString() + " ::: " + e.getMessage();
+                            log.warning(error);
+                            missedProblems.add(new Pair<>(f.toString(),error));
+                            otherErrors.getAndIncrement();
                         }
                     });
                     System.out.println();
@@ -115,7 +120,7 @@ public class Wrapper {
         }
     }
 
-    public static boolean convertQmfToThf(Path inPath, Path oPath, Path dotin, Path dotout, String dotBin) throws IOException, ParseException {
+    public static boolean convertQmfToThf(Path inPath, Path oPath, Path dotin, Path dotout, String dotBin) throws IOException, ParseException, ConversionException {
         if (!Files.isRegularFile(inPath)){
             log.info("Not a regular file:" + inPath.toString());
             return false;
