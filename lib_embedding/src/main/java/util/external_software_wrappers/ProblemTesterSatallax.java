@@ -21,11 +21,11 @@ public class ProblemTesterSatallax {
     private final String errorPrefix = "Error_";
 
     private static final Logger log = Logger.getLogger( "default" );
-
+    private List<String> filterList;
     public ProblemTesterSatallax(){
         this.all = new ArrayList<>();
     }
-    public void testProblemDirectory(Path inPath, Path outPath, long timoutPerProblem, TimeUnit timeUnit) throws IOException {
+    public void testProblemDirectory(Path inPath, Path outPath, long timoutPerProblem, TimeUnit timeUnit, Path filterFile) throws IOException {
 
         // remove all old error files
         try(Stream<Path> paths = Files.walk(outPath)){
@@ -38,10 +38,26 @@ public class ProblemTesterSatallax {
             });
         }
 
+        filterList = null;
+        if (filterFile != null){
+            try (Stream<String> lines = Files.lines(filterFile)) {
+                filterList = lines.collect(Collectors.toList());
+            } catch (IOException e) {
+                filterList = null;
+                log.warning("Could not load filter file=" + filterFile+toString());
+            }
+        }
+
         // convert send all problems to satallax
         AtomicInteger problems = new AtomicInteger();
         try(Stream<Path> paths = Files.walk(inPath)){
-            paths.filter(Files::isRegularFile).filter(f->f.toString().contains(".p") && !f.toString().contains(".ps") && !f.toString().contains(".dot")).forEach(f->{
+            paths.filter(Files::isRegularFile)
+                    .filter(f->f.toString().contains(".p") && !f.toString().contains(".ps") && !f.toString().contains(".dot"))
+                    .filter(f->{
+                        if (this.filterList == null) return true;
+                        return filterList.contains(f.toString());
+                    })
+                    .forEach(f->{
                 problems.incrementAndGet();
                 System.out.println("Processing " + String.valueOf(problems.get()) + " " + f.toString());
                 SatallaxWrapper s = new SatallaxWrapper();
