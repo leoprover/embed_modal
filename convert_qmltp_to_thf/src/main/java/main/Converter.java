@@ -86,7 +86,7 @@ public class Converter {
 
         // collect individual constants
         // filter: on all constants go up in tree until a rule "arguments" is found then its inside a function/proposition
-        // or a branching node is found
+        // or if it is operand to an equality or inequality
         this.constantIndividuals = new HashSet<String>(converted.dfsRuleAll("constant").stream()
                 .filter(p->{
                     Node parent = p.getParent();
@@ -95,6 +95,7 @@ public class Converter {
                         parent = parent.getParent();
                     }
                     if (parent.getRule().equals("arguments")) return true;
+                    if (equalOrUnequal(p)) return true;
                     return false;
                 })
                 .map(p->p.getFirstLeaf().getLabel()).collect(Collectors.toList()));
@@ -107,6 +108,7 @@ public class Converter {
 
 
         // convert applied predicates
+        List<Node> functions = new ArrayList<>();
         List<Node> predicates = converted.dfsRuleAllToplevel("plain_term");
         predicates.addAll(converted.dfsRuleAllToplevel("defined_plain_term"));
         predicates.addAll(converted.dfsRuleAllToplevel("system_term"));
@@ -114,12 +116,14 @@ public class Converter {
                 //.filter(p->!equalOrUnequal(p))
                 .forEach(p->{
                     String status = "predicate";
-                    if (equalOrUnequal(p)) status = "";
+                    if (equalOrUnequal(p)){
+                        status = "function";
+                        //functions.add(p);
+                    }
                     convertFunctor(p,status);
                 });
 
         // convert applied functions
-        List<Node> functions = new ArrayList<>();
         for (Node p : predicates){
             for (Node c : p.getChildren()){
                 functions.addAll(c.dfsRuleAll("plain_term"));
@@ -131,7 +135,7 @@ public class Converter {
                 //.filter(p->!equalOrUnequal(p))
                 .forEach(p->{
                     String status = "function";
-                    if (equalOrUnequal(p)) status = "";
+                    //if (equalOrUnequal(p)) status = "";
                     convertFunctor(p,status);
                 });
 
