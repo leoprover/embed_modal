@@ -1,6 +1,8 @@
 package util.external_software_wrappers;
 
+import exceptions.ParseException;
 import exceptions.WrapperException;
+import util.thf_manipulation.ConjectureStripper;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -48,8 +50,8 @@ public class SatallaxWrapper {
             this.status = extractSZSStatus(this.stdout);
             log.info(filename.toString() + " : SZS: " + this.status);
         } catch (IOException e) {
-            if (this.stderr == null) this.stderr = "";
-            if (this.stdout == null) this.stdout = "";
+            if (this.stderr == null) this.stderr = e.getMessage();
+            if (this.stdout == null) this.stdout = e.getMessage();
             //e.printStackTrace();
             //throw new WrapperException(e.getMessage()+"\nStacktrace:\n"+e.getStackTrace().toString());
         }
@@ -57,8 +59,8 @@ public class SatallaxWrapper {
 
         try{
             // Call satallax on problem without conjecture and extract status (for sat)
-            List<String> problem = Files.readAllLines(filename);
-            String problemWithoutConjecture = problem.stream().filter(p->!p.contains(", conjecture ,")).collect(Collectors.joining("\n"));
+            String problem = new String(Files.readAllBytes(filename));
+            String problemWithoutConjecture = ConjectureStripper.getProblemWithoutConjecture(filename).toStringWithLinebreaks();
             Path tempFile = Files.createTempFile(null,null);
             Files.write(tempFile,problemWithoutConjecture.getBytes());
             List<String> paramsSAT = java.util.Arrays.asList("satallax",tempFile.toString());
@@ -82,9 +84,9 @@ public class SatallaxWrapper {
             //System.out.println("status:"+this.status);
             //System.out.println("status:"+this.sat);
             //System.out.println(problemWithoutConjecture);
-        } catch (IOException e) {
-            if (this.stdoutSAT == null) this.stdoutSAT = "";
-            if (this.stderrSAT == null) this.stderrSAT = "";
+        } catch (IOException | ParseException e) {
+            if (this.stdoutSAT == null) this.stdoutSAT = e.getMessage();
+            if (this.stderrSAT == null) this.stderrSAT = e.getMessage();
             //e.printStackTrace();
             //throw new WrapperException(e.getMessage()+"\nStacktrace:\n"+e.getStackTrace().toString());
         }

@@ -237,7 +237,27 @@ public class Node {
         return nodes;
     }
 
-    public Node getNextBranchingNode(){
+    /*
+     * including THIS node
+     */
+    public Node getNextTopBranchingNode(){
+        Node current = this;
+        while (true){
+            //System.out.println("TRUE");
+            if (current.children.size() > 1){
+                return current;
+            }
+            if (current.getParent() == null || current.getParent() == current){
+                return null;
+            }
+            current = current.getParent();
+        }
+    }
+
+    /*
+     * including THIS node
+     */
+    public Node getNextBotBranchingNode(){
         Node current = this;
         while (true){
             if (current.children.size() > 1){

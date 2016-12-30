@@ -6,6 +6,7 @@ import parser.ParseContext;
 import util.tree.Node;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -104,11 +105,18 @@ public class Converter {
                 .filter(p->!this.constantIndividuals.contains(p.getFirstLeaf().getLabel()))
                 .map(p->p.getFirstLeaf().getLabel()).collect(Collectors.toList()));
 
+
         // convert applied predicates
         List<Node> predicates = converted.dfsRuleAllToplevel("plain_term");
         predicates.addAll(converted.dfsRuleAllToplevel("defined_plain_term"));
         predicates.addAll(converted.dfsRuleAllToplevel("system_term"));
-        predicates.stream().filter(p->p.getChildren().size()!=1).forEach(p->convertFunctor(p,true));
+        predicates.stream().filter(p->p.getChildren().size()!=1)
+                //.filter(p->!equalOrUnequal(p))
+                .forEach(p->{
+                    String status = "predicate";
+                    if (equalOrUnequal(p)) status = "";
+                    convertFunctor(p,status);
+                });
 
         // convert applied functions
         List<Node> functions = new ArrayList<>();
@@ -119,7 +127,13 @@ public class Converter {
                 functions.addAll(c.dfsRuleAll("system_term"));
             }
         }
-        functions.stream().filter(p->p.getChildren().size()!=1).forEach(p->convertFunctor(p,false));
+        functions.stream().filter(p->p.getChildren().size()!=1)
+                //.filter(p->!equalOrUnequal(p))
+                .forEach(p->{
+                    String status = "function";
+                    if (equalOrUnequal(p)) status = "";
+                    convertFunctor(p,status);
+                });
 
         // check if thf formula names interfere with newly defined symbols
         this.usedSymbols = new HashSet(this.propositions);
@@ -242,6 +256,25 @@ public class Converter {
         return context;
     }
 
+    private boolean equalOrUnequal(Node p){
+        Node current = p;
+        while (true) {
+            //if (current.getParent() == null || current.getParent() == current) return true;
+            Node nextBranchNode = current.getNextTopBranchingNode();
+            if (nextBranchNode.getRule().equals("defined_infix_formula") ||
+                    nextBranchNode.getRule().equals("fol_infix_unary"))
+                return true;
+            if (nextBranchNode.getRule().equals("plain_term") &&
+                    nextBranchNode.getChildren().size() == 4 &&
+                    nextBranchNode.getChild(1).getLabel().equals("(") &&
+                    nextBranchNode.getChild(3).getLabel().equals(")")) {
+                current = nextBranchNode.getParent();
+                continue;
+            }
+            return false;
+        }
+    }
+
     private void correctSyntax(){
         // surround negated operand with parentheses, exclude infix inequality terms
         this.converted.dfsRuleAll("fof_unary_formula").stream().filter(n->n.getChildren().size()!=1).forEach(n->{
@@ -271,7 +304,7 @@ public class Converter {
         else if (system.equals("s5")) return "$modal_system_S5";
         else throw new ConversionException(system + " is not a valid modal system");
     }
-    private void convertFunctor(Node functor, boolean isPredicate){
+    private void convertFunctor(Node functor, String status){
         // iterate over arguements
         Node argument = functor.getChild(2);
         int arity = 1;
@@ -280,8 +313,8 @@ public class Converter {
             argument.getChild(1).setLabel("@"); // replace ,
             argument = argument.getLastChild(); // arguments are the rightmost nodes
         }
-        if (isPredicate) predicateMap.put(functor.getFirstChild().getFirstLeaf().getLabel(),arity);
-        else functionMap.put(functor.getFirstChild().getFirstLeaf().getLabel(),arity);
+        if (status.equals("predicate")) predicateMap.put(functor.getFirstChild().getFirstLeaf().getLabel(),arity);
+        if (status.equals("function")) functionMap.put(functor.getFirstChild().getFirstLeaf().getLabel(),arity);
 
         // remove parentheses
         functor.delChildAt(1);
