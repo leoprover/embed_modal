@@ -232,7 +232,7 @@ public class ModalTransformator {
     private void embed_thf_binary_tuple(Node n){
 
         // retrieve operator & | @
-        Node branchNode = n.getNextBranchingNode();
+        Node branchNode = n.getNextBotBranchingNode();
         if (branchNode == null){
             log.finest("thf_binary_tuple does not branch"); // should not be the case
             return;
