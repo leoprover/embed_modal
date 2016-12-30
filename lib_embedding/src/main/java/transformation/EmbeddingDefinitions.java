@@ -299,7 +299,7 @@ public class EmbeddingDefinitions {
         sb.append(escapedType);
         sb.append(" @ ");
         sb.append(constant);
-        sb.append("@ W");
+        sb.append(" @ W");
         sb.append(")))).");
         return sb.toString();
     }
