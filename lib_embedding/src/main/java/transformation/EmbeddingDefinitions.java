@@ -304,6 +304,64 @@ public class EmbeddingDefinitions {
         return sb.toString();
     }
 
+    /** Axiom for cumulative domains for type `type`. */
+    public static String cumulative_eiw_th0(String type) {
+        // TODO alter for multimodal systems
+        StringBuilder sb = new StringBuilder();
+        type = normalizeType(type);
+        String escapedType = escapeType(type);
+        // cumulative axiom for each relation r
+        // thf( eiw_cumul , axiom , (
+        // ! [W:" + w + ", V:" + w + ", C: T]: ((rel_r @ W @ V) => ((eiw @ C @ W) => (eiw @ C @ V)))
+        // )).
+//        for (String relation : relation_symbols) {
+        sb.append("thf( eiw_cumul_");
+        sb.append(escapedType);
+        sb.append("_");
+        sb.append("r"); // sb.append(relation);
+        sb.append(" , axiom , (");
+        sb.append("! [W:" + w + ",V:" + w + ",C:" + type + "]: ( (");
+        sb.append("rel_");
+        sb.append("r"); // sb.append(relation);
+        sb.append(" @ W @ V) => ((eiw_");
+        sb.append(escapedType);
+        sb.append(" @ C @ W) => (eiw_");
+        sb.append(escapedType);
+        sb.append(" @ C @ V)) ");
+        sb.append("))).");
+//        }
+        return sb.toString();
+    }
+
+    /** Axiom for decreasing domains for type `type`. */
+    public static String decreasing_eiw_th0(String type) {
+        // TODO alter for multimodal systems
+        StringBuilder sb = new StringBuilder();
+        type = normalizeType(type);
+        String escapedType = escapeType(type);
+        // decreasing axiom for each relation r
+        // thf( eiw_decre , axiom , (
+        // ! [W:" + w + ", V:" + w + ", C: T]: ((rel_r @ W @ V) => ((eiw @ C @ V) => (eiw @ C @ W)))
+        // )).
+//        for (String relation : relation_symbols) {
+        sb.append("thf( eiw_decre_");
+        sb.append(escapedType);
+        sb.append("_");
+        sb.append("r"); // sb.append(relation);
+        sb.append(" , axiom , (");
+        sb.append("! [W:" + w + ",V:" + w + ",C:" + type + "]: ( (");
+        sb.append("rel_");
+        sb.append("r"); // sb.append(relation);
+        sb.append(" @ W @ V) => ((eiw_");
+        sb.append(escapedType);
+        sb.append(" @ C @ V) => (eiw_");
+        sb.append(escapedType);
+        sb.append(" @ C @ W)) ");
+        sb.append("))).");
+//        }
+        return sb.toString();
+    }
+
     /** Declaration of varying domain quantifier */
     public static String mforall_varying_th0(String type){
         StringBuilder sb = new StringBuilder();

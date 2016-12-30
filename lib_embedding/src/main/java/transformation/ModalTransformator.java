@@ -463,6 +463,20 @@ public class ModalTransformator {
                 def.append(EmbeddingDefinitions.eiw_th0(q));
                 def.append("\n");
             }
+            def.append("\n% define domain restrictions\n");
+            for (String q: typesForVaryingQuantifiers) { // insert domain restriction (cumulative etc) if necessary
+                SemanticsAnalyzer.DomainType defaultDomainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(
+                        SemanticsAnalyzer.domainDefault, SemanticsAnalyzer.DomainType.CONSTANT);
+                SemanticsAnalyzer.DomainType domainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(q, defaultDomainType);
+                if (domainType == SemanticsAnalyzer.DomainType.CUMULATIVE) {
+                    def.append(EmbeddingDefinitions.cumulative_eiw_th0(q));
+                    def.append("\n");
+                } else if (domainType == SemanticsAnalyzer.DomainType.DECREASING) {
+                    def.append(EmbeddingDefinitions.decreasing_eiw_th0(q));
+                    def.append("\n");
+                } // else nothing, since either constant or unrestricted varying
+            }
+
         }
 
         def.append("\n% define exists quantifiers\n");
