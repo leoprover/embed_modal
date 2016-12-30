@@ -114,6 +114,7 @@ public class ProblemTesterSatallax {
                 System.err.println("Could not write Theorem file");
                 e.printStackTrace();
             }
+            /*
             try {
                 Files.write(Paths.get(outPath.toString(),"Satisfiable"),this.all.stream()
                         .filter(p->p.s.isSatisfiable())
@@ -121,16 +122,6 @@ public class ProblemTesterSatallax {
                         .collect(Collectors.joining("\n")).getBytes());
             } catch (IOException e) {
                 System.err.println("Could not write Satisfiable file");
-                e.printStackTrace();
-            }
-            /*
-            try {
-                Files.write(Paths.get(outPath.toString(),"NotSatisfiable"),this.all.stream()
-                        .filter(p->!p.s.isSatisfiable())
-                        .map(p->p.path.toString())
-                        .collect(Collectors.joining("\n")).getBytes());
-            } catch (IOException e) {
-                System.err.println("Could not write NotSatisfiable file");
                 e.printStackTrace();
             }
             */
@@ -147,7 +138,7 @@ public class ProblemTesterSatallax {
             // save all timeouts when testing for theorem
             try {
                 Files.write(Paths.get(outPath.toString(),"TimeoutTheorem"),this.all.stream()
-                        .filter(p->p.s.status.contains("Timeout"))
+                        .filter(p->p.s.proofTimeout)
                         .map(p->p.path.toString())
                         .collect(Collectors.joining("\n")).getBytes());
             } catch (IOException e) {
@@ -155,15 +146,17 @@ public class ProblemTesterSatallax {
                 e.printStackTrace();
             }
             // save all timeouts when testing for SAT
+            /*
             try {
                 Files.write(Paths.get(outPath.toString(),"TimeoutSAT"),this.all.stream()
-                        .filter(p->p.s.sat.contains("Timeout"))
+                        .filter(p->p.s.satTimeout)
                         .map(p->p.path.toString())
                         .collect(Collectors.joining("\n")).getBytes());
             } catch (IOException e) {
                 System.err.println("Could not write UnknownStatus file");
                 e.printStackTrace();
             }
+            */
             // save all files with status error to one file
             try {
                 Files.write(Paths.get(outPath.toString(),"Error"),this.all.stream()
@@ -195,7 +188,7 @@ public class ProblemTesterSatallax {
             }
             // save output of failed files separately
             this.all.stream()
-                   .filter(p->p.s.hasUnknownStatus()||p.s.hasParserError()||p.s.hasTypeError())
+                   .filter(p->p.s.hasError())
                    .forEach(p->{
                        try {
                            Files.write(Paths.get(outPath.toString(), errorPrefix + p.path.getFileName().toString()), p.s.allout.getBytes());

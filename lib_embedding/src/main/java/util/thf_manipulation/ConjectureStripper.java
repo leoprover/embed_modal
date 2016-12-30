@@ -21,12 +21,15 @@ public class ConjectureStripper {
         ANTLRInputStream inputStream = new ANTLRInputStream(problem);
         ParseContext parseContext = ThfAstGen.parse(inputStream, "tPTP_file", "");
         Node root = parseContext.getRoot();
-        root.dfsRuleAll("thf_annotated").forEach(n->{
-            Node nameLeaf = n.getChild(2).getFirstLeaf();
-            if (nameLeaf.equals("conjecture") || nameLeaf.equals("negated_conjecture"))
-                n.getParent().delChild(n);
+        root.dfsRuleAllToplevel("thf_annotated").forEach(n->{
+            Node nameLeaf = n.getChild(4).getFirstLeaf();
+            //System.out.println(nameLeaf);
+            if (nameLeaf.getLabel().equals("conjecture") || nameLeaf.getLabel().equals("negated_conjecture")){
+                Node parent = n.getParent();
+                parent.delChild(n);
+            }
         });
-        System.out.println(root.toStringWithLinebreaks());
+        //System.out.println(root.toStringWithLinebreaks());
         return root;
     }
 }

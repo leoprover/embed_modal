@@ -22,6 +22,8 @@ public class SatallaxWrapper {
     public String status = "";
     public String sat = "";
     public String allout = "";
+    public boolean proofTimeout = false;
+    public boolean satTimeout = false;
 
     private static final Logger log = Logger.getLogger( "default" );
 
@@ -38,6 +40,7 @@ public class SatallaxWrapper {
             BufferedReader stdError = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
             if (!proc.waitFor(timeout, unit)){
                 log.info(filename.toString() + " : Proof Timeout");
+                proofTimeout = true;
                 proc.destroy();
             }
             String s = null;
@@ -57,6 +60,7 @@ public class SatallaxWrapper {
         }
         this.allout = stdout + "\n:::::::\n" + this.stderr;
 
+        /*
         try{
             // Call satallax on problem without conjecture and extract status (for sat)
             String problem = new String(Files.readAllBytes(filename));
@@ -70,6 +74,7 @@ public class SatallaxWrapper {
             BufferedReader stdErrorSAT = new BufferedReader(new InputStreamReader(procSAT.getErrorStream()));
             if (!procSAT.waitFor(timeout, unit)){
                 log.info(filename.toString() + " : SAT Timeout");
+                satTimeout = true;
                 procSAT.destroy();
             }
             String s = null;
@@ -90,6 +95,7 @@ public class SatallaxWrapper {
             //e.printStackTrace();
             //throw new WrapperException(e.getMessage()+"\nStacktrace:\n"+e.getStackTrace().toString());
         }
+        */
     }
 
     private String extractSZSStatus(String consoleOutput){
