@@ -20,6 +20,7 @@
         <module>test_problems</module>
         <module>test_parser</module>
         <module>convert_qmltp_to_thf</module>
+        <module>test_multi</module>
     </modules>
 
 </project>
