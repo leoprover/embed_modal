@@ -11,6 +11,7 @@ public class ThfProblem {
     public SatallaxWrapper satallax;
     public Leo2Wrapper leo;
     public NitpickWrapper nitpick;
+    public String name;
 
     public ThfProblem(Path path, SatallaxWrapper s){
         this.path = path;

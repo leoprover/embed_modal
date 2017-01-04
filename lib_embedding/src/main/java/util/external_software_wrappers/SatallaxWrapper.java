@@ -39,7 +39,7 @@ public class SatallaxWrapper {
             BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
             BufferedReader stdError = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
             if (!proc.waitFor(timeout, unit)){
-                log.info(filename.toString() + " : Proof Timeout");
+                log.fine(filename.toString() + " : Proof Timeout");
                 this.timeout = true;
                 proc.destroy();
             }
@@ -56,12 +56,12 @@ public class SatallaxWrapper {
                 stderr += s;
             }
             this.status = extractSZSStatus(this.stdout);
-            log.info(filename.toString() + " : SZS: " + this.status);
+            log.fine(filename.toString() + " : SZS: " + this.status);
         } catch (IOException e) {
             if (this.stderr == null) this.stderr = e.getMessage();
             if (this.stdout == null) this.stdout = e.getMessage();
         } catch (InterruptedException e) {
-            log.info(filename.toString() + " : Interrupted Exception.");
+            log.fine(filename.toString() + " : Interrupted Exception.");
             this.timeout = true;
         }
     }
@@ -117,5 +117,13 @@ public class SatallaxWrapper {
         }
         return false;
     }
+
+    public String getAbbrevStatus(){
+        if (this.isTheorem()) return "THM";
+        if (this.isCounterSatisfiable()) return "CSA";
+        if (this.hasError()) return "ERR";
+        return "UNS";
+    }
+
 }
 

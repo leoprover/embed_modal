@@ -74,16 +74,25 @@ public class NitpickWrapper {
         return this.status;
     }
 
-    public boolean isTheorem(){
-        return this.status.contains("Theorem");
-    }
-
     public boolean isCounterSatisfiable(){
         return this.status.contains("CounterSatisfiable");
     }
 
+    public boolean hasTypeError(){
+        return this.stdout.contains("error") && this.stdout.contains("Type error");
+    }
     public boolean hasParserError(){
-        return this.stdout.contains("Parse problem");
+        return this.stdout.contains("syntax error");
+    }
+
+    public boolean hasError(){
+        return this.stdout.contains("error");
+    }
+
+    public String getAbbrevStatus(){
+        if (this.isCounterSatisfiable()) return "CSA";
+        if (this.hasError()) return "ERR";
+        return "UNS";
     }
 
 }
