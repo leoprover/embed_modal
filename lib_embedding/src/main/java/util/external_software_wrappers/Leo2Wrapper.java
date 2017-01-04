@@ -6,24 +6,46 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 public class Leo2Wrapper {
+
+    private static final Logger log = Logger.getLogger( "default" );
+    public static String leo_binary = "runleo";
+
     public String stdout = "";
     public String stderr = "";
     public String status = "";
+    public boolean timeout = false;
+    public double duration = 60.0;
 
-    public void call(Path filename,long timeout,TimeUnit unit) throws WrapperException, InterruptedException {
-        List<String> params = java.util.Arrays.asList("leo2",filename.toString());
+    public void call(Path filename,long timeout,TimeUnit unit) throws WrapperException {
+        this.stdout = "";
+        this.stderr = "";
+        this.status = "";
+        this.timeout = false;
+        this.duration = 60.0;
+
+        List<String> params = java.util.Arrays.asList(leo_binary,filename.toString());
         try {
-            ProcessBuilder satallax = new ProcessBuilder(params);
-            Process proc = satallax.start();
+            ProcessBuilder leo = new ProcessBuilder(params);
+            Instant start = Instant.now();
+            Process proc = leo.start();
             BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
             BufferedReader stdError = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
-            if (!proc.waitFor(timeout, unit)){
+            if (!proc.waitFor(timeout, unit)) {
+                log.info(filename.toString() + " : Proof Timeout");
+                this.timeout = true;
                 proc.destroy();
-            }
+            }else{
+                    Instant end = Instant.now();
+                    Duration delta = Duration.between(start,end);
+                    this.duration = (double) delta.getNano() / 1000000000.0;
+                }
             String s = null;
             while ((s = stdInput.readLine()) != null) {
                 stdout += s;
@@ -33,9 +55,11 @@ public class Leo2Wrapper {
             }
             this.status = extractSZSStatus();
         } catch (IOException e) {
-            this.stdout = null;
-            e.printStackTrace();
-            throw new WrapperException(e.getMessage()+"\nStacktrace:\n"+e.getStackTrace().toString());
+            if (this.stderr == null) this.stderr = e.getMessage();
+            if (this.stdout == null) this.stdout = e.getMessage();
+        } catch (InterruptedException e) {
+            log.info(filename.toString() + " : Interrupted Exception.");
+            this.timeout = true;
         }
     }
 
@@ -61,15 +85,9 @@ public class Leo2Wrapper {
     }
 
     public boolean hasParserError(){
-        return this.status.contains("Error") && this.stdout.contains("Parse problem");
+        return this.stdout.contains("Parse problem");
     }
 
-    public boolean hasUnknownStatus(){
-        if (!(this.isTheorem() || this.isCounterSatisfiable() || this.hasParserError())){
-            return true;
-        }
-        return false;
-    }
 }
 
 
