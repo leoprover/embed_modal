@@ -17,11 +17,12 @@ import java.util.stream.Stream;
 
 public class ProblemTesterSatallax {
 
-    public List<ThfProblem> all;
-    private final String errorPrefix = "Error_";
-
+    private static final String errorPrefix = "Error_";
     private static final Logger log = Logger.getLogger( "default" );
+
+    public List<ThfProblem> all;
     private List<String> filterList;
+
     public ProblemTesterSatallax(){
         this.all = new ArrayList<>();
     }
@@ -61,21 +62,14 @@ public class ProblemTesterSatallax {
                 problems.incrementAndGet();
                 System.out.println("Processing " + String.valueOf(problems.get()) + " " + f.toString());
                 SatallaxWrapper s = new SatallaxWrapper();
-                try {
-                    s.call(f,timoutPerProblem,timeUnit);
-                    this.all.add(new ThfProblem(f,s));
-                } catch (WrapperException e) {
-                    //System.err.println("Wrapper Exception");
-                    //System.err.println(e.getMessage());
-                    //System.err.println(e.getCause());
-                    //e.printStackTrace();
-                }
+                s.call(f,timoutPerProblem,timeUnit);
+                this.all.add(new ThfProblem(f,s));
             });
 
             // write results to files
             try {
                 Files.write(Paths.get(outPath.toString(),"ParserError"),this.all.stream()
-                        .filter(p->p.s.hasParserError())
+                        .filter(p->p.satallax.hasParserError())
                         .map(p->p.path.toString())
                         .collect(Collectors.joining("\n")).getBytes());
             } catch (IOException e) {
@@ -84,7 +78,7 @@ public class ProblemTesterSatallax {
             }
             try {
                 Files.write(Paths.get(outPath.toString(),"TypeError"),this.all.stream()
-                        .filter(p->p.s.hasTypeError())
+                        .filter(p->p.satallax.hasTypeError())
                         .map(p->p.path.toString())
                         .collect(Collectors.joining("\n")).getBytes());
             } catch (IOException e) {
@@ -93,7 +87,7 @@ public class ProblemTesterSatallax {
             }
             try {
                 Files.write(Paths.get(outPath.toString(),"CounterSatisfiable"),this.all.stream()
-                        .filter(p->p.s.isCounterSatisfiable())
+                        .filter(p->p.satallax.isCounterSatisfiable())
                         .map(p->p.path.toString())
                         .collect(Collectors.joining("\n")).getBytes());
             } catch (IOException e) {
@@ -102,7 +96,7 @@ public class ProblemTesterSatallax {
             }
             try {
                 Files.write(Paths.get(outPath.toString(),"Theorem"),this.all.stream()
-                        .filter(p->p.s.isTheorem())
+                        .filter(p->p.satallax.isTheorem())
                         .map(p->p.path.toString())
                         .collect(Collectors.joining("\n")).getBytes());
             } catch (IOException e) {
@@ -123,8 +117,8 @@ public class ProblemTesterSatallax {
             // save all files of unknown status to one file
             try {
                 Files.write(Paths.get(outPath.toString(),"UnknownStatus"),this.all.stream()
-                        .filter(p->p.s.hasUnknownStatus())
-                        .map(p->p.s.status + "," + p.path.toString())
+                        .filter(p->p.satallax.hasUnknownStatus())
+                        .map(p->p.satallax.status + "," + p.path.toString())
                         .collect(Collectors.joining("\n")).getBytes());
             } catch (IOException e) {
                 System.err.println("Could not write UnknownStatus file");
@@ -133,7 +127,7 @@ public class ProblemTesterSatallax {
             // save all timeouts when testing for theorem
             try {
                 Files.write(Paths.get(outPath.toString(),"TimeoutTheorem"),this.all.stream()
-                        .filter(p->p.s.timeout)
+                        .filter(p->p.satallax.timeout)
                         .map(p->p.path.toString())
                         .collect(Collectors.joining("\n")).getBytes());
             } catch (IOException e) {
@@ -155,7 +149,7 @@ public class ProblemTesterSatallax {
             // save all files with status error to one file
             try {
                 Files.write(Paths.get(outPath.toString(),"Error"),this.all.stream()
-                        .filter(p->p.s.hasError())
+                        .filter(p->p.satallax.hasError())
                         .map(p->p.path.toString())
                         .collect(Collectors.joining("\n")).getBytes());
             } catch (IOException e) {
@@ -165,8 +159,8 @@ public class ProblemTesterSatallax {
             // save all files with status error to one file and keep stdout
             try {
                 Files.write(Paths.get(outPath.toString(),"ErrorReason"),this.all.stream()
-                        .filter(p->p.s.hasError())
-                        .map(p->p.path.toString() + " ::: " + p.s.getAllout().replaceAll("\\t","").replaceAll("\\n"," :: "))
+                        .filter(p->p.satallax.hasError())
+                        .map(p->p.path.toString() + " ::: " + p.satallax.getAllout().replaceAll("\\t","").replaceAll("\\n"," :: "))
                         .collect(Collectors.joining("\n")).getBytes());
             } catch (IOException e) {
                 System.err.println("Could not write Failed file");
@@ -175,7 +169,7 @@ public class ProblemTesterSatallax {
             // save status all files
             try {
                 Files.write(Paths.get(outPath.toString(),"Total"),this.all.stream()
-                        .map(p->p.s.status + "," + p.path.toString())
+                        .map(p->p.satallax.status + "," + p.path.toString())
                         .collect(Collectors.joining("\n")).getBytes());
             } catch (IOException e) {
                 System.err.println("Could not write Total file");
@@ -183,10 +177,10 @@ public class ProblemTesterSatallax {
             }
             // save output of failed files separately
             this.all.stream()
-                   .filter(p->p.s.hasError())
+                   .filter(p->p.satallax.hasError())
                    .forEach(p->{
                        try {
-                           Files.write(Paths.get(outPath.toString(), errorPrefix + p.path.getFileName().toString()), p.s.getAllout().getBytes());
+                           Files.write(Paths.get(outPath.toString(), errorPrefix + p.path.getFileName().toString()), p.satallax.getAllout().getBytes());
                        } catch (IOException e) {
                            e.printStackTrace();
                        }

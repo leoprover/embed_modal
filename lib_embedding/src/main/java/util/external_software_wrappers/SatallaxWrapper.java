@@ -23,7 +23,7 @@ public class SatallaxWrapper {
     public boolean timeout = false;
     public double duration = 60.0;
 
-    public void call(Path filename, long timeout, TimeUnit unit) throws WrapperException {
+    public void call(Path filename, long timeout, TimeUnit unit) {
         this.stdout = "";
         this.stderr = "";
         this.status = "";
