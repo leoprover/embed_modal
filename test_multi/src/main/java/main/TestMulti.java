@@ -19,10 +19,11 @@ public class TestMulti {
         //log.setUseParentHandlers(false);
         log.setLevel(Level.ALL);
 
-        if (!(args.length == 2 || args.length == 3)){
-            System.err.println("Unmatched argument size\nTwo arguments needed: \n" +
+        if (!(args.length == 3 || args.length == 4)){
+            System.err.println("Unmatched argument size\nThree arguments needed: \n" +
                     "/path/to/tptp/Problems/directory\n" +
-                    "/path/to/result\n");
+                    "/path/to/result\n" +
+                    "timeout\n");
             System.exit(1);
         }
 
@@ -30,26 +31,29 @@ public class TestMulti {
         String outputPathString = args[1]; // "/home/tg/university/bachelor_thesis/software/output/convert_qmltp_to_thf/";
 
         if (!Files.isDirectory(Paths.get(inPathString))){
-            System.err.println("input path is not a directory\nTwo arguments needed: \n" +
+            System.err.println("input path is not a directory\nThree arguments needed: \n" +
                     "/path/to/tptp/Problems/directory\n" +
-                    "/path/to/result/");
+                    "/path/to/result\n" +
+                    "timeout\n");
             System.err.println(inPathString + " is not a valid directory");
             System.exit(1);
         }
 
         if (!Files.isDirectory(Paths.get(outputPathString))){
-            System.err.println("result path is not a directory\nTwo arguments needed: \n" +
+            System.err.println("result path is not a directory\nThree arguments needed: \n" +
                     "/path/to/tptp/Problems/directory\n" +
-                    "/path/to/result/");
+                    "/path/to/result\n" +
+                    "timeout\n");
             System.err.println(outputPathString + " is not a valid directory");
             System.exit(1);
         }
 
         MultiTester tester = new MultiTester();
         Path filterList = null;
-        if (args.length == 3) filterList = Paths.get(args[2]);
+        if (args.length == 4) filterList = Paths.get(args[3]);
+        long timeout = Long.valueOf(args[2]);
         try {
-            tester.testProblemDirectory(Paths.get(inPathString),Paths.get(outputPathString),3,TimeUnit.SECONDS,filterList);
+            tester.testProblemDirectory(Paths.get(inPathString),Paths.get(outputPathString),timeout,TimeUnit.SECONDS,filterList);
         } catch (IOException e) {
             System.err.println("Could not traverse files");
             e.printStackTrace();
