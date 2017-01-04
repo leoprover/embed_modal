@@ -34,6 +34,7 @@ public class TestMulti {
                     "/path/to/tptp/Problems/directory\n" +
                     "/path/to/result/");
             System.err.println(inPathString + " is not a valid directory");
+            System.exit(1);
         }
 
         if (!Files.isDirectory(Paths.get(outputPathString))){
@@ -41,6 +42,7 @@ public class TestMulti {
                     "/path/to/tptp/Problems/directory\n" +
                     "/path/to/result/");
             System.err.println(outputPathString + " is not a valid directory");
+            System.exit(1);
         }
 
         MultiTester tester = new MultiTester();
