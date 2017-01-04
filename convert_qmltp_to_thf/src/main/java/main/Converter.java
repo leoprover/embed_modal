@@ -186,7 +186,8 @@ public class Converter {
                 definitions.append(mapModalSystem(modal_system));
                 if (i != modality_pairs.size()) definitions.append(" , ");
             }
-            definitions.append("])).\n\n");
+            definitions.append("]])).\n\n");
+            s.getParent().delChild(s);
         }
         // declare multimodal accessibility relations
         definitions.append("% modalities\n");
