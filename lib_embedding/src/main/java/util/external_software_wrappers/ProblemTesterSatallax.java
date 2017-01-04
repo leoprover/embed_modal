@@ -69,11 +69,6 @@ public class ProblemTesterSatallax {
                     //System.err.println(e.getMessage());
                     //System.err.println(e.getCause());
                     //e.printStackTrace();
-                } catch (InterruptedException e) {
-                    //System.err.println("InterruptedException");
-                    //System.err.println(e.getMessage());
-                    //System.err.println(e.getCause());
-                    //e.printStackTrace();
                 }
             });
 
@@ -138,7 +133,7 @@ public class ProblemTesterSatallax {
             // save all timeouts when testing for theorem
             try {
                 Files.write(Paths.get(outPath.toString(),"TimeoutTheorem"),this.all.stream()
-                        .filter(p->p.s.proofTimeout)
+                        .filter(p->p.s.timeout)
                         .map(p->p.path.toString())
                         .collect(Collectors.joining("\n")).getBytes());
             } catch (IOException e) {
@@ -171,7 +166,7 @@ public class ProblemTesterSatallax {
             try {
                 Files.write(Paths.get(outPath.toString(),"ErrorReason"),this.all.stream()
                         .filter(p->p.s.hasError())
-                        .map(p->p.path.toString() + " ::: " + p.s.allout.replaceAll("\\t","").replaceAll("\\n"," :: "))
+                        .map(p->p.path.toString() + " ::: " + p.s.getAllout().replaceAll("\\t","").replaceAll("\\n"," :: "))
                         .collect(Collectors.joining("\n")).getBytes());
             } catch (IOException e) {
                 System.err.println("Could not write Failed file");
@@ -191,7 +186,7 @@ public class ProblemTesterSatallax {
                    .filter(p->p.s.hasError())
                    .forEach(p->{
                        try {
-                           Files.write(Paths.get(outPath.toString(), errorPrefix + p.path.getFileName().toString()), p.s.allout.getBytes());
+                           Files.write(Paths.get(outPath.toString(), errorPrefix + p.path.getFileName().toString()), p.s.getAllout().getBytes());
                        } catch (IOException e) {
                            e.printStackTrace();
                        }

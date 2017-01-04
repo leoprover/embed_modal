@@ -1,47 +1,52 @@
 package util.external_software_wrappers;
 
-import exceptions.ParseException;
 import exceptions.WrapperException;
-import util.thf_manipulation.ConjectureStripper;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 public class SatallaxWrapper {
-    public String stdout = "";
-    public String stderr = "";
-    public String stdoutSAT = "";
-    public String stderrSAT = "";
-    public String status = "";
-    public String sat = "";
-    public String allout = "";
-    public boolean proofTimeout = false;
-    public boolean satTimeout = false;
 
     private static final Logger log = Logger.getLogger( "default" );
+    public static String satallax_binary = "satallax";
 
-    public void call(Path filename,long timeout,TimeUnit unit) throws WrapperException, InterruptedException {
+    public String stdout = "";
+    public String stderr = "";
+    public String status = "";
+    public boolean timeout = false;
+    public double duration = 60.0;
+
+    public void call(Path filename, long timeout, TimeUnit unit) throws WrapperException {
         this.stdout = "";
         this.stderr = "";
         this.status = "";
-        List<String> params = java.util.Arrays.asList("satallax",filename.toString());
+        this.timeout = false;
+        this.duration = 60.0;
+
+        List<String> params = java.util.Arrays.asList(satallax_binary,filename.toString());
         try {
             // Call satallax on problem and extract status
             ProcessBuilder satallax = new ProcessBuilder(params);
+            Instant start = Instant.now();
             Process proc = satallax.start();
             BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
             BufferedReader stdError = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
             if (!proc.waitFor(timeout, unit)){
                 log.info(filename.toString() + " : Proof Timeout");
-                proofTimeout = true;
+                this.timeout = true;
                 proc.destroy();
+            }
+            else{
+                Instant end = Instant.now();
+                Duration delta = Duration.between(start,end);
+                this.duration = (double) delta.getNano() / 1000000000.0;
             }
             String s = null;
             while ((s = stdInput.readLine()) != null) {
@@ -55,47 +60,10 @@ public class SatallaxWrapper {
         } catch (IOException e) {
             if (this.stderr == null) this.stderr = e.getMessage();
             if (this.stdout == null) this.stdout = e.getMessage();
-            //e.printStackTrace();
-            //throw new WrapperException(e.getMessage()+"\nStacktrace:\n"+e.getStackTrace().toString());
+        } catch (InterruptedException e) {
+            log.info(filename.toString() + " : Interrupted Exception.");
+            this.timeout = true;
         }
-        this.allout = stdout + "\n:::::::\n" + this.stderr;
-
-        /*
-        try{
-            // Call satallax on problem without conjecture and extract status (for sat)
-            String problem = new String(Files.readAllBytes(filename));
-            String problemWithoutConjecture = ConjectureStripper.getProblemWithoutConjecture(filename).toStringWithLinebreaks();
-            Path tempFile = Files.createTempFile(null,null);
-            Files.write(tempFile,problemWithoutConjecture.getBytes());
-            List<String> paramsSAT = java.util.Arrays.asList("satallax",tempFile.toString());
-            ProcessBuilder satallaxSAT = new ProcessBuilder(paramsSAT);
-            Process procSAT = satallaxSAT.start();
-            BufferedReader stdInputSAT = new BufferedReader(new InputStreamReader(procSAT.getInputStream()));
-            BufferedReader stdErrorSAT = new BufferedReader(new InputStreamReader(procSAT.getErrorStream()));
-            if (!procSAT.waitFor(timeout, unit)){
-                log.info(filename.toString() + " : SAT Timeout");
-                satTimeout = true;
-                procSAT.destroy();
-            }
-            String s = null;
-            while ((s = stdInputSAT.readLine()) != null) {
-                stdoutSAT += s;
-            }
-            while ((s = stdErrorSAT.readLine()) != null) {
-                stderrSAT += s;
-            }
-            this.sat = extractSZSStatus(this.stdoutSAT);
-            log.info(filename.toString() + " : SAT-SZS: " + this.sat);
-            //System.out.println("status:"+this.status);
-            //System.out.println("status:"+this.sat);
-            //System.out.println(problemWithoutConjecture);
-        } catch (IOException | ParseException e) {
-            if (this.stdoutSAT == null) this.stdoutSAT = e.getMessage();
-            if (this.stderrSAT == null) this.stderrSAT = e.getMessage();
-            //e.printStackTrace();
-            //throw new WrapperException(e.getMessage()+"\nStacktrace:\n"+e.getStackTrace().toString());
-        }
-        */
     }
 
     private String extractSZSStatus(String consoleOutput){
@@ -105,6 +73,10 @@ public class SatallaxWrapper {
         if (szs_end == -1) szs_end = consoleOutput.length();
         String status = consoleOutput.substring(szs_start,szs_end);
         return status;
+    }
+
+    public String getAllout(){
+        return stdout + "\n:::::::\n" + this.stderr;
     }
 
     public boolean hasStdout(){
@@ -140,14 +112,10 @@ public class SatallaxWrapper {
     }
 
     public boolean hasUnknownStatus(){
-        if (!(this.isTheorem() || this.isCounterSatisfiable() || this.isSatisfiable() || this.hasError())){
+        if (!(this.isTheorem() || this.isCounterSatisfiable() || this.hasError())){
             return true;
         }
         return false;
-    }
-
-    public boolean isSatisfiable(){
-        return this.sat.contains("Satisfiable");
     }
 }
 
