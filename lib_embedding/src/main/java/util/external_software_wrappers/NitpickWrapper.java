@@ -19,14 +19,16 @@ public class NitpickWrapper {
     public String stderr = "";
     public String status = "";
     public boolean timeout = false;
-    public double duration = 60.0;
+    public double duration = -1;
+    private double durationNitpick = -1;
 
     public void call(Path filename, long timeout, TimeUnit unit) {
         this.stdout = "";
         this.stderr = "";
         this.status = "";
         this.timeout = false;
-        this.duration = 60.0;
+        this.duration = timeout;
+        this.durationNitpick = timeout;
 
         List<String> params = java.util.Arrays.asList(nitpick_binary,String.valueOf(timeout),filename.toString());
         try {
@@ -36,13 +38,13 @@ public class NitpickWrapper {
             BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
             BufferedReader stdError = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
             if (!proc.waitFor(timeout + 20, unit)) {
-                log.info(filename.toString() + " : Proof Timeout");
+                log.fine(filename.toString() + " : Proof Timeout");
                 this.timeout = true;
                 proc.destroy();
             }else{
                 Instant end = Instant.now();
                 Duration delta = Duration.between(start,end);
-                this.duration = (double) delta.getNano() / 1000000000.0;
+                this.duration =  (double) delta.getSeconds() + ( (double) delta.getNano() ) / 1000000000.0;
             }
             String s = null;
             while ((s = stdInput.readLine()) != null) {
@@ -52,12 +54,30 @@ public class NitpickWrapper {
                 stderr += s;
             }
             this.status = extractSZSStatus();
+            this.durationNitpick = this.extractNitpickDuration();
         } catch (IOException e) {
             if (this.stderr == null) this.stderr = e.getMessage();
             if (this.stdout == null) this.stdout = e.getMessage();
         } catch (InterruptedException e) {
-            log.info(filename.toString() + " : Interrupted Exception.");
+            log.fine(filename.toString() + " : Interrupted Exception.");
             this.timeout = true;
+        }
+    }
+
+    private double extractNitpickDuration(){
+        try {
+            int start = this.stdout.indexOf("Total time: ");
+            start = start + 12;
+            String res = this.stdout.substring(start).trim();
+            int end = res.indexOf(" ");
+            double value = Double.valueOf(res.substring(0, end));
+            String unit = res.substring(end + 1, end + 3);
+            if (unit.contains("ms")) {
+                value = value / 1000.0;
+            }
+            return value;
+        } catch (Exception e){
+            return -1;
         }
     }
 
@@ -68,6 +88,11 @@ public class NitpickWrapper {
         if (szs_end == -1) szs_end = this.stdout.length();
         String status = this.stdout.substring(szs_start,szs_end);
         return status;
+    }
+
+    public double getNitpickDuration(){
+        if (this.durationNitpick == -1) return this.duration;
+        return this.durationNitpick;
     }
 
     public String getSZSStatus(){
@@ -81,6 +106,7 @@ public class NitpickWrapper {
     public boolean hasTypeError(){
         return this.stdout.contains("error") && this.stdout.contains("Type error");
     }
+
     public boolean hasParserError(){
         return this.stdout.contains("syntax error");
     }
@@ -92,7 +118,7 @@ public class NitpickWrapper {
     public String getAbbrevStatus(){
         if (this.isCounterSatisfiable()) return "CSA";
         if (this.hasError()) return "ERR";
-        return "UNS";
+        return "UNK";
     }
 
 }

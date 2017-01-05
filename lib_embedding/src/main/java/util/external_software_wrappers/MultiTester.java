@@ -1,5 +1,6 @@
 package util.external_software_wrappers;
 
+import util.LexicalOrderComparator;
 import util.ThfProblem;
 
 import java.io.IOException;
@@ -92,10 +93,11 @@ public class MultiTester {
         // subdirectory/filename,satallax_status,satallax_duration,leo_status,leo_duration,nitpick_status,nitpick_duration
         try {
             Files.write(Paths.get(outPath.toString(),"all"),this.allProblems.stream()
+                    .sorted((e1,e2)->new LexicalOrderComparator().compare(e1.name,e2.name))
                     .map(p->p.name + "," +
                             p.satallax.getAbbrevStatus() + "," + p.satallax.duration + "," +
                             p.leo.getAbbrevStatus() + "," + p.leo.duration + "," +
-                            p.nitpick.getAbbrevStatus() + "," + p.nitpick.duration
+                            p.nitpick.getAbbrevStatus() + "," + p.nitpick.getNitpickDuration()
                     )
                     .collect(Collectors.joining("\n")).getBytes());
         } catch (IOException e) {

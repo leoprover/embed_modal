@@ -21,14 +21,14 @@ public class Leo2Wrapper {
     public String stderr = "";
     public String status = "";
     public boolean timeout = false;
-    public double duration = 60.0;
+    public double duration = -1;
 
     public void call(Path filename,long timeout,TimeUnit unit) {
         this.stdout = "";
         this.stderr = "";
         this.status = "";
         this.timeout = false;
-        this.duration = 60.0;
+        this.duration = timeout;
 
         List<String> params = java.util.Arrays.asList(leo_binary,filename.toString());
         try {
@@ -38,13 +38,13 @@ public class Leo2Wrapper {
             BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
             BufferedReader stdError = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
             if (!proc.waitFor(timeout, unit)) {
-                log.info(filename.toString() + " : Proof Timeout");
+                log.fine(filename.toString() + " : Proof Timeout");
                 this.timeout = true;
                 proc.destroy();
             }else{
-                    Instant end = Instant.now();
-                    Duration delta = Duration.between(start,end);
-                    this.duration = (double) delta.getNano() / 1000000000.0;
+                Instant end = Instant.now();
+                Duration delta = Duration.between(start,end);
+                this.duration =  (double) delta.getSeconds() + ( (double) delta.getNano() ) / 1000000000.0;
                 }
             String s = null;
             while ((s = stdInput.readLine()) != null) {
@@ -58,7 +58,7 @@ public class Leo2Wrapper {
             if (this.stderr == null) this.stderr = e.getMessage();
             if (this.stdout == null) this.stdout = e.getMessage();
         } catch (InterruptedException e) {
-            log.info(filename.toString() + " : Interrupted Exception.");
+            log.fine(filename.toString() + " : Interrupted Exception.");
             this.timeout = true;
         }
     }
@@ -96,7 +96,7 @@ public class Leo2Wrapper {
         if (this.isTheorem()) return "THM";
         if (this.isCounterSatisfiable()) return "CSA";
         if (this.hasError()) return "ERR";
-        return "UNS";
+        return "UNK";
     }
 
 }

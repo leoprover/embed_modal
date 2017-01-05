@@ -21,14 +21,14 @@ public class SatallaxWrapper {
     public String stderr = "";
     public String status = "";
     public boolean timeout = false;
-    public double duration = 60.0;
+    public double duration = -1;
 
     public void call(Path filename, long timeout, TimeUnit unit) {
         this.stdout = "";
         this.stderr = "";
         this.status = "";
         this.timeout = false;
-        this.duration = 60.0;
+        this.duration = timeout;
 
         List<String> params = java.util.Arrays.asList(satallax_binary,filename.toString());
         try {
@@ -46,7 +46,7 @@ public class SatallaxWrapper {
             else{
                 Instant end = Instant.now();
                 Duration delta = Duration.between(start,end);
-                this.duration = (double) delta.getNano() / 1000000000.0;
+                this.duration =  (double) delta.getSeconds() + ( (double) delta.getNano() ) / 1000000000.0;
             }
             String s = null;
             while ((s = stdInput.readLine()) != null) {
@@ -122,7 +122,7 @@ public class SatallaxWrapper {
         if (this.isTheorem()) return "THM";
         if (this.isCounterSatisfiable()) return "CSA";
         if (this.hasError()) return "ERR";
-        return "UNS";
+        return "UNK";
     }
 
 }
