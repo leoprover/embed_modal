@@ -40,7 +40,9 @@ public class SemanticsGenerator {
             for(int domain = 0; domain < domains.length; domain++){
                 for (int constant = 0; constant < constants.length; constant++){
                     for (int consequence = 0; consequence < consequences.length; consequence++){
-                        semanticsCube[system][domain][constant][consequence] = "thf(simple_s5,logic, ( $modal :=\n" +
+                        semanticsCube[system][domain][constant][consequence] = "thf(" +
+                                cubeEntryIndexToString(system,domain,constant,consequence) +
+                                ",logic, ( $modal :=\n" +
                                 "    [$constants := " + constants[constant] + ",\n" +
                                 "     $quantification := " + domains[domain] + ",\n" +
                                 "     $consequence := " + consequences[consequence] + ",\n" +
@@ -54,6 +56,20 @@ public class SemanticsGenerator {
         for (int system = 0; system < systems.length; system++){
             rigid_constant_global[system] = semanticsCube[system][0][0][0];
         }
+    }
+
+    public static String cubeEntryIndexToString(int system, int domain, int constant, int consequence){
+        StringBuilder sb = new StringBuilder();
+        String ret = systems[system] + domains[domain] + constants[constant] + consequences[consequence];
+        ret = ret.replaceAll("[\\$]","_");
+        ret = ret.substring(14).toLowerCase();
+        return ret;
+    }
+
+    public static String thfName(String sentence){
+        int start = sentence.indexOf("(");
+        int end = sentence.indexOf(",",start+1);
+        return sentence.substring(start+1,end).trim();
     }
 
 }

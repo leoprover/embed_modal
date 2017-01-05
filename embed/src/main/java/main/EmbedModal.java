@@ -136,7 +136,7 @@ public class EmbedModal {
 
 
 
-
+    // SemanticsCube : [modal_system][domains][constants][consequence]
     private static String[] resolveSemantics(String s){
         if (s == null) return null;
         String[] ret = null;
@@ -170,8 +170,7 @@ public class EmbedModal {
                 String dot = null;
                 if (cl.hasOption("dotbin")) dot = cl.getOptionValue("dotbin");
                 if (cl.hasOption("semantics")) semantics = cl.getOptionValue("semantics");
-
-                Wrappers.convertModalMultipleSemanticsTraverseDirectory(inPath,cl.getOptionValue("o"),inDot,outDot,dot,resolveSemantics(semantics));
+                Wrappers.convertModalMultipleSemanticsOnMultipleDirectoriesTraverseDirectory(inPath,cl.getOptionValue("o"),inDot,outDot,dot,resolveSemantics(semantics));
 
             // input is file
             }else{

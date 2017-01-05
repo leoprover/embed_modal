@@ -24,6 +24,94 @@ public class Wrappers {
 
     private static final Logger log = Logger.getLogger( "default" );
 
+    public static void convertModalMultipleSemanticsOnMultipleDirectoriesTraverseDirectory(Path inPath, String oPath, boolean dotin, boolean dotout, String dotBin, String[] semantics){
+        if (Files.isDirectory(inPath)){
+            log.info("Input is a directory " + inPath.toString());
+            AtomicInteger problems = new AtomicInteger();
+            AtomicInteger problemsParseErrors = new AtomicInteger();
+            AtomicInteger problemsOtherErrors = new AtomicInteger();
+            List<String> parseErrors = new ArrayList<>();
+            List<Pair<String,String>> otherErrors = new ArrayList<>();
+
+            for (String sem : semantics) {
+                Path out_s = Paths.get(oPath,SemanticsGenerator.thfName(sem));
+                try (Stream<Path> paths = Files.walk(inPath)) {
+
+                    // create subdirectories
+                    log.info("Creating subdirectories.");
+                    paths.filter(Files::isDirectory).forEach(d -> {
+                        Path newDir = Paths.get(
+                                out_s.toString(),
+                                d.toAbsolutePath().toString().replace(inPath.toAbsolutePath().getParent().toString(), ""));
+                        try {
+                            Files.createDirectories(newDir);
+                            log.info("Created directory " + newDir.toString());
+                        } catch (IOException e) {
+                            log.warning("Could not create directory " + newDir.toString() + " ::: " + e.getMessage());
+                        }
+                    });
+
+                    // embed problems
+                    try (Stream<Path> pathsNew = Files.walk(inPath)) {
+                        log.info("Converting problems.");
+                        pathsNew.filter(Files::isRegularFile).filter(f -> f.toString().endsWith(".p")).forEach(f -> {
+                            problems.getAndIncrement();
+                            log.info("Processing " + String.valueOf(problems.get()) + ": " + f.toString());
+                            String subdir = f.toString().substring(inPath.getParent().toString().length());
+                            Path outPath = Paths.get(out_s.toString(), subdir);
+                            Path inDot = Paths.get(outPath.toString() + ".in.dot");
+                            Path outDot = Paths.get(outPath.toString() + ".out.dot");
+                            System.out.println(outPath.toString());
+                            if (!dotin) inDot = null;
+                            if (!dotout) outDot = null;
+                            try {
+                                boolean success = convertModal(f, outPath, inDot, outDot, dotBin, sem);
+                                if (!success) {
+                                    log.warning("ParseError: Could not convert " + f.toString());
+                                    parseErrors.add(f.toString());
+                                    problemsParseErrors.getAndIncrement();
+                                }
+                            } catch (Exception e) {
+                                String error = "Could not convert " + f.toString() + " ::: " + e.toString() + " ::: " + e.getMessage();
+                                log.warning(error);
+                                otherErrors.add(new Pair<String, String>(f.toString(), error));
+                                problemsOtherErrors.getAndIncrement();
+                                //e.printStackTrace();
+                                //System.exit(1);
+                            }
+                        });
+                        // write errors to file
+                        try {
+                            Files.write(Paths.get(out_s.toString(), "OtherErrors"), otherErrors.stream()
+                                    .map(p -> p.getKey() + " ::: " + p.getValue())
+                                    .collect(Collectors.joining("\n")).getBytes());
+                        } catch (IOException e) {
+                            System.err.println("Could not write OtherErrors file");
+                            e.printStackTrace();
+                        }
+                        try {
+                            Files.write(Paths.get(out_s.toString(), "ParseErrors"), parseErrors.stream()
+                                    .collect(Collectors.joining("\n")).getBytes());
+                        } catch (IOException e) {
+                            System.err.println("Could not write ParseErrors file");
+                            e.printStackTrace();
+                        }
+                        System.out.println("Problems total:" + problems.get() + " parseErrors:" + problemsParseErrors.get() + " otherErrors:" + problemsOtherErrors.get());
+
+                    } catch (IOException e) {
+                        log.severe("Could not traverse directory " + inPath.toString() + " ::: " + e.getMessage());
+                        log.severe("Exit.");
+                        System.exit(1);
+                    }
+                } catch (IOException e) {
+                    log.severe("Could not traverse directory " + inPath.toString() + " ::: " + e.getMessage());
+                    log.severe("Exit.");
+                    System.exit(1);
+                }
+            }
+        }
+    }
+
     /*
      * Converts a directory and its sub*directories to modal logical thf problems.
      * Output is mapped to a similar subdirectory structure
