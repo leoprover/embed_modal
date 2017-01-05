@@ -1,6 +1,7 @@
 package util.external_software_wrappers;
 
 import exceptions.WrapperException;
+import util.ProcessKiller;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -31,16 +32,17 @@ public class Leo2Wrapper {
         this.duration = timeout;
 
         List<String> params = java.util.Arrays.asList(leo_binary,filename.toString());
+        Process proc = null;
         try {
             ProcessBuilder leo = new ProcessBuilder(params);
             Instant start = Instant.now();
-            Process proc = leo.start();
+            proc = leo.start();
             BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
             BufferedReader stdError = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
             if (!proc.waitFor(timeout, unit)) {
                 log.fine(filename.toString() + " : Proof Timeout");
                 this.timeout = true;
-                proc.destroy();
+                ProcessKiller.destroyProc(proc, 3000L);
             }else{
                 Instant end = Instant.now();
                 Duration delta = Duration.between(start,end);
@@ -53,22 +55,28 @@ public class Leo2Wrapper {
             while ((s = stdError.readLine()) != null) {
                 stderr += s;
             }
-            this.status = extractSZSStatus();
         } catch (IOException e) {
             if (this.stderr == null) this.stderr = e.getMessage();
             if (this.stdout == null) this.stdout = e.getMessage();
         } catch (InterruptedException e) {
             log.fine(filename.toString() + " : Interrupted Exception.");
+            if (this.stderr == null) this.stderr = e.getMessage();
+            if (this.stdout == null) this.stdout = e.getMessage();
             this.timeout = true;
+        }finally {
+            this.status = extractSZSStatus(this.stdout);
+            System.out.println(this.status);
+            if (proc != null) ProcessKiller.destroyProc(proc, 3000L);
         }
     }
 
-    private String extractSZSStatus(){
-        int szs_start = this.stdout.indexOf("SZS status ");
+    private String extractSZSStatus(String consoleOutput){
+        int szs_start = consoleOutput.indexOf("SZS status ");
+        if (szs_start == -1) return "NOSTATUS";
         szs_start += "SZS status ".length();
-        int szs_end = this.stdout.indexOf(" ",szs_start);
-        if (szs_end == -1) szs_end = this.stdout.length();
-        String status = this.stdout.substring(szs_start,szs_end);
+        int szs_end = consoleOutput.indexOf(" ",szs_start);
+        if (szs_end == -1) szs_end = consoleOutput.length();
+        String status = consoleOutput.substring(szs_start,szs_end);
         return status;
     }
 

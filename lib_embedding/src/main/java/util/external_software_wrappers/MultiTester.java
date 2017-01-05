@@ -24,7 +24,7 @@ public class MultiTester {
     public List<ThfProblem> allProblems;
     private List<String> filterList;
 
-    public void testProblemDirectory(Path inPath, Path outPath, long timoutPerProblem, TimeUnit timeUnit, Path filterFile) throws IOException {
+    public void testProblemDirectory(Path inPath, Path outPath, long timoutPerProblem, TimeUnit timeUnit, Path filterFile, Path progress) throws IOException {
 
         /*
         // remove all old error files
@@ -64,7 +64,8 @@ public class MultiTester {
                         problems.incrementAndGet();
                         //String name = f.getParent().getFileName().toString() + "/" + f.getFileName().toString();
                         String name = f.getFileName().toString();
-                        System.out.println("Processing " + String.valueOf(problems.get()) + " " + f.toString());
+                        String info = "Processing " + String.valueOf(problems.get()) + " " + f.toString();
+                        System.out.println(info);
                         ThfProblem thfProblem = new ThfProblem(f);
                         thfProblem.name = name;
                         allProblems.add(thfProblem);
@@ -86,6 +87,14 @@ public class MultiTester {
                         nitpick.call(f,timoutPerProblem,timeUnit);
                         thfProblem.nitpick = nitpick;
                         System.out.println(name + ": nitpick: " + nitpick.getAbbrevStatus());
+
+                        // save progress
+                        try {
+                            Files.write(progress,info.getBytes());
+                        } catch (IOException e) {
+                            System.err.println("Could not write progress file " + progress.toString());
+                            e.printStackTrace();
+                        }
                     });
         }
 

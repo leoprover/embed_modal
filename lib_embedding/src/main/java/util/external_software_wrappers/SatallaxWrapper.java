@@ -1,6 +1,7 @@
 package util.external_software_wrappers;
 
 import exceptions.WrapperException;
+import util.ProcessKiller;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -31,17 +32,18 @@ public class SatallaxWrapper {
         this.duration = timeout;
 
         List<String> params = java.util.Arrays.asList(satallax_binary,filename.toString());
+        Process proc = null;
         try {
             // Call satallax on problem and extract status
             ProcessBuilder satallax = new ProcessBuilder(params);
             Instant start = Instant.now();
-            Process proc = satallax.start();
+            proc = satallax.start();
             BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
             BufferedReader stdError = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
             if (!proc.waitFor(timeout, unit)){
                 log.fine(filename.toString() + " : Proof Timeout");
                 this.timeout = true;
-                proc.destroy();
+                ProcessKiller.destroyProc(proc, 3000L);
             }
             else{
                 Instant end = Instant.now();
@@ -55,19 +57,25 @@ public class SatallaxWrapper {
             while ((s = stdError.readLine()) != null) {
                 stderr += s;
             }
-            this.status = extractSZSStatus(this.stdout);
-            log.fine(filename.toString() + " : SZS: " + this.status);
         } catch (IOException e) {
             if (this.stderr == null) this.stderr = e.getMessage();
             if (this.stdout == null) this.stdout = e.getMessage();
         } catch (InterruptedException e) {
             log.fine(filename.toString() + " : Interrupted Exception.");
+            if (this.stderr == null) this.stderr = e.getMessage();
+            if (this.stdout == null) this.stdout = e.getMessage();
             this.timeout = true;
+        } finally {
+            this.status = extractSZSStatus(this.stdout);
+            System.out.println(this.status);
+
+            if (proc != null) ProcessKiller.destroyProc(proc, 3000L);
         }
     }
 
     private String extractSZSStatus(String consoleOutput){
         int szs_start = consoleOutput.indexOf("SZS status ");
+        if (szs_start == -1) return "NOSTATUS";
         szs_start += "SZS status ".length();
         int szs_end = consoleOutput.indexOf(" ",szs_start);
         if (szs_end == -1) szs_end = consoleOutput.length();

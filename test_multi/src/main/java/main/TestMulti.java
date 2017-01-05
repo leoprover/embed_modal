@@ -19,7 +19,7 @@ public class TestMulti {
         //log.setUseParentHandlers(false);
         log.setLevel(Level.ALL);
 
-        if (!(args.length == 3 || args.length == 4)){
+        if (!(args.length == 4 || args.length == 5)){
             System.err.println("Unmatched argument size\nThree arguments needed: \n" +
                     "/path/to/tptp/Problems/directory\n" +
                     "/path/to/result\n" +
@@ -29,6 +29,7 @@ public class TestMulti {
 
         String inPathString = args[0]; // "/home/tg/university/bachelor_thesis/QMLTP-v1.1/";
         String outputPathString = args[1]; // "/home/tg/university/bachelor_thesis/software/output/convert_qmltp_to_thf/";
+        String progress = args[2];
 
         if (!Files.isDirectory(Paths.get(inPathString))){
             System.err.println("input path is not a directory\nThree arguments needed: \n" +
@@ -50,10 +51,10 @@ public class TestMulti {
 
         MultiTester tester = new MultiTester();
         Path filterList = null;
-        if (args.length == 4) filterList = Paths.get(args[3]);
-        long timeout = Long.valueOf(args[2]);
+        if (args.length == 5) filterList = Paths.get(args[4]);
+        long timeout = Long.valueOf(args[3]);
         try {
-            tester.testProblemDirectory(Paths.get(inPathString),Paths.get(outputPathString),timeout,TimeUnit.SECONDS,filterList);
+            tester.testProblemDirectory(Paths.get(inPathString),Paths.get(outputPathString),timeout,TimeUnit.SECONDS,filterList,Paths.get(progress));
         } catch (IOException e) {
             System.err.println("Could not traverse files");
             e.printStackTrace();
