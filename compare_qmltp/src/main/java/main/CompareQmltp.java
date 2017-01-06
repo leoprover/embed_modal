@@ -5,81 +5,116 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 public class CompareQmltp {
 
     public static void main(String[] args) {
 
-        if (args.length != 4){
+        if (args.length != 2){
             System.err.println("Unmatched argument size\nFour arguments needed: \n" +
                     "/path/to/qmltp/Problems/directory\n" +
-                    "/path/to/test/results\n"+
-                    "<system>\n" +
-                    "<domain>\n"
+                    "/path/to/test/results\n"
                     );
             System.exit(1);
         }
 
         String qmltp = args[0];
         String test_results = args[1];
-        String system = args[2];
-        String domain = args[3];
 
         if (!Files.isDirectory(Paths.get(qmltp))){
             System.err.println("Unmatched argument size\nFour arguments needed: \n" +
                     "/path/to/qmltp/Problems/directory\n" +
-                    "/path/to/test/results\n"+
-                    "<system>\n" +
-                    "<domain>\n"
+                    "/path/to/test/results\n"
             );
             System.err.println(qmltp + " is not a valid directory");
             System.exit(1);
         }
 
-        if (!Files.isRegularFile(Paths.get(test_results))){
+        if (!Files.isDirectory(Paths.get(test_results))){
             System.err.println("Unmatched argument size\nFour arguments needed: \n" +
                     "/path/to/qmltp/Problems/directory\n" +
-                    "/path/to/test/results\n"+
-                    "<system>\n" +
-                    "<domain>\n"
+                    "/path/to/test/results\n"
             );
             System.err.println(test_results + " is not a valid file");
             System.exit(1);
         }
 
-        try{
-            Results results = new Results();
-            List<String> result_content = Files.readAllLines(Paths.get(test_results));
-            int processing = 0;
-            for (String res : result_content){
-                processing++;
-                String[] split = res.split(",");
-                System.out.println("Processing " + processing + " ::: " + split[0]);
-                String category = split[0].substring(0,3);
-                String problem_name = split[0];
-                Path problem_filename = Paths.get(qmltp,category,problem_name);
-                String problem = new String(Files.readAllBytes(problem_filename));
-
-                Problem p = new Problem();
-                p.name = problem_name;
-                p.category = category;
-                p.status_qmltp = getStatusFromComments(problem,system,domain);
-                p.status_satallax = split[1];
-                p.time_satallax = Double.valueOf(split[2]);
-                p.status_leo = split[3];
-                p.time_leo = Double.valueOf(split[4]);
-                p.status_nitpick = split[5];
-                p.time_nitpick = Double.valueOf(split[6]);
-                results.addProblem(p);
-            }
+        Results results = new Results();
+        try(Stream<Path> paths = Files.walk(Paths.get(test_results))) {
+            paths.filter(Files::isRegularFile).forEach(f -> {
+                try {
+                    readResults(f,qmltp,results);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    System.exit(1);
+                }
+            });
         } catch (IOException e) {
             e.printStackTrace();
+            System.exit(1);
         }
+
+        results.evaluate();
+    }
+
+    private static void readResults(Path f, String qmltp_directory, Results results) throws IOException {
+        System.out.println("### Processing " + f.toString());
+        Test test = new Test();
+        List<String> result_content = Files.readAllLines(f);
+        String system = getSystemFromTestFilename(f.getFileName().toString());
+        String domain = getDomainFromTestFilename(f.getFileName().toString());
+        String constants = getConstantsFromTestFilename(f.getFileName().toString());
+        String consequence = getConsequenceFromTestFilename(f.getFileName().toString());
+        test.test_name = f.getFileName().toString();
+        test.system = system;
+        test.domain = domain;
+        test.constants = constants;
+        test.consequence = consequence;
+        int processing = 0;
+        for (String res : result_content){
+            processing++;
+            String[] split = res.split(",");
+            System.out.println("Processing " + processing + " ::: " + split[0]);
+            String category = split[0].substring(0,3);
+            String problem_name = split[0];
+            Path problem_filename = Paths.get(qmltp_directory,category,problem_name);
+            String problem = new String(Files.readAllBytes(problem_filename));
+
+            Problem p = new Problem();
+            p.name = problem_name;
+            p.category = category;
+            p.status_qmltp = getStatusFromComments(problem,system,domain);
+            p.status_satallax = split[1];
+            p.time_satallax = Double.valueOf(split[2]);
+            p.status_leo = split[3];
+            p.time_leo = Double.valueOf(split[4]);
+            p.status_nitpick = split[5];
+            p.time_nitpick = Double.valueOf(split[6]);
+            test.addProblem(p);
+        }
+        results.addTest(test);
+    }
+
+    private static String getSystemFromTestFilename(String filename){
+        String[] split = filename.split("_");
+        return split[0];
+    }
+
+    private static String getDomainFromTestFilename(String filename){
+        String[] split = filename.split("_");
+        return split[1];
+    }
+
+    private static String getConstantsFromTestFilename(String filename){
+        String[] split = filename.split("_");
+        return split[2];
+    }
+
+    private static String getConsequenceFromTestFilename(String filename){
+        String[] split = filename.split("_");
+        return split[3];
     }
 
     private static String getStatusFromComments(String problem, String system, String domain){
@@ -134,7 +169,7 @@ public class CompareQmltp {
         if (status.equals("Non-Theorem")) return "CSA";
         if (status.equals("Unsolved")) return "UNK";
         System.out.println("NEW STATUS: " + status);
-        return "";
+        return "???";
     }
 
     /*
