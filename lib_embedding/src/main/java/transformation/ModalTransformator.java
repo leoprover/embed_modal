@@ -19,6 +19,8 @@ public class ModalTransformator {
 
     private Set<String> typesExistsQuantifiers;
     private Set<String> typesForAllQuantifiers;
+    private Set<String> typesForVaryingQuantifiers;
+    private Map<String, Set<String>> declaredUserConstants; // Type -> Set of symbols
     private Set<String> usedOperators;
     private Set<String> usedSymbols;
 
@@ -44,6 +46,8 @@ public class ModalTransformator {
         this.transformedRoot = root;
         typesExistsQuantifiers = new HashSet<>();
         typesForAllQuantifiers = new HashSet<>();
+        typesForVaryingQuantifiers = new HashSet<>();
+        declaredUserConstants = new HashMap<>();
         usedOperators = new HashSet<>();
         usedSymbols = new HashSet<>();
     }
@@ -72,6 +76,22 @@ public class ModalTransformator {
                     l.setLabel(EmbeddingDefinitions.truth_type);
                 }
             }
+            // if it is a type declaration (and not a definition) add labels (name and type) to the map of constants (for varying domains)
+            Optional<Node> typeable = type_statement.dfsRule("thf_typeable_formula");
+            if (typeable.isPresent()) {
+                String constant = typeable.get().getFirstLeaf().getLabel();
+                String type = type_statement.dfsRule("thf_top_level_type").get().getFirstChild().toStringLeafs();
+                String normalizedType = EmbeddingDefinitions.normalizeType(type);
+                if (this.declaredUserConstants.containsKey(normalizedType)) {
+                    this.declaredUserConstants.get(normalizedType).add(constant);
+                } else {
+                    Set<String> newSet = new HashSet<>();
+                    newSet.add(constant);
+                    this.declaredUserConstants.put(normalizedType, newSet);
+                }
+
+            }
+
         }
 
         // transform definitions and axioms,... by lifting types and substituting operators
@@ -143,7 +163,9 @@ public class ModalTransformator {
         //System.out.println(modalDefinitions.toString());
         //System.out.println(this.transformedRoot.toStringWithLinebreaksFormatted());
 
-        return new TransformContext(modalDefinitions, this.transformedRoot, this.originalRoot, this.thfAnalyzer, this.semanticsAnalyzer);
+        String auxiliaryDefinitions = getAuxiliaryDefinitions();
+
+        return new TransformContext(modalDefinitions, auxiliaryDefinitions, this.transformedRoot, this.originalRoot, this.thfAnalyzer, this.semanticsAnalyzer);
     }
 
     /*
@@ -208,11 +230,24 @@ public class ModalTransformator {
                 // add embedded quantifier functor and add quantifier for the type to
                 Node quant;
                 String normalizedType = EmbeddingDefinitions.normalizeType(type);
+                SemanticsAnalyzer.DomainType defaultDomainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(
+                        SemanticsAnalyzer.domainDefault, SemanticsAnalyzer.DomainType.CONSTANT);
+                SemanticsAnalyzer.DomainType domainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(normalizedType, defaultDomainType);
                 if (quantifier.equals("!")){
-                    quant = new Node("t_quantifier",EmbeddingDefinitions.embedded_forall(type));
+                    if (domainType == SemanticsAnalyzer.DomainType.CONSTANT)
+                        quant = new Node("t_quantifier",EmbeddingDefinitions.embedded_forall(type));
+                    else {
+                        quant = new Node("t_quantifier", EmbeddingDefinitions.embedded_forall_varying(type));
+                        typesForVaryingQuantifiers.add(normalizedType);
+                    }
                     typesForAllQuantifiers.add(normalizedType);
                 }else{
-                    quant = new Node("t_quantifier",EmbeddingDefinitions.embedded_exists(type));
+                    if (domainType == SemanticsAnalyzer.DomainType.CONSTANT)
+                        quant = new Node("t_quantifier",EmbeddingDefinitions.embedded_exists(type));
+                    else {
+                        quant = new Node("t_quantifier",EmbeddingDefinitions.embedded_exists_varying(type));
+                        typesForVaryingQuantifiers.add(normalizedType);
+                    }
                     typesExistsQuantifiers.add(normalizedType);
                 }
                 thf_typed_variable.addChildAt(quant,0);
@@ -421,17 +456,69 @@ public class ModalTransformator {
         //typesForAllQuantifiers.add("$o>$o");
         //typesExistsQuantifiers.add("plushie>$o");
         //typesForAllQuantifiers.add("plushie>$o");
-        def.append("% define exists quantifiers\n");
+        if (!typesForVaryingQuantifiers.isEmpty()) {
+            def.append("\n% define exists-in-world predicates for varying domain types and non-emptiness axioms\n");
+            for (String q: typesForVaryingQuantifiers) { // for each type that a varying domains quantor is used, introduce
+                // an according eiw predicate
+                def.append(EmbeddingDefinitions.eiw_th0(q));
+                def.append("\n");
+            }
+            def.append("\n% define domain restrictions\n");
+            for (String q: typesForVaryingQuantifiers) { // insert domain restriction (cumulative etc) if necessary
+                SemanticsAnalyzer.DomainType defaultDomainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(
+                        SemanticsAnalyzer.domainDefault, SemanticsAnalyzer.DomainType.CONSTANT);
+                SemanticsAnalyzer.DomainType domainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(q, defaultDomainType);
+                if (domainType == SemanticsAnalyzer.DomainType.CUMULATIVE) {
+                    def.append(EmbeddingDefinitions.cumulative_eiw_th0(q));
+                    def.append("\n");
+                } else if (domainType == SemanticsAnalyzer.DomainType.DECREASING) {
+                    def.append(EmbeddingDefinitions.decreasing_eiw_th0(q));
+                    def.append("\n");
+                } // else nothing, since either constant or unrestricted varying
+            }
+
+        }
+
+        def.append("\n% define exists quantifiers\n");
         for (String q : typesExistsQuantifiers){
-            def.append(EmbeddingDefinitions.mexists_const_th0(q));
+            SemanticsAnalyzer.DomainType defaultDomainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(
+                    SemanticsAnalyzer.domainDefault, SemanticsAnalyzer.DomainType.CONSTANT);
+            SemanticsAnalyzer.DomainType domainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(q, defaultDomainType);
+            if (domainType == SemanticsAnalyzer.DomainType.CONSTANT)
+                def.append(EmbeddingDefinitions.mexists_const_th0(q));
+            else
+                def.append(EmbeddingDefinitions.mexists_varying_th0(q));
             def.append("\n");
         }
         def.append("\n% define for all quantifiers\n");
         for (String q: typesForAllQuantifiers){
-            def.append(EmbeddingDefinitions.mforall_const_th0(q));
+            SemanticsAnalyzer.DomainType defaultDomainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(
+                    SemanticsAnalyzer.domainDefault, SemanticsAnalyzer.DomainType.CONSTANT);
+            SemanticsAnalyzer.DomainType domainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(q, defaultDomainType);
+            if (domainType == SemanticsAnalyzer.DomainType.CONSTANT)
+                def.append(EmbeddingDefinitions.mforall_const_th0(q));
+            else
+                def.append(EmbeddingDefinitions.mforall_varying_th0(q));
             def.append("\n");
         }
 
+        return def.toString();
+    }
+
+    private String getAuxiliaryDefinitions() throws TransformationException {
+        StringBuilder def = new StringBuilder();
+        if (!typesForVaryingQuantifiers.isEmpty()) {
+            def.append("% define exists-in-world assertion for relevant user-defined constants\n");
+            for (String q: typesForVaryingQuantifiers) {
+                if (this.declaredUserConstants.containsKey(q)) { // if there are user constants of the type q add
+                    // axioms that these constants exist at all worlds
+                    for (String constant : declaredUserConstants.get(q)) {
+                        def.append(EmbeddingDefinitions.constant_eiw_th0(constant,q));
+                        def.append("\n");
+                    }
+                }
+            }
+        }
         return def.toString();
     }
 }
