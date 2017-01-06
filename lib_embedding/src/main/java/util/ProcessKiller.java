@@ -40,7 +40,7 @@ public class ProcessKiller {
                 "]" +
                 grep.substring(1) +
                 "' | awk '{print $2}')";
-        System.out.println(cmd);
+        //System.out.println(cmd);
         String[] params = {"bash","-c",cmd};
         try {
             p = Runtime.getRuntime().exec(params);
