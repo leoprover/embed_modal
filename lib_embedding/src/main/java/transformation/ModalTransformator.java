@@ -457,11 +457,18 @@ public class ModalTransformator {
         //typesExistsQuantifiers.add("plushie>$o");
         //typesForAllQuantifiers.add("plushie>$o");
         if (!typesForVaryingQuantifiers.isEmpty()) {
-            def.append("\n% define exists-in-world predicates for varying domain types and non-emptiness axioms\n");
-            for (String q: typesForVaryingQuantifiers) { // for each type that a varying domains quantor is used, introduce
+            def.append("\n% define exists-in-world predicates for quantified types and non-emptiness axioms\n");
+            for (String q: typesExistsQuantifiers) { // for each type that a  quantor is used, introduce
                 // an according eiw predicate
                 def.append(EmbeddingDefinitions.eiw_th0(q));
                 def.append("\n");
+            }
+            for (String q: typesForAllQuantifiers) { // for each type that a  quantor is used, introduce
+                // an according eiw predicate
+                if (!typesExistsQuantifiers.contains(q)) {
+                    def.append(EmbeddingDefinitions.eiw_th0(q));
+                    def.append("\n");
+                }
             }
             def.append("\n% define domain restrictions\n");
             for (String q: typesForVaryingQuantifiers) { // insert domain restriction (cumulative etc) if necessary
@@ -507,17 +514,28 @@ public class ModalTransformator {
 
     private String getAuxiliaryDefinitions() throws TransformationException {
         StringBuilder def = new StringBuilder();
-        if (!typesForVaryingQuantifiers.isEmpty()) {
-            def.append("% define exists-in-world assertion for relevant user-defined constants\n");
-            for (String q: typesForVaryingQuantifiers) {
-                if (this.declaredUserConstants.containsKey(q)) { // if there are user constants of the type q add
-                    // axioms that these constants exist at all worlds
+        def.append("% define exists-in-world assertion for user-defined constants\n");
+        for (String q: this.declaredUserConstants.keySet()) {
+            if (!q.equals("$tType")) {
+                if (this.typesForVaryingQuantifiers.contains(q)) {
+                    // an eiw-predicate of type q already exists, we can just postulate an axiom
+                    // that these constants exist at all worlds
                     for (String constant : declaredUserConstants.get(q)) {
-                        def.append(EmbeddingDefinitions.constant_eiw_th0(constant,q));
+                        def.append(EmbeddingDefinitions.constant_eiw_th0(constant, q));
+                        def.append("\n");
+                    }
+                } else {
+                    // define eiw_predicate of that type first
+                    def.append(EmbeddingDefinitions.eiw_th0(q));
+                    def.append("\n");
+                    // now postulate as anbove
+                    for (String constant : declaredUserConstants.get(q)) {
+                        def.append(EmbeddingDefinitions.constant_eiw_th0(constant, q));
                         def.append("\n");
                     }
                 }
             }
+
         }
         return def.toString();
     }

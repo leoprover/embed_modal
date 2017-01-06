@@ -369,7 +369,7 @@ public class EmbeddingDefinitions {
         String escapedType = escapeType(type);
         // concrete type sentence from
         // thf( mforall_const_type , type , ( mforall_const : !> [T:$tType] : (T > " + w + " > $o) > " + w + " > $o ) ).
-        sb.append("thf( mforall_vary_type_");
+        sb.append("thf(mforall_vary_type_");
         sb.append(escapedType);
         sb.append(" , type , ( mforall_vary_");
         sb.append(escapedType);
@@ -381,7 +381,7 @@ public class EmbeddingDefinitions {
         // thf( mforall_const , definition , ( mforall_const = (
         // ^ [A:T>" + w + ">$o,W:" + w + "] : ! [X:T] : ((eiw  @ X @ W) => (A @ X @ W))
         //        ))).
-        sb.append("thf( mforall_vary_");
+        sb.append("thf(mforall_vary_");
         sb.append(escapedType);
         sb.append(" , definition , ( mforall_vary_");
         sb.append(escapedType);
@@ -401,7 +401,7 @@ public class EmbeddingDefinitions {
         StringBuilder sb = new StringBuilder();
         type = normalizeType(type);
         String escapedType = escapeType(type);
-        sb.append("thf( mexists_vary_type_");
+        sb.append("thf(mexists_vary_type_");
         sb.append(escapedType);
         sb.append(" , type , ( mexists_vary_");
         sb.append(escapedType);
@@ -413,7 +413,7 @@ public class EmbeddingDefinitions {
         // thf( mexists_const , definition , ( mexists_const = (
         // ^ [A:T>" + w + ">$o,W:" + w + "] : ? [X:T] : ((eiw  @ X @ W) & (A @ X @ W))
         //        ))).
-        sb.append("thf( mexists_vary_");
+        sb.append("thf(mexists_vary_");
         sb.append(escapedType);
         sb.append(" , definition , ( mexists_vary_");
         sb.append(escapedType);
