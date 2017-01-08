@@ -15,8 +15,12 @@ public class SemanticsGenerator {
     public static String[] consequences;
     // [modal_system][domains][constants][consequence]
     public static String[][][][] semanticsCube;
-    // [modal_system][0][0][0]
-    public static String[] rigid_constant_global;
+
+    // interesting system sets
+    public static String[] constant_rigid_global;
+    public static String[] rigid_global;
+    public static String[] all_supported;
+
     static{
         systems = new String[5];
         systems[0] = "$modal_system_K";
@@ -26,7 +30,7 @@ public class SemanticsGenerator {
         systems[4] = "$modal_system_S5";
         domains = new String[4];
         domains[0] = "$constant";
-        domains[1] = "varying";
+        domains[1] = "$varying";
         domains[2] = "$cumulative";
         domains[3] = "$decreasing";
         constants = new String[2];
@@ -52,10 +56,16 @@ public class SemanticsGenerator {
                 }
             }
         }
-        rigid_constant_global = new String[systems.length];
+        constant_rigid_global = new String[systems.length];
         for (int system = 0; system < systems.length; system++){
-            rigid_constant_global[system] = semanticsCube[system][0][0][0];
+            constant_rigid_global[system] = semanticsCube[system][0][0][0];
         }
+        rigid_global = new String[systems.length * domains.length];
+        for (int system = 0; system < systems.length; system++){
+            for (int domain = 0; domain < domains.length; domain++)
+                rigid_global[system * domains.length + domain] = semanticsCube[system][domain][0][0];
+        }
+        all_supported = rigid_global;
     }
 
     public static String cubeEntryIndexToString(int system, int domain, int constant, int consequence){

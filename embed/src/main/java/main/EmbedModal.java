@@ -4,7 +4,6 @@ import exceptions.*;
 
 import org.apache.commons.cli.*;
 import org.apache.commons.cli.ParseException;
-import transformation.EmbeddingDefinitions;
 import transformation.SemanticsGenerator;
 import transformation.Wrappers;
 
@@ -33,6 +32,8 @@ public class EmbedModal {
         /home/tg/university/bachelor_thesis/software/output.in.dot
         -dotout
         /home/tg/university/bachelor_thesis/software/output.out.dot
+        -semantics
+        all_supported
         -log
         /home/tg/university/bachelor_thesis/software/log.log
          */
@@ -135,19 +136,25 @@ public class EmbedModal {
     }
 
 
-
     // SemanticsCube : [modal_system][domains][constants][consequence]
     private static String[] resolveSemantics(String s){
         if (s == null) return null;
         String[] ret = null;
-        if (s.equals("standard_s5")){
-            ret = new String[1];
-            ret[0] = SemanticsGenerator.semanticsCube[4][0][0][0];
-        }else if (s.equals("all")){
-            ret = SemanticsGenerator.rigid_constant_global;
-        }else{
-            log.severe("Unsupported semantics " + s);
-            System.exit(1);
+        switch (s) {
+            case "standard_s5":
+                ret = new String[1];
+                ret[0] = SemanticsGenerator.semanticsCube[4][0][0][0];
+                break;
+            case "constant_rigid_global":
+                ret = SemanticsGenerator.constant_rigid_global;
+                break;
+            case "all":
+            case "all_supported":
+                ret = SemanticsGenerator.all_supported;
+                break;
+            default:
+                log.severe("Unsupported semantics " + s);
+                System.exit(1);
         }
         return ret;
     }
