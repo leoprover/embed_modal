@@ -33,6 +33,12 @@ public class Wrappers {
             List<String> parseErrors = new ArrayList<>();
             List<Pair<String,String>> otherErrors = new ArrayList<>();
 
+            System.out.println("Semantics: " + semantics.length);
+            for (String sem : semantics){
+                System.out.println(sem);
+            }
+
+            System.out.println("Embedding now.");
             for (String sem : semantics) {
                 Path out_s = Paths.get(oPath,SemanticsGenerator.thfName(sem));
                 try (Stream<Path> paths = Files.walk(inPath)) {
