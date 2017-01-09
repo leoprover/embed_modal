@@ -104,6 +104,7 @@ public class CompareQmltp {
             p.consequence = consequence;
             p.category = category;
             p.status_qmltp = getStatusFromComments(problem,system,domain,constants,consequence);
+            p.rating = getRatingFromComments(problem,system,domain,constants,consequence);
             p.status_satallax = split[1];
             p.time_satallax = Double.valueOf(split[2]);
             p.status_leo = split[3];
@@ -133,6 +134,57 @@ public class CompareQmltp {
     private static String getConsequenceFromTestFilename(String filename){
         String[] split = filename.split("_");
         return split[3];
+    }
+
+    private static String getRatingFromComments(String problem, String system, String domain, String constants, String consequence){
+        if (!(domain.equals("constant") || domain.equals("varying") || domain.equals("cumulative"))) return null;
+        if (!(system.equals("k") || system.equals("d") || system.equals("t") || system.equals("s4") || system.equals("s5"))) return null;
+        if (!(constants.equals("rigid"))) return null;
+        if (!(consequence.equals("global"))) return null; // TODO is it global or local for QMLTP?
+
+        String[][] matrix = new String[5][3];
+        boolean rating_found = false;
+        int systems = 0;
+        String[] lines = problem.split("\n");
+        for (String line : lines){
+            if (systems == 5) break;
+            if (rating_found){
+                String[] split = line.split("\\s+");
+                List<String> entries = Arrays.asList(split).subList(2, 5);
+                matrix[systems] = entries.toArray(new String[entries.size()]);
+                systems++;
+            }
+            if (line.contains("Rating")) rating_found = true;
+        }
+
+        int sys_index = 0;
+        int dom_index = 0;
+        if (system.equals("k")) sys_index = 0;
+        else if (system.equals("d")) sys_index = 1;
+        else if (system.equals("t")) sys_index = 2;
+        else if (system.equals("s4")) sys_index = 3;
+        else if (system.equals("s5")) sys_index = 4;
+        else {
+            System.err.println("Invalid system: " + system);
+            System.exit(1);
+        }
+        if (domain.equals("varying")) dom_index = 0;
+        else if (domain.equals("cumulative")) dom_index = 1;
+        else if (domain.equals("constant")) dom_index = 2;
+        else {
+            System.err.println("Invalid domain: " + domain);
+            System.exit(1);
+        }
+
+        for (String[] line : matrix){
+            String out = "";
+            for (String e:line){
+                out = out + " " + e;
+            }
+            System.out.println(out);
+        }
+
+        return convertQmltpStatus(matrix[sys_index][dom_index]);
     }
 
     private static String getStatusFromComments(String problem, String system, String domain, String constants, String consequence){

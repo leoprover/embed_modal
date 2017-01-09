@@ -9,6 +9,7 @@ public class Problem {
     public String domains;
     public String constants;
     public String consequence;
+    public String rating;
     public String status_qmltp;
     public String status_satallax;
     public String status_leo;
