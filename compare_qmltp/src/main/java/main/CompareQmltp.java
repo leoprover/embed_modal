@@ -85,7 +85,7 @@ public class CompareQmltp {
             Problem p = new Problem();
             p.name = problem_name;
             p.category = category;
-            p.status_qmltp = getStatusFromComments(problem,system,domain);
+            p.status_qmltp = getStatusFromComments(problem,system,domain,constants,consequence);
             p.status_satallax = split[1];
             p.time_satallax = Double.valueOf(split[2]);
             p.status_leo = split[3];
@@ -117,9 +117,13 @@ public class CompareQmltp {
         return split[3];
     }
 
-    private static String getStatusFromComments(String problem, String system, String domain){
-        String[][] matrix = new String[5][3];
+    private static String getStatusFromComments(String problem, String system, String domain, String constants, String consequence){
+        if (!(domain.equals("constant") || domain.equals("varying") || domain.equals("cumulative"))) return null;
+        if (!(system.equals("k") || system.equals("d") || system.equals("t") || system.equals("s4") || system.equals("s5"))) return null;
+        if (!(constants.equals("rigid"))) return null;
+        if (!(consequence.equals("global"))) return null; // TODO is it global or local for QMLTP?
 
+        String[][] matrix = new String[5][3];
         boolean status_found = false;
         int systems = 0;
         String[] lines = problem.split("\n");
