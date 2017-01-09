@@ -1,7 +1,11 @@
 package main;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Results {
     public List<Test> tests;
@@ -28,7 +32,7 @@ public class Results {
     public List<Problem> disagreementAtpAtp; // if at least two atp systems have different results
 
 
-    public void evaluate(){
+    public void evaluate(String outputPath){
 
         confirmedProblems = new ArrayList<>(); // y
         unconfirmedProblems = new ArrayList<>(); // y
@@ -40,9 +44,9 @@ public class Results {
         totallyUnsolvedProblems = new ArrayList<>(); // y + n
 
         for (Test test : this.tests){
-            System.out.println("Evaluate: " + test.test_name + " " + test.system + " " + test.domain);
+            System.out.println("Evaluate: " + test.test_name + " " + test.system + " " + test.domains);
             for (Problem problem : test.getProblems()){
-                System.out.println(problem.toString());
+                //System.out.println(problem.toString());
 
                 // qmltp entry exists
                 // this is the case for systems k,d,t,s4,s5 and domains const,cumul,vary and constants rigid and consequence ???
@@ -116,6 +120,90 @@ public class Results {
                     }
                 }
             }
+        }
+
+        System.out.println("");
+        System.out.println("==============================================");
+        System.out.println("Results:");
+        this.outputToFiles(outputPath);
+        this.outputToStdout();
+    }
+
+    private void outputToStdout(){
+        System.out.println("ConfirmedProblems:       " + confirmedProblems.size());
+        System.out.println("unconfirmedProblems:     " + unconfirmedProblems.size());
+        System.out.println("newProblemResult:        " + newProblemResult.size());
+        System.out.println("disagreementQmltpAtp:    " + disagreementQmltpAtp.size());
+        System.out.println("newProblems:             " + newProblems.size());
+        System.out.println("newProblemsSolved:       " + newProblemsSolved.size());
+        System.out.println("totallyUnsolvedProblems: " + totallyUnsolvedProblems.size());
+        System.out.println("disagreementAtpAtp:      " + disagreementAtpAtp.size());
+    }
+
+    private void outputToFiles(String outputPath){
+        try {
+            Files.write(Paths.get(outputPath.toString(),"confirmedProblems"),this.confirmedProblems.stream()
+                    .map(p->p.system + "," + p.domains + "," + p.constants + "," + p.consequence + "," + p.name)
+                    .collect(Collectors.joining("\n")).getBytes());
+        } catch (IOException e) {
+            System.err.println("Could not write confirmedProblems file");
+            e.printStackTrace();
+        }
+        try {
+            Files.write(Paths.get(outputPath.toString(),"unconfirmedProblems"),this.unconfirmedProblems.stream()
+                    .map(p->p.system + "," + p.domains + "," + p.constants + "," + p.consequence + "," + p.name)
+                    .collect(Collectors.joining("\n")).getBytes());
+        } catch (IOException e) {
+            System.err.println("Could not write unconfirmedProblems file");
+            e.printStackTrace();
+        }
+        try {
+            Files.write(Paths.get(outputPath.toString(),"newProblemResult"),this.newProblemResult.stream()
+                    .map(p->p.system + "," + p.domains + "," + p.constants + "," + p.consequence + "," + p.name)
+                    .collect(Collectors.joining("\n")).getBytes());
+        } catch (IOException e) {
+            System.err.println("Could not write newProblemResult file");
+            e.printStackTrace();
+        }
+        try {
+            Files.write(Paths.get(outputPath.toString(),"disagreementQmltpAtp"),this.disagreementQmltpAtp.stream()
+                    .map(p->p.system + "," + p.domains + "," + p.constants + "," + p.consequence + "," + p.name)
+                    .collect(Collectors.joining("\n")).getBytes());
+        } catch (IOException e) {
+            System.err.println("Could not write disagreementQmltpAtp file");
+            e.printStackTrace();
+        }
+        try {
+            Files.write(Paths.get(outputPath.toString(),"newProblems"),this.newProblems.stream()
+                    .map(p->p.system + "," + p.domains + "," + p.constants + "," + p.consequence + "," + p.name)
+                    .collect(Collectors.joining("\n")).getBytes());
+        } catch (IOException e) {
+            System.err.println("Could not write newProblems file");
+            e.printStackTrace();
+        }
+        try {
+            Files.write(Paths.get(outputPath.toString(),"newProblemsSolved"),this.newProblemsSolved.stream()
+                    .map(p->p.system + "," + p.domains + "," + p.constants + "," + p.consequence + "," + p.name)
+                    .collect(Collectors.joining("\n")).getBytes());
+        } catch (IOException e) {
+            System.err.println("Could not write newProblemsSolved file");
+            e.printStackTrace();
+        }
+        try {
+            Files.write(Paths.get(outputPath.toString(),"totallyUnsolvedProblems"),this.totallyUnsolvedProblems.stream()
+                    .map(p->p.system + "," + p.domains + "," + p.constants + "," + p.consequence + "," + p.name)
+                    .collect(Collectors.joining("\n")).getBytes());
+        } catch (IOException e) {
+            System.err.println("Could not write totallyUnsolvedProblems file");
+            e.printStackTrace();
+        }
+        try {
+            Files.write(Paths.get(outputPath.toString(),"disagreementAtpAtp"),this.disagreementAtpAtp.stream()
+                    .map(p->p.system + "," + p.domains + "," + p.constants + "," + p.consequence + "," + p.name)
+                    .collect(Collectors.joining("\n")).getBytes());
+        } catch (IOException e) {
+            System.err.println("Could not write disagreementAtpAtp file");
+            e.printStackTrace();
         }
     }
 

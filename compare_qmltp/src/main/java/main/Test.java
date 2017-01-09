@@ -7,7 +7,7 @@ public class Test {
     private List<Problem> problems;
     public String test_name;
     public String system;
-    public String domain;
+    public String domains;
     public String constants;
     public String consequence;
 

@@ -12,32 +12,46 @@ public class CompareQmltp {
 
     public static void main(String[] args) {
 
-        if (args.length != 2){
-            System.err.println("Unmatched argument size\nFour arguments needed: \n" +
+        if (args.length != 3){
+            System.err.println("Unmatched argument size\nThree arguments needed: \n" +
                     "/path/to/qmltp/Problems/directory\n" +
-                    "/path/to/test/results\n"
+                    "/path/to/test/results\n" +
+                    "/path/to/output\n"
                     );
             System.exit(1);
         }
 
         String qmltp = args[0];
         String test_results = args[1];
+        String output = args[2];
 
         if (!Files.isDirectory(Paths.get(qmltp))){
-            System.err.println("Unmatched argument size\nFour arguments needed: \n" +
+            System.err.println("Unmatched argument size\nThree arguments needed: \n" +
                     "/path/to/qmltp/Problems/directory\n" +
-                    "/path/to/test/results\n"
+                    "/path/to/test/results\n" +
+                    "/path/to/output\n"
             );
             System.err.println(qmltp + " is not a valid directory");
             System.exit(1);
         }
 
         if (!Files.isDirectory(Paths.get(test_results))){
-            System.err.println("Unmatched argument size\nFour arguments needed: \n" +
+            System.err.println("Unmatched argument size\nThree arguments needed: \n" +
                     "/path/to/qmltp/Problems/directory\n" +
-                    "/path/to/test/results\n"
+                    "/path/to/test/results\n" +
+                    "/path/to/output\n"
             );
-            System.err.println(test_results + " is not a valid file");
+            System.err.println(test_results + " is not a valid directory");
+            System.exit(1);
+        }
+
+        if (!Files.isDirectory(Paths.get(output))){
+            System.err.println("Unmatched argument size\nThree arguments needed: \n" +
+                    "/path/to/qmltp/Problems/directory\n" +
+                    "/path/to/test/results\n" +
+                    "/path/to/output\n"
+            );
+            System.err.println(output + " is not a valid directory");
             System.exit(1);
         }
 
@@ -56,7 +70,7 @@ public class CompareQmltp {
             System.exit(1);
         }
 
-        results.evaluate();
+        results.evaluate(output);
     }
 
     private static void readResults(Path f, String qmltp_directory, Results results) throws IOException {
@@ -69,7 +83,7 @@ public class CompareQmltp {
         String consequence = getConsequenceFromTestFilename(f.getFileName().toString());
         test.test_name = f.getFileName().toString();
         test.system = system;
-        test.domain = domain;
+        test.domains = domain;
         test.constants = constants;
         test.consequence = consequence;
         int processing = 0;
@@ -84,6 +98,10 @@ public class CompareQmltp {
 
             Problem p = new Problem();
             p.name = problem_name;
+            p.system = system;
+            p.domains = domain;
+            p.constants = constants;
+            p.consequence = consequence;
             p.category = category;
             p.status_qmltp = getStatusFromComments(problem,system,domain,constants,consequence);
             p.status_satallax = split[1];
