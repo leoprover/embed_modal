@@ -143,6 +143,14 @@ public class EmbeddingDefinitions {
             "^ [A:" + w + ">$o,W:" + w + "] : ? [V:" + w + "] : ( (rel_r@W@V) & (A@V) )" +
             "))).";
 
+    public static final String mcurrentworld = "" +
+            "thf( mcurrentworld_type , type , ( mcurrentworld: " + w + " ) ).";
+
+    public static final String mactual = "" +
+            "thf( mactual_type , type , ( mactual: ( ( " + w + ">$o ) >$o ) ) ).\n" +
+            "thf( mactual , definition , ( mactual = ( " +
+            "^ [Phi:(" + w + ">$o)] : ( Phi @ mcurrentworld ) ) ) ).";
+
     /***************************************************************************
      * Quantification TH1
      ***************************************************************************/
@@ -179,6 +187,8 @@ public class EmbeddingDefinitions {
         //modalSymbolDefinitions.put("mneq",mneq);
         modalSymbolDefinitions.put("mbox",mbox);
         modalSymbolDefinitions.put("mdia",mdia);
+        //modalSymbolDefinitions.put("mcurrentworld",mcurrentworld);
+        //modalSymbolDefinitions.put("mactual",mactual);
         /*
         modalSymbolDefinitions.put("mforall_const_th1",mforall_const_th1);
         modalSymbolDefinitions.put("mexists_const_th1",mexists_const_th1);

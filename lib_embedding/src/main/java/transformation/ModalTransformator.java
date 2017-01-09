@@ -143,13 +143,25 @@ public class ModalTransformator {
 
         }
 
-        // add valid to all statements which are not definitions or type declarations
+        // add valid / actual to all statements which are not definitions or type declarations
         for (Node statement : thfAnalyzer.statementNodes){
-            // insert valid operator
-            Node validLeft = new Node("t_validLeft","( mvalid @ (");
-            statement.addChildAt(validLeft,0);
-            Node validRight = new Node("t_validRight",") )");
-            statement.addChild(validRight);
+            String identifier = statement.getParent().getChild(2).toStringLeafs();
+            SemanticsAnalyzer.ConsequenceType consequence = semanticsAnalyzer.axiomNameToConsequenceType.getOrDefault(
+                    identifier,semanticsAnalyzer.axiomNameToConsequenceType.getOrDefault(
+                            SemanticsAnalyzer.consequenceDefault,SemanticsAnalyzer.ConsequenceType.GLOBAL));
+            if (consequence.equals(SemanticsAnalyzer.ConsequenceType.GLOBAL)) {
+                // insert valid operator
+                Node validLeft = new Node("t_validLeft", "( mvalid @ (");
+                statement.addChildAt(validLeft, 0);
+                Node validRight = new Node("t_validRight", ") )");
+                statement.addChild(validRight);
+            }
+            else if (consequence.equals(SemanticsAnalyzer.ConsequenceType.LOCAL)){
+                Node validLeft = new Node("t_actualLeft", "( mactual @ (");
+                statement.addChildAt(validLeft, 0);
+                Node validRight = new Node("t_actualRight", ") )");
+                statement.addChild(validRight);
+            }
         }
 
         // remove semantical thf sentences
@@ -439,9 +451,16 @@ public class ModalTransformator {
         }
         def.append("\n");
 
-        // introduce mvalid
+        // introduce mvalid for global consequence
         def.append("% define valid operator\n");
         def.append(EmbeddingDefinitions.mvalid);
+        def.append("\n\n");
+
+        // introduce current world constant and actuality operator for local consequence
+        def.append("% define current-world constant and actuality operator\n");
+        def.append(EmbeddingDefinitions.mcurrentworld);
+        def.append("\n");
+        def.append(EmbeddingDefinitions.mactual);
         def.append("\n\n");
 
         // introduce used operators which are not valid operator nor quantifiers
