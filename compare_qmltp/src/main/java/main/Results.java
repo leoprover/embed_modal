@@ -30,6 +30,7 @@ public class Results {
     // both
     public List<Problem> totallyUnsolvedProblems; // neither qmltp nor atps have results in which atps agree
     public List<Problem> disagreementAtpAtp; // if at least two atp systems have different results
+    public List<Problem> totalProblems; // all problems
 
 
     public void evaluate(String outputPath){
@@ -42,11 +43,14 @@ public class Results {
         disagreementAtpAtp = new ArrayList<>(); // y + n
         disagreementQmltpAtp = new ArrayList<>(); // y
         totallyUnsolvedProblems = new ArrayList<>(); // y + n
+        totalProblems = new ArrayList<>();
 
         for (Test test : this.tests){
             System.out.println("Evaluate: " + test.test_name + " " + test.system + " " + test.domains);
             for (Problem problem : test.getProblems()){
                 //System.out.println(problem.toString());
+
+                totalProblems.add(problem);
 
                 // qmltp entry exists
                 // this is the case for systems k,d,t,s4,s5 and domains const,cumul,vary and constants rigid and consequence ???
@@ -130,6 +134,7 @@ public class Results {
     }
 
     private void outputToStdout(){
+        System.out.println("totalProblems:           " + totalProblems.size());
         System.out.println("ConfirmedProblems:       " + confirmedProblems.size());
         System.out.println("unconfirmedProblems:     " + unconfirmedProblems.size());
         System.out.println("newProblemResult:        " + newProblemResult.size());
@@ -141,6 +146,14 @@ public class Results {
     }
 
     private void outputToFiles(String outputPath){
+        try {
+            Files.write(Paths.get(outputPath.toString(),"totalProblems"),this.totalProblems.stream()
+                    .map(p->p.system + "," + p.domains + "," + p.constants + "," + p.consequence + "," + p.name)
+                    .collect(Collectors.joining("\n")).getBytes());
+        } catch (IOException e) {
+            System.err.println("Could not write totalProblems file");
+            e.printStackTrace();
+        }
         try {
             Files.write(Paths.get(outputPath.toString(),"confirmedProblems"),this.confirmedProblems.stream()
                     .map(p->p.system + "," + p.domains + "," + p.constants + "," + p.consequence + "," + p.name)
