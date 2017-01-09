@@ -110,6 +110,7 @@ public class ThfAnalyzer {
             case "negated_conjecture":
             case "plain":
                 statementNodes.add(formula);
+                break;
             default:
                 otherRoleToNode.put(name, formula);
         }
