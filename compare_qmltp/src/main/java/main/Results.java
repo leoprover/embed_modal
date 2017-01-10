@@ -18,41 +18,59 @@ public class Results {
     }
 
     // results
-    // concerning qmltp
+    // concerning qmltp and status
     public List<Problem> confirmedProblems; // confirm result of qmltp without disagreement of the atps
     public List<Problem> unconfirmedProblems; // qmltp yields a result but atps do not or atps disagree
-    public List<Problem> newProblemResultALL; // qmltp yields unsolved but atps have a result and they agree
+    public List<Problem> newProblemResultTotal; // qmltp yields unsolved but atps have a result and they agree
     public List<Problem> newProblemResultTHM; // qmltp yields unsolved but atps have a result and they agree
     public List<Problem> newProblemResultCSA; // qmltp yields unsolved but atps have a result and they agree
     public List<Problem> disagreementQmltpAtp; // if qmltp and atp results are different and all atp yield the same result
+
+    // concerning qmltp and rating
+    public List<Problem> rating_1_00_THM; // solve 1.0 problem as theorem without disagreement of the atps, status is THM or UNK
+    public List<Problem> rating_1_00_CSA; // solve 1.0 problem as couter-satisfiable without disagreement of the atps, status is CSA or UNK
+    public List<Problem> rating_1_00_UNK; // no solution for 1.0 problems
+    public List<Problem> rating_1_00_Total; // all 1.0 problems
 
     // not concerning qmltp
     public List<Problem> newProblems; // qmltp does not sopport this semantical setting
     public List<Problem> newProblemsSolved; // qmltp does not support this semantical setting and atps solve this problem (agree)
 
     // concerning both
+    // TODO
     public List<Problem> totallyUnsolvedProblems; // neither qmltp nor atps have results in which atps agree
-    public List<Problem> disagreementAtpAtp; // if at least two atp systems have different results
     public List<Problem> totalProblems; // all problems
 
     // atp specific
-    public HashMap<String,List<Problem>> satallax;
+    public List<Problem> errorAtp; // at least one atp system has an error status
+    public List<Problem> disagreementAtpAtp; // if at least two atp systems have different results
+    public HashMap<String,List<Problem>> satallax; // STATUS -> List of Problems
     public HashMap<String,List<Problem>> leo;
     public HashMap<String,List<Problem>> nitpick;
+
+    // table
+    public List<String> table;
 
     public void evaluate(String outputPath){
 
         confirmedProblems = new ArrayList<>(); // y
         unconfirmedProblems = new ArrayList<>(); // y
-        newProblemResultALL = new ArrayList<>(); // y
+        newProblemResultTotal = new ArrayList<>(); // y
         newProblemResultTHM = new ArrayList<>(); // y
         newProblemResultCSA = new ArrayList<>(); // y
         newProblems = new ArrayList<>();
         newProblemsSolved = new ArrayList<>(); // n
-        disagreementAtpAtp = new ArrayList<>(); // y + n
         disagreementQmltpAtp = new ArrayList<>(); // y
         totallyUnsolvedProblems = new ArrayList<>(); // y + n
         totalProblems = new ArrayList<>();
+
+        rating_1_00_THM = new ArrayList<>();
+        rating_1_00_CSA = new ArrayList<>();
+        rating_1_00_UNK = new ArrayList<>();
+        rating_1_00_Total = new ArrayList<>();
+
+        errorAtp = new ArrayList<>();
+        disagreementAtpAtp = new ArrayList<>(); // y + n
         satallax = new HashMap<>();
         satallax.put("ERR",new ArrayList<>());
         satallax.put("UNK",new ArrayList<>());
@@ -69,8 +87,28 @@ public class Results {
         nitpick.put("THM",new ArrayList<>());
         nitpick.put("CSA",new ArrayList<>());
 
+        table = new ArrayList<>();
+        table.add("Semantics satSUM satTHM satCSA leoSUM leoTHM leoCSA nitSUM nitTHM nitCSA");
+
         for (Test test : this.tests){
             System.out.println("Evaluate: " + test.test_name + " " + test.system + " " + test.domains);
+
+            HashMap<String,List<Problem>> csatallax = new HashMap<>();
+            csatallax.put("ERR",new ArrayList<>());
+            csatallax.put("UNK",new ArrayList<>());
+            csatallax.put("THM",new ArrayList<>());
+            csatallax.put("CSA",new ArrayList<>());
+            HashMap<String,List<Problem>> cleo = new HashMap<>();
+            cleo.put("ERR",new ArrayList<>());
+            cleo.put("UNK",new ArrayList<>());
+            cleo.put("THM",new ArrayList<>());
+            cleo.put("CSA",new ArrayList<>());
+            HashMap<String,List<Problem>> cnitpick = new HashMap<>();
+            cnitpick.put("ERR",new ArrayList<>());
+            cnitpick.put("UNK",new ArrayList<>());
+            cnitpick.put("THM",new ArrayList<>());
+            cnitpick.put("CSA",new ArrayList<>());
+
             for (Problem problem : test.getProblems()){
                 //System.out.println(problem.toString());
 
@@ -85,6 +123,16 @@ public class Results {
                 l = nitpick.get(problem.status_nitpick);
                 l.add(problem);
 
+                // save result for every atp in a list !!CURRENT TEST !!
+                l = csatallax.get(problem.status_satallax);
+                l.add(problem);
+                l = cleo.get(problem.status_leo);
+                l.add(problem);
+                l = cnitpick.get(problem.status_nitpick);
+                l.add(problem);
+
+
+                // TODO CHECK THIS FOR ERRORS
                 // qmltp entry exists
                 // this is the case for systems k,d,t,s4,s5 and domains const,cumul,vary and constants rigid and consequence ???
                 if (problem.status_qmltp != null){
@@ -96,7 +144,7 @@ public class Results {
                         if (atpsAgree(problem)){
                             // atps have a solution
                             if (!agreedStatus.equals("UNK")) {
-                                newProblemResultALL.add(problem);
+                                newProblemResultTotal.add(problem);
                                 if (agreedStatus.equals("THM")) newProblemResultTHM.add(problem);
                                 if (agreedStatus.equals("CSA")) newProblemResultCSA.add(problem);
                             }
@@ -114,7 +162,7 @@ public class Results {
                         // atps agree on a solution
                         if (atpsAgree(problem)){
                             String agreedStatus = getAgreedStatus(problem);
-                            // atps have not solved problem
+                            // atps have no solution
                             if (agreedStatus.equals("UNK")){
                                 // qmltp has no solution
                                 if (problem.status_qmltp.equals("UNK")) totallyUnsolvedProblems.add(problem);
@@ -125,7 +173,7 @@ public class Results {
                             else {
                                 // there is no solution in qmltp
                                 if (problem.status_qmltp.equals("UNK")){
-                                    newProblemResultALL.add(problem);
+                                    newProblemResultTotal.add(problem);
                                     if (agreedStatus.equals("THM")) newProblemResultTHM.add(problem);
                                     if (agreedStatus.equals("CSA")) newProblemResultCSA.add(problem);
                                 }
@@ -163,6 +211,31 @@ public class Results {
                     }
                 }
             }
+
+            // fill table
+            String delimiter = " ";
+            StringBuilder entry = new StringBuilder();
+            entry.append(test.test_name);
+            entry.append(delimiter);
+            entry.append(csatallax.get("THM").size() + csatallax.get("CSA").size());
+            entry.append(delimiter);
+            entry.append(csatallax.get("THM").size());
+            entry.append(delimiter);
+            entry.append(csatallax.get("CSA").size());
+            entry.append(delimiter);
+            entry.append(cleo.get("THM").size() + cleo.get("CSA").size());
+            entry.append(delimiter);
+            entry.append(cleo.get("THM").size());
+            entry.append(delimiter);
+            entry.append(cleo.get("CSA").size());
+            entry.append(delimiter);
+            entry.append(cnitpick.get("THM").size() + cnitpick.get("CSA").size());
+            entry.append(delimiter);
+            entry.append(cnitpick.get("THM").size());
+            entry.append(delimiter);
+            entry.append(cnitpick.get("CSA").size());
+            entry.append(delimiter);
+            table.add(entry.toString());
         }
 
         System.out.println("");
@@ -176,7 +249,7 @@ public class Results {
         System.out.println("totalProblems:           " + totalProblems.size());
         System.out.println("ConfirmedProblems:       " + confirmedProblems.size());
         System.out.println("unconfirmedProblems:     " + unconfirmedProblems.size());
-        System.out.println("newProblemResultALL:     " + newProblemResultALL.size());
+        System.out.println("newProblemResultTotal:     " + newProblemResultTotal.size());
         System.out.println("newProblemResultTHM:     " + newProblemResultTHM.size());
         System.out.println("newProblemResultCSA:     " + newProblemResultCSA.size());
         System.out.println("disagreementQmltpAtp:    " + disagreementQmltpAtp.size());
@@ -197,6 +270,8 @@ public class Results {
         System.out.println("UNK nitpick              " + nitpick.get("UNK").size());
         System.out.println("THM nitpick              " + nitpick.get("THM").size());
         System.out.println("CSA nitpick              " + nitpick.get("CSA").size());
+        System.out.println();
+        table.forEach(System.out::println);
     }
 
     private void outputToFiles(String outputPath){
@@ -225,11 +300,11 @@ public class Results {
             e.printStackTrace();
         }
         try {
-            Files.write(Paths.get(outputPath.toString(),"newProblemResultALL"),this.newProblemResultALL.stream()
+            Files.write(Paths.get(outputPath.toString(),"newProblemResultTotal"),this.newProblemResultTotal.stream()
                     .map(p->p.system + "," + p.domains + "," + p.constants + "," + p.consequence + "," + p.name)
                     .collect(Collectors.joining("\n")).getBytes());
         } catch (IOException e) {
-            System.err.println("Could not write newProblemResultALL file");
+            System.err.println("Could not write newProblemResultTotal file");
             e.printStackTrace();
         }
         try {
@@ -321,6 +396,10 @@ public class Results {
                 e.printStackTrace();
             }
         }
+    }
+
+    private boolean hasError(Problem p){
+        return p.status_satallax.equals("ERR") || p.status_leo.equals("ERR") || p.status_nitpick.equals("ERR");
     }
 
     private boolean atpsAgree(Problem p){
