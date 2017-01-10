@@ -41,7 +41,7 @@ public class Leo2Wrapper {
             proc = leo.start();
             BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
             BufferedReader stdError = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
-            if (!proc.waitFor(timeout, unit)) {
+            if (!proc.waitFor(timeout+20, unit)) {
                 log.fine(filename.toString() + " : Proof Timeout");
                 this.timeout = true;
                 ProcessKiller.destroyProc(proc, 1500L);

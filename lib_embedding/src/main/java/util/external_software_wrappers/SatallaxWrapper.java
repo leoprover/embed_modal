@@ -42,7 +42,7 @@ public class SatallaxWrapper {
             proc = satallax.start();
             BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
             BufferedReader stdError = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
-            if (!proc.waitFor(timeout, unit)){
+            if (!proc.waitFor(timeout+20, unit)){
                 log.fine(filename.toString() + " : Proof Timeout");
                 this.timeout = true;
                 if (proc != null) ProcessKiller.destroyProc(proc, 1500L);
