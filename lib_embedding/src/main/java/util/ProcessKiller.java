@@ -5,6 +5,7 @@ import org.zeroturnaround.process.Processes;
 import org.zeroturnaround.process.SystemProcess;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.concurrent.TimeUnit;
 
 public class ProcessKiller {
@@ -50,5 +51,34 @@ public class ProcessKiller {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    /*
+     *nix platforms only
+     */
+    public static long getPidOfProcess(Process p) {
+        long pid = -1;
+
+        try {
+            if (p.getClass().getName().equals("java.lang.UNIXProcess")) {
+                Field f = p.getClass().getDeclaredField("pid");
+                f.setAccessible(true);
+                pid = f.getLong(p);
+                f.setAccessible(false);
+            }
+        } catch (Exception e) {
+            pid = -1;
+        }
+        return pid;
+    }
+
+    public static void killProcess(Process p){
+        long pid = getPidOfProcess(p);
+        //if (pid == -1L){
+        //    System.err.println("PID -1 !!!!!!!!!!!!!!");
+        //    System.exit(1);
+        //}
+        //String cmd = "kill -9 " + pid;
+        System.out.println("Killed" + pid);
     }
 }

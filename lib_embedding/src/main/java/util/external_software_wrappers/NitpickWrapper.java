@@ -76,7 +76,7 @@ public class NitpickWrapper {
             //System.out.println(this.status);
             if (proc != null) ProcessKiller.destroyProc(proc, 1500L);
         }
-        ProcessKiller.killAll("nitpick");
+        ProcessKiller.killProcess(proc);
     }
 
     private double extractNitpickDuration(){
