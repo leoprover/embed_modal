@@ -136,7 +136,7 @@ public class EmbedModal {
     }
 
 
-    // SemanticsCube : [modal_system][domains][constants][consequence]/
+    // SemanticsCube : [modal_system][domains][constants][consequence]//
     private static String[] resolveSemantics(String s){
         if (s == null) return null;
         String[] ret = null;
