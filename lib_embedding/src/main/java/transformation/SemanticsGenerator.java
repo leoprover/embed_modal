@@ -19,6 +19,7 @@ public class SemanticsGenerator {
     // interesting system sets
     public static String[] constant_rigid_global;
     public static String[] rigid_global;
+    public static String[] rigid_local;
     public static String[] all_supported;
 
     static{
@@ -64,6 +65,11 @@ public class SemanticsGenerator {
         for (int system = 0; system < systems.length; system++){
             for (int domain = 0; domain < domains.length; domain++)
                 rigid_global[system * domains.length + domain] = semanticsCube[system][domain][0][0];
+        }
+        rigid_local = new String[systems.length * domains.length];
+        for (int system = 0; system < systems.length; system++){
+            for (int domain = 0; domain < domains.length; domain++)
+                rigid_global[system * domains.length + domain] = semanticsCube[system][domain][0][1];
         }
         all_supported = rigid_global;
     }

@@ -148,6 +148,9 @@ public class EmbedModal {
             case "constant_rigid_global":
                 ret = SemanticsGenerator.constant_rigid_global;
                 break;
+            case "rigid_local":
+                ret = SemanticsGenerator.rigid_local;
+                break;
             case "all":
             case "all_supported":
                 ret = SemanticsGenerator.all_supported;
