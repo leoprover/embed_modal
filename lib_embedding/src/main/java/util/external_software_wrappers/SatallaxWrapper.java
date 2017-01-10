@@ -33,7 +33,7 @@ public class SatallaxWrapper {
         this.timeout = false;
         this.duration = timeout;
 
-        List<String> params = java.util.Arrays.asList(satallax_binary,filename.toString());
+        List<String> params = java.util.Arrays.asList(satallax_binary,"-t",String.valueOf(timeout),filename.toString());
         Process proc = null;
         try {
             // Call satallax on problem and extract status
