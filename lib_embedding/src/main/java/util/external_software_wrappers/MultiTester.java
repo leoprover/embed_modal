@@ -101,7 +101,7 @@ public class MultiTester {
         // Write results to file
         // subdirectory/filename,satallax_status,satallax_duration,leo_status,leo_duration,nitpick_status,nitpick_duration
         try {
-            Files.write(Paths.get(outPath.toString(),"all"),this.allProblems.stream()
+            Files.write(Paths.get(outPath.toString()),this.allProblems.stream()
                     .sorted((e1,e2)->new LexicalOrderComparator().compare(e1.name,e2.name))
                     .map(p->p.name + "," +
                             p.satallax.getAbbrevStatus() + "," + p.satallax.duration + "," +

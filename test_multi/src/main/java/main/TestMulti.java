@@ -40,7 +40,7 @@ public class TestMulti {
             System.exit(1);
         }
 
-        if (!Files.isDirectory(Paths.get(outputPathString))){
+        if (Files.exists(Paths.get(outputPathString))){
             System.err.println("result path is not a directory\nThree arguments needed: \n" +
                     "/path/to/tptp/Problems/directory\n" +
                     "/path/to/result\n" +
