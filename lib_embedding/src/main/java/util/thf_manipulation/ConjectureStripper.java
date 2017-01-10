@@ -11,7 +11,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class ConjectureStripper {
-
+/*
+*** !!!!!!!!!!!!!!!!!
+* NOT WORKING PROPERLY
+* !!!!!!!!!!!!!!!!!!!
+ */
     public static Node getProblemWithoutConjecture(Path file) throws IOException, ParseException {
         String problem = new String(Files.readAllBytes(file));
         return getProblemWithoutConjecture(problem);

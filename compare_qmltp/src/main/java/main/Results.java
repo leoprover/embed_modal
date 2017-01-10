@@ -173,7 +173,6 @@ public class Results {
 
                 /*
                 // GARBAGE
-                // TODO CHECK THIS FOR ERRORS
                 // qmltp entry exists
                 // this is the case for systems k,d,t,s4,s5 and domains const,cumul,vary and constants rigid and consequence ???
                 if (problem.status_qmltp != null){
