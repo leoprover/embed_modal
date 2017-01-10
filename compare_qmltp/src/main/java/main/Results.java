@@ -142,22 +142,27 @@ public class Results {
                 l = cnitpick.get(problem.status_nitpick);
                 l.add(problem);
 
-                // compare qmltp status with atp status
+                // compare qmltp status with atp status: atp status is not qmltp status
                 //
                 // qmltp entry exists &&
-                // qmltp has a solution
+                // qmltp has a solution = 'not unsolved'
                 // atps have no error
                 // atps agree on solution
-                // atps solution is NOT the same as qmltps solution
+                // atps have a solution = solution is not UNK
+                // atps solution is NOT the same as qmltp solution
                 if (
                         problem.status_qmltp != null &&
                         !problem.status_qmltp.equals("UNK") &&
                         !hasError(problem) &&
                         atpsAgree(problem) &&
+                        !getAgreedStatus(problem).equals("UNK") &&
                         !getAgreedStatus(problem).equals(problem.status_qmltp)
                         ){
                     disagreementQmltpAtp.add(problem);
                 }
+
+                // 1.0 problems
+                // TODO
 
                 // atps disagree
                 if (
@@ -167,6 +172,7 @@ public class Results {
                 }
 
                 /*
+                // GARBAGE
                 // TODO CHECK THIS FOR ERRORS
                 // qmltp entry exists
                 // this is the case for systems k,d,t,s4,s5 and domains const,cumul,vary and constants rigid and consequence ???
