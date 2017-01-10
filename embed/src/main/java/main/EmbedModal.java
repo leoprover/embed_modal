@@ -153,7 +153,7 @@ public class EmbedModal {
                 break;
             case "all":
             case "all_supported":
-                ret = SemanticsGenerator.all_supported;
+                ret = SemanticsGenerator.rigid_local;
                 break;
             default:
                 log.severe("Unsupported semantics " + s);
