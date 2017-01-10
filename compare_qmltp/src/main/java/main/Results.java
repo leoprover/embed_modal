@@ -19,26 +19,30 @@ public class Results {
 
     // results
     // concerning qmltp and status
+    /*
     public List<Problem> confirmedProblems; // confirm result of qmltp without disagreement of the atps
     public List<Problem> unconfirmedProblems; // qmltp yields a result but atps do not or atps disagree
     public List<Problem> newProblemResultTotal; // qmltp yields unsolved but atps have a result and they agree
     public List<Problem> newProblemResultTHM; // qmltp yields unsolved but atps have a result and they agree
     public List<Problem> newProblemResultCSA; // qmltp yields unsolved but atps have a result and they agree
+    */
     public List<Problem> disagreementQmltpAtp; // if qmltp and atp results are different and all atp yield the same result
 
     // concerning qmltp and rating
+    /*
     public List<Problem> rating_1_00_THM; // solve 1.0 problem as theorem without disagreement of the atps, status is THM or UNK
     public List<Problem> rating_1_00_CSA; // solve 1.0 problem as couter-satisfiable without disagreement of the atps, status is CSA or UNK
     public List<Problem> rating_1_00_UNK; // no solution for 1.0 problems
     public List<Problem> rating_1_00_Total; // all 1.0 problems
+    */
 
     // not concerning qmltp
-    public List<Problem> newProblems; // qmltp does not sopport this semantical setting
-    public List<Problem> newProblemsSolved; // qmltp does not support this semantical setting and atps solve this problem (agree)
+    // public List<Problem> newProblems; // qmltp does not sopport this semantical setting
+    // public List<Problem> newProblemsSolved; // qmltp does not support this semantical setting and atps solve this problem (agree)
 
     // concerning both
     // TODO
-    public List<Problem> totallyUnsolvedProblems; // neither qmltp nor atps have results in which atps agree
+    //public List<Problem> totallyUnsolvedProblems; // neither qmltp nor atps have results in which atps agree
     public List<Problem> totalProblems; // all problems
 
     // atp specific
@@ -53,6 +57,7 @@ public class Results {
 
     public void evaluate(String outputPath){
 
+        /*
         confirmedProblems = new ArrayList<>(); // y
         unconfirmedProblems = new ArrayList<>(); // y
         newProblemResultTotal = new ArrayList<>(); // y
@@ -60,14 +65,19 @@ public class Results {
         newProblemResultCSA = new ArrayList<>(); // y
         newProblems = new ArrayList<>();
         newProblemsSolved = new ArrayList<>(); // n
+        */
         disagreementQmltpAtp = new ArrayList<>(); // y
+        /*
         totallyUnsolvedProblems = new ArrayList<>(); // y + n
+        */
         totalProblems = new ArrayList<>();
 
+        /*
         rating_1_00_THM = new ArrayList<>();
         rating_1_00_CSA = new ArrayList<>();
         rating_1_00_UNK = new ArrayList<>();
         rating_1_00_Total = new ArrayList<>();
+        */
 
         errorAtp = new ArrayList<>();
         disagreementAtpAtp = new ArrayList<>(); // y + n
@@ -115,7 +125,7 @@ public class Results {
                 // put all problems int a list
                 totalProblems.add(problem);
 
-                // save result for every atp in a list
+                // save result for every atp in a list for all tests together
                 List<Problem> l = satallax.get(problem.status_satallax);
                 l.add(problem);
                 l = leo.get(problem.status_leo);
@@ -123,7 +133,8 @@ public class Results {
                 l = nitpick.get(problem.status_nitpick);
                 l.add(problem);
 
-                // save result for every atp in a list !!CURRENT TEST !!
+                // save result for every atp in a list only for current test
+                // used for filling up table
                 l = csatallax.get(problem.status_satallax);
                 l.add(problem);
                 l = cleo.get(problem.status_leo);
@@ -131,7 +142,31 @@ public class Results {
                 l = cnitpick.get(problem.status_nitpick);
                 l.add(problem);
 
+                // compare qmltp status with atp status
+                //
+                // qmltp entry exists &&
+                // qmltp has a solution
+                // atps have no error
+                // atps agree on solution
+                // atps solution is NOT the same as qmltps solution
+                if (
+                        problem.status_qmltp != null &&
+                        !problem.status_qmltp.equals("UNK") &&
+                        !hasError(problem) &&
+                        atpsAgree(problem) &&
+                        !getAgreedStatus(problem).equals(problem.status_qmltp)
+                        ){
+                    disagreementQmltpAtp.add(problem);
+                }
 
+                // atps disagree
+                if (
+                        !atpsAgree(problem)
+                        ){
+                    disagreementAtpAtp.add(problem);
+                }
+
+                /*
                 // TODO CHECK THIS FOR ERRORS
                 // qmltp entry exists
                 // this is the case for systems k,d,t,s4,s5 and domains const,cumul,vary and constants rigid and consequence ???
@@ -210,9 +245,11 @@ public class Results {
                         totallyUnsolvedProblems.add(problem);
                     }
                 }
+                */
             }
 
-            // fill table
+
+            // create and add table entry for this test
             String delimiter = " ";
             StringBuilder entry = new StringBuilder();
             entry.append(test.test_name);
@@ -241,21 +278,25 @@ public class Results {
         System.out.println("");
         System.out.println("==============================================");
         System.out.println("Results:");
-        this.outputToFiles(outputPath);
         this.outputToStdout();
+        this.outputToFiles(outputPath);
     }
 
     private void outputToStdout(){
         System.out.println("totalProblems:           " + totalProblems.size());
+        /*
         System.out.println("ConfirmedProblems:       " + confirmedProblems.size());
         System.out.println("unconfirmedProblems:     " + unconfirmedProblems.size());
         System.out.println("newProblemResultTotal:     " + newProblemResultTotal.size());
         System.out.println("newProblemResultTHM:     " + newProblemResultTHM.size());
         System.out.println("newProblemResultCSA:     " + newProblemResultCSA.size());
+        */
         System.out.println("disagreementQmltpAtp:    " + disagreementQmltpAtp.size());
+        /*
         System.out.println("newProblems:             " + newProblems.size());
         System.out.println("newProblemsSolved:       " + newProblemsSolved.size());
         System.out.println("totallyUnsolvedProblems: " + totallyUnsolvedProblems.size());
+        */
         System.out.println("disagreementAtpAtp:      " + disagreementAtpAtp.size());
         System.out.println();
         System.out.println("ERR satallax             " + satallax.get("ERR").size());
@@ -283,6 +324,7 @@ public class Results {
             System.err.println("Could not write totalProblems file");
             e.printStackTrace();
         }
+        /*
         try {
             Files.write(Paths.get(outputPath.toString(),"confirmedProblems"),this.confirmedProblems.stream()
                     .map(p->p.system + "," + p.domains + "," + p.constants + "," + p.consequence + "," + p.name)
@@ -323,6 +365,7 @@ public class Results {
             System.err.println("Could not write newProblemResultCSA file");
             e.printStackTrace();
         }
+        */
         try {
             Files.write(Paths.get(outputPath.toString(),"disagreementQmltpAtp"),this.disagreementQmltpAtp.stream()
                     .map(p->p.system + "," + p.domains + "," + p.constants + "," + p.consequence + "," + p.name)
@@ -331,6 +374,7 @@ public class Results {
             System.err.println("Could not write disagreementQmltpAtp file");
             e.printStackTrace();
         }
+        /*
         try {
             Files.write(Paths.get(outputPath.toString(),"newProblems"),this.newProblems.stream()
                     .map(p->p.system + "," + p.domains + "," + p.constants + "," + p.consequence + "," + p.name)
@@ -355,6 +399,7 @@ public class Results {
             System.err.println("Could not write totallyUnsolvedProblems file");
             e.printStackTrace();
         }
+        */
         try {
             Files.write(Paths.get(outputPath.toString(),"disagreementAtpAtp"),this.disagreementAtpAtp.stream()
                     .map(p->p.system + "," + p.domains + "," + p.constants + "," + p.consequence + "," + p.name)
