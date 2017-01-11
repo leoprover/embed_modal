@@ -33,7 +33,12 @@ public class Leo2Wrapper {
         this.timeout = false;
         this.duration = timeout;
 
-        List<String> params = java.util.Arrays.asList(leo_binary,"-t",String.valueOf(timeout),filename.toString());
+        List<String> params = java.util.Arrays.asList(
+                leo_binary,
+                "--atp","e=/home/mi/glt65319/storage/atp/E/PROVER/eprover",
+                "-t",String.valueOf(timeout)
+                ,filename.toString()
+        );
         Process proc = null;
         try {
             ProcessBuilder leo = new ProcessBuilder(params);

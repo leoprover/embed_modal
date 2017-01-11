@@ -17,7 +17,7 @@ import java.util.logging.Logger;
 public class NitpickWrapper {
 
     private static final Logger log = Logger.getLogger( "default" );
-    public static String nitpick_binary = "runnitpick";
+    public static String nitpick_binary = "nitpick";
 
     public String stdout = "";
     public String stderr = "";
@@ -34,7 +34,12 @@ public class NitpickWrapper {
         this.duration = timeout;
         this.durationNitpick = timeout;
 
-        List<String> params = java.util.Arrays.asList(nitpick_binary,String.valueOf(timeout),filename.toString());
+        List<String> params = java.util.Arrays.asList(
+                nitpick_binary,
+                "tptp_nitpick",
+                String.valueOf(timeout),
+                filename.toString()
+        );
         Process proc = null;
         try {
             ProcessBuilder nitpick = new ProcessBuilder(params);
