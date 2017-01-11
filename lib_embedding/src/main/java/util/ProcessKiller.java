@@ -69,33 +69,41 @@ public class ProcessKiller {
             BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
             String line = null;
             while ((line = stdInput.readLine()) != null) {
-                String[] columns = line.split("\\s+");
-                int pid = Integer.parseInt(columns[0]);
-                int seconds = 0;
-                String etime = columns[1];
-                // d-hh:mm:ss
-                if (etime.contains("-")){
-                    String[] d = etime.split("-");
-                    if (d.length != 2) System.err.println("not matching days-time: " + etime);
-                    String[] components = d[1].split(":");
-                    // hh:mm:ss
-                    if (components.length == 3) seconds = Integer.parseInt(components[0]) * 3600 + Integer.parseInt(components[1]) * 60 + Integer.parseInt(components[0]);
-                    // mm:ss
-                    else if (components.length == 2) seconds = Integer.parseInt(components[0]) * 60 + Integer.parseInt(components[1]);
-                    else System.err.println("could not parse time components without days: " + etime);
+                try{
+                    String[] columns = line.split("\\s+");
+                    if (columns.length != 3) continue;
+                    String etime = columns[1];
+                    if (!etime.contains(":")) continue;
+                    int pid = Integer.parseInt(columns[0]);
+                    int seconds = 0;
+                    // d-hh:mm:ss
+                    if (etime.contains("-")){
+                        String[] d = etime.split("-");
+                        if (d.length != 2) System.err.println("not matching days-time: " + etime);
+                        String[] components = d[1].split(":");
+                        // hh:mm:ss
+                        if (components.length == 3) seconds = Integer.parseInt(components[0]) * 3600 + Integer.parseInt(components[1]) * 60 + Integer.parseInt(components[0]);
+                        // mm:ss
+                        else if (components.length == 2) seconds = Integer.parseInt(components[0]) * 60 + Integer.parseInt(components[1]);
+                        else System.err.println("could not parse time components without days: " + etime);
+                    }
+                    // hh:mm:ss or mm:ss
+                    else{
+                        String[] components = etime.split(":");
+                        // hh:mm:ss
+                        if (components.length == 3) seconds = Integer.parseInt(components[0]) * 3600 + Integer.parseInt(components[1]) * 60 + Integer.parseInt(components[0]);
+                        // mm:ss
+                        else if (components.length == 2) seconds = Integer.parseInt(components[0]) * 60 + Integer.parseInt(components[1]);
+                        else System.err.println("could not parse time components without days: " + etime);
+                    }
+                    if (timeout <= seconds){
+                        pids.add(pid);
+                    }
+                } catch (Exception e){
+                    System.err.println(e);
+                    e.printStackTrace();
                 }
-                // hh:mm:ss or mm:ss
-                else{
-                    String[] components = etime.split(":");
-                    // hh:mm:ss
-                    if (components.length == 3) seconds = Integer.parseInt(components[0]) * 3600 + Integer.parseInt(components[1]) * 60 + Integer.parseInt(components[0]);
-                    // mm:ss
-                    else if (components.length == 2) seconds = Integer.parseInt(components[0]) * 60 + Integer.parseInt(components[1]);
-                    else System.err.println("could not parse time components without days: " + etime);
-                }
-                if (timeout <= seconds){
-                    pids.add(pid);
-                }
+
             }
         } catch (IOException e) {
             e.printStackTrace();
