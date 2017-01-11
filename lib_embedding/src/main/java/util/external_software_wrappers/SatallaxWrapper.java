@@ -43,7 +43,6 @@ public class SatallaxWrapper {
             BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
             BufferedReader stdError = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
             if (!proc.waitFor(timeout+20, unit)){
-                ProcessKiller.killProcess(proc);
                 log.fine(filename.toString() + " : Proof Timeout");
                 this.timeout = true;
             }
@@ -63,7 +62,6 @@ public class SatallaxWrapper {
             if (this.stderr == null) this.stderr = e.getMessage();
             if (this.stdout == null) this.stdout = e.getMessage();
         } catch (InterruptedException e) {
-            ProcessKiller.killProcess(proc);
             System.err.println(filename.toString() + " : Interrupted Exception.");
             if (this.stderr == null) this.stderr = e.getMessage();
             if (this.stdout == null) this.stdout = e.getMessage();
@@ -72,8 +70,8 @@ public class SatallaxWrapper {
             this.status = extractSZSStatus(this.stdout);
             //System.out.println(this.status);
         }
-        JavaProcess process = Processes.newJavaProcess(proc);
-        if (process.isAlive()) ProcessKiller.killProcess(proc);
+        //ProcessKiller.killProcess(proc);
+        ProcessKiller.killAll("satallax");
     }
 
     private String extractSZSStatus(String consoleOutput){

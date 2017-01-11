@@ -17,7 +17,7 @@ import java.util.logging.Logger;
 public class NitpickWrapper {
 
     private static final Logger log = Logger.getLogger( "default" );
-    public static String nitpick_binary = "nitpick";
+    public static String nitpick_binary = "isabelle";
 
     public String stdout = "";
     public String stderr = "";
@@ -48,7 +48,6 @@ public class NitpickWrapper {
             BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
             BufferedReader stdError = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
             if (!proc.waitFor(timeout + 20, unit)) {
-                ProcessKiller.killProcess(proc);
                 log.fine(filename.toString() + " : Proof Timeout");
                 this.timeout = true;
             }else{
@@ -67,7 +66,6 @@ public class NitpickWrapper {
             if (this.stderr == null) this.stderr = e.getMessage();
             if (this.stdout == null) this.stdout = e.getMessage();
         } catch (InterruptedException e) {
-            ProcessKiller.killProcess(proc);
             System.err.println(filename.toString() + " : Interrupted Exception.");
             if (this.stderr == null) this.stderr = e.getMessage();
             if (this.stdout == null) this.stdout = e.getMessage();
@@ -77,8 +75,10 @@ public class NitpickWrapper {
             this.durationNitpick = this.extractNitpickDuration();
             //System.out.println(this.status);
         }
-        JavaProcess process = Processes.newJavaProcess(proc);
-        if (process.isAlive()) ProcessKiller.killProcess(proc);
+        //ProcessKiller.killProcess(proc);
+        ProcessKiller.killAll("nitpick");
+        ProcessKiller.killAll("isabelle");
+
     }
 
     private double extractNitpickDuration(){

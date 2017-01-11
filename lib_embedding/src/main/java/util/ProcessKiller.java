@@ -41,7 +41,7 @@ public class ProcessKiller {
                 "]" +
                 grep.substring(1) +
                 "' | awk '{print $2}')";
-        //System.out.println(cmd);
+        System.out.println(cmd);
         String[] params = {"bash","-c",cmd};
         try {
             p = Runtime.getRuntime().exec(params);
@@ -74,6 +74,10 @@ public class ProcessKiller {
 
     public static void killProcess(Process p){
         long pid = getPidOfProcess(p);
+        //System.out.println(pid);
+        if (pid == -1L) {
+            return;
+        }
         //if (pid == -1L){
         //    System.err.println("PID -1 !!!!!!!!!!!!!!");
         //    System.exit(1);
