@@ -17,7 +17,7 @@ import java.util.logging.Logger;
 public class NitpickWrapper {
 
     private static final Logger log = Logger.getLogger( "default" );
-    public static String nitpick_binary = "isabelle";
+    public static String nitpick_binary = "runnitpick";
 
     public String stdout = "";
     public String stderr = "";
@@ -36,7 +36,6 @@ public class NitpickWrapper {
 
         List<String> params = java.util.Arrays.asList(
                 nitpick_binary,
-                "tptp_nitpick",
                 String.valueOf(timeout),
                 filename.toString()
         );

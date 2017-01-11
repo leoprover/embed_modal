@@ -18,7 +18,7 @@ import java.util.logging.Logger;
 public class SatallaxWrapper {
 
     private static final Logger log = Logger.getLogger( "default" );
-    public static String satallax_binary = "satallax";
+    public static String satallax_binary = "runsatallax";
 
     public String stdout = "";
     public String stderr = "";
@@ -33,7 +33,9 @@ public class SatallaxWrapper {
         this.timeout = false;
         this.duration = timeout;
 
-        List<String> params = java.util.Arrays.asList(satallax_binary,"-t",String.valueOf(timeout),filename.toString());
+        List<String> params = java.util.Arrays.asList(satallax_binary,
+                "-t", String.valueOf(timeout),
+                filename.toString());
         Process proc = null;
         try {
             // Call satallax on problem and extract status

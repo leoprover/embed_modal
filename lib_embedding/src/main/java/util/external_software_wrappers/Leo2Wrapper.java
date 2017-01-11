@@ -35,7 +35,6 @@ public class Leo2Wrapper {
 
         List<String> params = java.util.Arrays.asList(
                 leo_binary,
-                "--atp","e=/home/mi/glt65319/storage/atp/E/PROVER/eprover",
                 "-t",String.valueOf(timeout)
                 ,filename.toString()
         );
