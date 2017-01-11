@@ -45,7 +45,7 @@ public class TestMulti {
                     "/path/to/tptp/Problems/directory\n" +
                     "/path/to/result\n" +
                     "timeout\n");
-            System.err.println(outputPathString + " is not a valid directory");
+            System.err.println(outputPathString + " already exists!");
             System.exit(1);
         }
 

@@ -45,7 +45,7 @@ public class ProcessKiller {
         String[] params = {"bash","-c",cmd};
         try {
             p = Runtime.getRuntime().exec(params);
-            p.waitFor();
+            p.waitFor(60L,TimeUnit.SECONDS);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
@@ -78,7 +78,17 @@ public class ProcessKiller {
         //    System.err.println("PID -1 !!!!!!!!!!!!!!");
         //    System.exit(1);
         //}
-        //String cmd = "kill -9 " + pid;
-        System.out.println("Killed" + pid);
+        String cmd = "kill -9 " + pid;
+        String[] params = {"bash","-c",cmd};
+        Process killer = null;
+        try {
+            killer = Runtime.getRuntime().exec(params);
+            killer.waitFor(60L,TimeUnit.SECONDS);
+            System.out.println(cmd);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -42,9 +42,9 @@ public class Leo2Wrapper {
             BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
             BufferedReader stdError = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
             if (!proc.waitFor(timeout+20, unit)) {
+                ProcessKiller.killProcess(proc);
                 log.fine(filename.toString() + " : Proof Timeout");
                 this.timeout = true;
-                ProcessKiller.destroyProc(proc, 1500L);
             }else{
                 Instant end = Instant.now();
                 Duration delta = Duration.between(start,end);
@@ -57,24 +57,21 @@ public class Leo2Wrapper {
             while ((s = stdError.readLine()) != null) {
                 stderr += s;
             }
-            JavaProcess process = Processes.newJavaProcess(proc);
-            if (process.isAlive()) ProcessKiller.destroyProc(proc, 1500L);
         } catch (IOException e) {
             if (this.stderr == null) this.stderr = e.getMessage();
             if (this.stdout == null) this.stdout = e.getMessage();
-            if (proc != null) ProcessKiller.destroyProc(proc, 1500L);
         } catch (InterruptedException e) {
-            log.fine(filename.toString() + " : Interrupted Exception.");
+            ProcessKiller.killProcess(proc);
+            System.err.println(filename.toString() + " : Interrupted Exception.");
             if (this.stderr == null) this.stderr = e.getMessage();
             if (this.stdout == null) this.stdout = e.getMessage();
             this.timeout = true;
-            if (proc != null) ProcessKiller.destroyProc(proc, 1500L);
         }finally {
             this.status = extractSZSStatus(this.stdout);
             //System.out.println(this.status);
-            if (proc != null) ProcessKiller.destroyProc(proc, 1500L);
         }
-        ProcessKiller.killProcess(proc);
+        JavaProcess process = Processes.newJavaProcess(proc);
+        if (process.isAlive()) ProcessKiller.killProcess(proc);
     }
 
     private String extractSZSStatus(String consoleOutput){
