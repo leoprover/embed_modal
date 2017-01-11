@@ -1,6 +1,7 @@
 package util.external_software_wrappers;
 
 import util.LexicalOrderComparator;
+import util.ProcessKiller;
 import util.ThfProblem;
 
 import java.io.IOException;
@@ -95,6 +96,12 @@ public class MultiTester {
                             System.err.println("Could not write progress file " + progress.toString());
                             e.printStackTrace();
                         }
+
+                        // kill all atp processes on machine older than 82 seconds
+                        ProcessKiller.killAllOlderThan(82,"leo");
+                        ProcessKiller.killAllOlderThan(82,"satallax");
+                        ProcessKiller.killAllOlderThan(82,"nitpick");
+                        ProcessKiller.killAllOlderThan(82,"isabelle");
                     });
         }
 

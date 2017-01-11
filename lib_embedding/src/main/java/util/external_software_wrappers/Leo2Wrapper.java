@@ -74,7 +74,7 @@ public class Leo2Wrapper {
             //System.out.println(this.status);
         }
         //ProcessKiller.killProcess(proc);
-        ProcessKiller.killAll("leo");
+        //ProcessKiller.killAll("leo");
     }
 
     private String extractSZSStatus(String consoleOutput){

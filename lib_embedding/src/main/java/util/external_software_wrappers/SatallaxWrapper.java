@@ -71,7 +71,7 @@ public class SatallaxWrapper {
             //System.out.println(this.status);
         }
         //ProcessKiller.killProcess(proc);
-        ProcessKiller.killAll("satallax");
+        //ProcessKiller.killAll("satallax");
     }
 
     private String extractSZSStatus(String consoleOutput){

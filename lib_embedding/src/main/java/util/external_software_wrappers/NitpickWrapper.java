@@ -76,8 +76,8 @@ public class NitpickWrapper {
             //System.out.println(this.status);
         }
         //ProcessKiller.killProcess(proc);
-        ProcessKiller.killAll("nitpick");
-        ProcessKiller.killAll("isabelle");
+        //ProcessKiller.killAll("nitpick");
+        //ProcessKiller.killAll("isabelle");
 
     }
 
