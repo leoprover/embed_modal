@@ -47,6 +47,8 @@ public class NitpickWrapper {
             BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
             BufferedReader stdError = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
             if (!proc.waitFor(timeout + 20, unit)) {
+                ProcessKiller.killAllOlderThan((int)timeout+10,"nitpick");
+                ProcessKiller.killAllOlderThan((int)timeout+10,"isabelle");
                 log.fine(filename.toString() + " : Proof Timeout");
                 this.timeout = true;
             }else{
