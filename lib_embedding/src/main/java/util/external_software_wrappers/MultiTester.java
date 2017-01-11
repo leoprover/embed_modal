@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -89,9 +90,11 @@ public class MultiTester {
                         thfProblem.nitpick = nitpick;
                         System.out.println(name + ": nitpick: " + nitpick.getAbbrevStatus());
 
+                        info = info + " " + thfProblem.satallax.getAbbrevStatus() + " " +
+                                thfProblem.leo.getAbbrevStatus() + " " + thfProblem.nitpick.getAbbrevStatus()+ "\n";
                         // save progress
                         try {
-                            Files.write(progress,info.getBytes());
+                            Files.write(progress,info.getBytes(), StandardOpenOption.APPEND);
                         } catch (IOException e) {
                             System.err.println("Could not write progress file " + progress.toString());
                             e.printStackTrace();
