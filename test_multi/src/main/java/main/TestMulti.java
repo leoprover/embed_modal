@@ -49,6 +49,7 @@ public class TestMulti {
             System.exit(1);
         }
 
+
         MultiTester tester = new MultiTester();
         Path filterList = null;
         if (args.length == 5) filterList = Paths.get(args[4]);

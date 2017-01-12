@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -63,6 +64,7 @@ public class MultiTester {
                         return filterList.contains(f.toString());
                     })
                     .forEach(f -> {
+                        System.out.println(Instant.now());
                         problems.incrementAndGet();
                         //String name = f.getParent().getFileName().toString() + "/" + f.getFileName().toString();
                         String name = f.getFileName().toString();
@@ -94,7 +96,8 @@ public class MultiTester {
                                 thfProblem.leo.getAbbrevStatus() + " " + thfProblem.nitpick.getAbbrevStatus()+ "\n";
                         // save progress
                         try {
-                            Files.write(progress,info.getBytes(), StandardOpenOption.APPEND);
+                            if (Files.exists(progress)) Files.write(progress,info.getBytes(), StandardOpenOption.APPEND);
+                            else Files.write(progress,info.getBytes());
                         } catch (IOException e) {
                             System.err.println("Could not write progress file " + progress.toString());
                             e.printStackTrace();

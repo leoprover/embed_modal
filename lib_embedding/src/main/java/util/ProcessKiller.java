@@ -69,6 +69,8 @@ public class ProcessKiller {
             BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
             String line = null;
             while ((line = stdInput.readLine()) != null) {
+                line = line.trim();
+                System.out.println(line);
                 try{
                     String[] columns = line.split("\\s+");
                     if (columns.length != 3) continue;
@@ -100,7 +102,8 @@ public class ProcessKiller {
                         pids.add(pid);
                     }
                 } catch (Exception e){
-                    System.err.println(e);
+                    System.err.println("LINE:" + line);
+                    System.err.println("E:"+e);
                     e.printStackTrace();
                 }
 
