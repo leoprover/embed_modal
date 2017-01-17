@@ -26,34 +26,10 @@ public class NativeMultiTester {
     private static final String errorPrefix = "Error_";
 
     public List<QmlProblem> allProblems;
-    private List<String> filterList;
 
-    public void testProblemDirectory(Path inPath, Path outPath, long timoutPerProblem, TimeUnit timeUnit, Path filterFile, Path progress,
+    public void testProblemDirectory(Path inPath, Path outPath, long timoutPerProblem, TimeUnit timeUnit, Path progress,
                                      String axiom, String domains) throws IOException {
 
-        /*
-        // remove all old error files
-        try(Stream<Path> paths = Files.walk(outPath)){
-            paths.filter(f->f.getFileName().toString().contains(errorPrefix)).forEach((path) -> {
-                try {
-                    Files.delete(path);
-                } catch (IOException e) {
-                    // do nothing
-                }
-            });
-        }
-        */
-
-        // init white filter list
-        filterList = null;
-        if (filterFile != null){
-            try (Stream<String> lines = Files.lines(filterFile)) {
-                filterList = lines.collect(Collectors.toList());
-            } catch (IOException e) {
-                filterList = null;
-                log.warning("Could not load filter file=" + filterFile+toString());
-            }
-        }
 
         // Test problems for concrete semantic setting
         allProblems = new ArrayList<>();
@@ -61,10 +37,6 @@ public class NativeMultiTester {
         try(Stream<Path> paths = Files.walk(inPath)) {
             paths.filter(Files::isRegularFile)
                     .filter(f -> f.toString().contains(".p") && !f.toString().contains(".ps") && !f.toString().contains(".dot"))
-                    .filter(f -> {
-                        if (this.filterList == null) return true;
-                        return filterList.contains(f.toString());
-                    })
                     .forEach(f -> {
                         System.out.println(Instant.now());
                         problems.incrementAndGet();
@@ -93,7 +65,7 @@ public class NativeMultiTester {
                         }
 
                         // kill all atp processes on machine older than 82 seconds
-                        ProcessKiller.killAllOlderThan(82,"mleancop");
+                        ProcessKiller.killAllOlderThan(71,"mleancop");
                     });
         }
 

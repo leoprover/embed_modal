@@ -40,6 +40,35 @@ public class MLeanCopWrapper {
             proc = mleancop.start();
             BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
             BufferedReader stdError = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
+            if (!proc.waitFor(timeout+11, unit)) {
+                ProcessKiller.killAllOlderThan((int)timeout+10,"mleancop");
+                log.fine(filename.toString() + " : Proof Timeout");
+                this.timeout = true;
+            }else{
+                Instant end = Instant.now();
+                Duration delta = Duration.between(start,end);
+                this.duration =  (double) delta.getSeconds() + ( (double) delta.getNano() ) / 1000000000.0;
+            }
+            String s = null;
+            while ((s = stdInput.readLine()) != null) {
+                stdout += s;
+            }
+            while ((s = stdError.readLine()) != null) {
+                stderr += s;
+            }
+        } catch (IOException e) {
+            if (this.stderr == null) this.stderr = e.getMessage();
+            if (this.stdout == null) this.stdout = e.getMessage();
+        } catch (InterruptedException e) {
+            System.err.println(filename.toString() + " : Interrupted Exception.");
+            if (this.stderr == null) this.stderr = e.getMessage();
+            if (this.stdout == null) this.stdout = e.getMessage();
+            this.timeout = true;
+        }finally {
+            this.status = extractSZSStatus(this.stdout);
+            //System.out.println(this.status);
+        }
+            /*
             if (!proc.waitFor(timeout, unit)) {
                 log.fine(filename.toString() + " : Proof Timeout");
                 this.timeout = true;
@@ -72,7 +101,7 @@ public class MLeanCopWrapper {
             this.status = extractSZSStatus(this.stdout);
             //System.out.println(this.status);
             if (proc != null) ProcessKiller.destroyProc(proc, 1500L);
-        }
+        }*/
     }
 
     private String extractSZSStatus(String consoleOutput){
