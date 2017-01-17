@@ -1,6 +1,7 @@
 package util.external_software_wrappers;
 
 import util.LexicalOrderComparator;
+import util.ProcessKiller;
 import util.QmlProblem;
 import util.ThfProblem;
 
@@ -8,6 +9,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -63,35 +66,41 @@ public class NativeMultiTester {
                         return filterList.contains(f.toString());
                     })
                     .forEach(f -> {
+                        System.out.println(Instant.now());
                         problems.incrementAndGet();
                         //String name = f.getParent().getFileName().toString() + "/" + f.getFileName().toString();
                         String name = f.getFileName().toString();
                         String info = "Processing " + String.valueOf(problems.get()) + " " + f.toString();
                         System.out.println(info);
+                        System.out.println("Semantics: " + axiom + "/"+domains);
                         QmlProblem qmlProblem = new QmlProblem(f);
                         qmlProblem.name = name;
                         allProblems.add(qmlProblem);
 
-                        // Leo 2
+                        // MleanCoP
                         MLeanCopWrapper mleancop = new MLeanCopWrapper();
-                        qmlProblem.mleancop = mleancop;
                         mleancop.call(f,timoutPerProblem,timeUnit,axiom, domains);
+                        qmlProblem.mleancop = mleancop;
                         System.out.println(name + ": mleancop: " + mleancop.getAbbrevStatus());
 
                         // save progress
                         try {
-                            Files.write(progress,info.getBytes());
+                            if (Files.exists(progress)) Files.write(progress,info.getBytes(), StandardOpenOption.APPEND);
+                            else Files.write(progress,info.getBytes());
                         } catch (IOException e) {
                             System.err.println("Could not write progress file " + progress.toString());
                             e.printStackTrace();
                         }
+
+                        // kill all atp processes on machine older than 82 seconds
+                        ProcessKiller.killAllOlderThan(82,"mleancop");
                     });
         }
 
         // Write results to file
         // subdirectory/filename,satallax_status,satallax_duration,leo_status,leo_duration,nitpick_status,nitpick_duration
         try {
-            Files.write(Paths.get(outPath.toString(),"all"),this.allProblems.stream()
+            Files.write(Paths.get(outPath.toString()),this.allProblems.stream()
                     .sorted((e1,e2)->new LexicalOrderComparator().compare(e1.name,e2.name))
                     .map(p->p.name + "," +
                             p.mleancop.getAbbrevStatus() + "," + p.mleancop.duration

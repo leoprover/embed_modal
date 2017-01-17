@@ -1,0 +1,74 @@
+package main;
+
+import util.external_software_wrappers.NativeMultiTester;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+public class TestMultiNative {
+
+    private static final Logger log = Logger.getLogger("default");
+
+    public static void main(String[] args) {
+        //log.setUseParentHandlers(false);
+        log.setLevel(Level.ALL);
+
+        if (!(args.length == 4 || args.length == 5)){
+            System.err.println("Unmatched argument size\nThree arguments needed: \n" +
+                    "/path/to/tptp/Problems/directory\n" +
+                    "/path/to/result\n" +
+                    "timeout\n");
+            System.exit(1);
+        }
+
+        String inPathString = args[0]; // "/home/tg/university/bachelor_thesis/QMLTP-v1.1/";
+        String outputPathString = args[1]; // "/home/tg/university/bachelor_thesis/software/output/convert_qmltp_to_thf/";
+        String progress = args[2];
+
+        if (!Files.isDirectory(Paths.get(inPathString))){
+            System.err.println("input path is not a directory\nThree arguments needed: \n" +
+                    "/path/to/tptp/Problems/directory\n" +
+                    "/path/to/result\n" +
+                    "timeout\n");
+            System.err.println(inPathString + " is not a valid directory");
+            System.exit(1);
+        }
+
+        if (Files.exists(Paths.get(outputPathString))){
+            System.err.println("result path is not a directory\nThree arguments needed: \n" +
+                    "/path/to/tptp/Problems/directory\n" +
+                    "/path/to/result\n" +
+                    "timeout\n");
+            System.err.println(outputPathString + " already exists!");
+            System.exit(1);
+        }
+
+
+        NativeMultiTester tester = new NativeMultiTester();
+        Path filterList = null;
+        if (args.length == 5) filterList = Paths.get(args[4]);
+        long timeout = Long.valueOf(args[3]);
+        String[] semantics = {"d", "t", "s4", "s5"};
+        String[] domains = {"const", "cumul", "vary"};
+
+        for (String curSemantics : semantics) {
+            for (String curDomains : domains) {
+                try {
+                    tester.testProblemDirectory(Paths.get(inPathString),Paths.get(outputPathString),timeout,TimeUnit.SECONDS,filterList,Paths.get(progress), curSemantics, curDomains);
+                } catch (IOException e) {
+                    System.err.println("Could not traverse files");
+                    e.printStackTrace();
+                }
+            }
+        }
+
+
+    }
+}
+
+
