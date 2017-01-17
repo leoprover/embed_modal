@@ -19,7 +19,7 @@ public class TestMultiNative {
         //log.setUseParentHandlers(false);
         log.setLevel(Level.ALL);
 
-        if (args.length!=5){
+        if (args.length!=6){
             System.err.println("Unmatched argument size\nThree arguments needed: \n" +
                     "/path/to/tptp/Problems/directory\n" +
                     "/path/to/result/file\n" +

@@ -32,7 +32,7 @@ public class MLeanCopWrapper {
         this.timeout = false;
         this.duration = timeout;
 
-        List<String> params = java.util.Arrays.asList(mleancop_binary,filename.toString(), String.valueOf(timeout), axiom, domains);
+        List<String> params = java.util.Arrays.asList("/bin/bash", mleancop_binary, axiom, domains, filename.toString(), String.valueOf(timeout));
         Process proc = null;
         try {
             ProcessBuilder mleancop = new ProcessBuilder(params);
@@ -59,10 +59,12 @@ public class MLeanCopWrapper {
         } catch (IOException e) {
             if (this.stderr == null) this.stderr = e.getMessage();
             if (this.stdout == null) this.stdout = e.getMessage();
+            System.out.println(e.toString());
         } catch (InterruptedException e) {
             System.err.println(filename.toString() + " : Interrupted Exception.");
             if (this.stderr == null) this.stderr = e.getMessage();
             if (this.stdout == null) this.stdout = e.getMessage();
+            System.out.println(e.toString());
             this.timeout = true;
         }finally {
             this.status = extractSZSStatus(this.stdout);
