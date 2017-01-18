@@ -42,6 +42,7 @@ public class MLeanCopWrapper {
             BufferedReader stdError = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
             if (!proc.waitFor(timeout+11, unit)) {
                 ProcessKiller.killAllOlderThan((int)timeout+10,"mleancop");
+                ProcessKiller.killAllOlderThan((int)timeout+10,"swipl");
                 log.fine(filename.toString() + " : Proof Timeout");
                 this.timeout = true;
             }else{

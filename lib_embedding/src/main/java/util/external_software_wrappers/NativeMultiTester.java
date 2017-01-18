@@ -65,7 +65,9 @@ public class NativeMultiTester {
                         }
 
                         // kill all atp processes on machine older than 82 seconds
+                        ProcessKiller.killAllOlderThan(71,"swipl");
                         ProcessKiller.killAllOlderThan(71,"mleancop");
+
                     });
         }
 
