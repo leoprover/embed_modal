@@ -191,7 +191,7 @@ public class CompareQmltp {
         if (!(domain.equals("constant") || domain.equals("varying") || domain.equals("cumulative"))) return null;
         if (!(system.equals("k") || system.equals("d") || system.equals("t") || system.equals("s4") || system.equals("s5"))) return null;
         if (!(constants.equals("rigid"))) return null;
-        if (!(consequence.equals("global"))) return null; // TODO is it global or local for QMLTP?
+        if (!(consequence.equals("local"))) return null; // TODO is it global or local for QMLTP?
 
         String[][] matrix = new String[5][3];
         boolean status_found = false;
