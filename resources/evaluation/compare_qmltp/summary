@@ -1,0 +1,59 @@
+Results:
+totalProblems:           23200
+disagreementQmltpAtp:    209
+disagreementAtpAtp:      0
+
+ERR satallax             0
+UNK satallax             12828
+THM satallax             7826
+CSA satallax             2546
+ERR leo                  0
+UNK leo                  16036
+THM leo                  6260
+CSA leo                  904
+ERR nitpick              0
+UNK nitpick              13800
+THM nitpick              0
+CSA nitpick              9400
+
+Semantics satSUM satTHM satCSA leoSUM leoTHM leoCSA nitSUM nitTHM nitCSA
+s5_decreasing_rigid_local 337 282 55 228 228 0 121 0 121
+d_cumulative_rigid_local 130 129 1 121 103 18 256 0 256
+t_cumulative_rigid_global 257 193 64 159 147 12 287 0 287
+d_varying_rigid_local 120 110 10 132 86 46 277 0 277
+k_constant_rigid_local 284 163 121 215 142 73 242 0 242
+s4_constant_rigid_local 358 282 76 236 236 0 117 0 117
+s4_varying_rigid_local 298 199 99 154 154 0 212 0 212
+d_varying_rigid_global 131 122 9 133 87 46 376 0 376
+t_decreasing_rigid_global 249 184 65 149 138 11 298 0 298
+k_constant_rigid_global 266 180 86 230 148 82 260 0 260
+s5_decreasing_rigid_global 311 284 27 228 228 0 183 0 183
+d_decreasing_rigid_global 140 139 1 118 100 18 348 0 348
+d_cumulative_rigid_global 144 143 1 125 107 18 342 0 342
+t_cumulative_rigid_local 276 184 92 159 147 12 202 0 202
+s4_varying_rigid_global 269 198 71 156 156 0 283 0 283
+d_decreasing_rigid_local 127 126 1 117 100 17 256 0 256
+s4_cumulative_rigid_local 313 226 87 178 178 0 183 0 183
+s4_cumulative_rigid_global 285 226 59 180 180 0 246 0 246
+t_constant_rigid_local 317 232 85 247 202 45 144 0 144
+k_cumulative_rigid_global 222 131 91 132 98 34 354 0 354
+d_constant_rigid_local 189 177 12 209 156 53 227 0 227
+k_cumulative_rigid_local 244 118 126 125 94 31 271 0 271
+k_varying_rigid_local 240 101 139 145 77 68 290 0 290
+t_decreasing_rigid_local 268 175 93 151 139 12 224 0 224
+s4_constant_rigid_global 334 286 48 239 239 0 123 0 123
+t_varying_rigid_global 248 170 78 169 129 40 310 0 310
+k_decreasing_rigid_global 219 126 93 125 93 32 360 0 360
+t_varying_rigid_local 268 162 106 171 129 42 227 0 227
+k_varying_rigid_global 217 113 104 151 81 70 384 0 384
+s5_cumulative_rigid_global 310 283 27 226 226 0 182 0 182
+s5_varying_rigid_global 291 236 55 186 186 0 235 0 235
+k_decreasing_rigid_local 242 114 128 121 90 31 268 0 268
+d_constant_rigid_global 205 194 11 212 160 52 244 0 244
+s5_constant_rigid_local 375 319 56 273 273 0 72 0 72
+t_constant_rigid_global 304 247 57 248 207 41 163 0 163
+s4_decreasing_rigid_global 275 216 59 168 168 0 262 0 262
+s5_constant_rigid_global 351 323 28 271 271 0 74 0 74
+s5_cumulative_rigid_local 337 282 55 228 228 0 137 0 137
+s4_decreasing_rigid_local 303 216 87 164 164 0 191 0 191
+s5_varying_rigid_local 318 235 83 185 185 0 169 0 169
