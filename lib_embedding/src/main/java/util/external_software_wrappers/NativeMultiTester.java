@@ -64,7 +64,7 @@ public class NativeMultiTester {
                             e.printStackTrace();
                         }
 
-                        // kill all atp processes on machine older than 82 seconds
+                        // kill all atp processes on machine older than x+1 seconds
                         ProcessKiller.killAllOlderThan((int)timoutPerProblem+1,"mleancop");
                         ProcessKiller.killAllOlderThan((int)timoutPerProblem+1,"swipl");
 

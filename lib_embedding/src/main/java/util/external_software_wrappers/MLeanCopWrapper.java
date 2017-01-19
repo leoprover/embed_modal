@@ -40,9 +40,8 @@ public class MLeanCopWrapper {
             proc = mleancop.start();
             BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
             BufferedReader stdError = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
-            if (!proc.waitFor(timeout+2, unit)) {
-                ProcessKiller.killAllOlderThan((int)timeout+1,"mleancop");
-                ProcessKiller.killAllOlderThan((int)timeout+1,"swipl");
+            if (!proc.waitFor(timeout+11, unit)) {
+                ProcessKiller.killAllOlderThan((int)timeout+10,"mleancop");
                 log.fine(filename.toString() + " : Proof Timeout");
                 this.timeout = true;
             }else{
@@ -50,14 +49,12 @@ public class MLeanCopWrapper {
                 Duration delta = Duration.between(start,end);
                 this.duration =  (double) delta.getSeconds() + ( (double) delta.getNano() ) / 1000000000.0;
             }
-            if (!this.timeout){
-                String s = null;
-                while ((s = stdInput.readLine()) != null) {
-                    stdout += s;
-                }
-                while ((s = stdError.readLine()) != null) {
-                    stderr += s;
-                }
+            String s = null;
+            while ((s = stdInput.readLine()) != null) {
+                stdout += s;
+            }
+            while ((s = stdError.readLine()) != null) {
+                stderr += s;
             }
         } catch (IOException e) {
             if (this.stderr == null) this.stderr = e.getMessage();
