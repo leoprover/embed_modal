@@ -104,10 +104,10 @@ public class MultiTester {
                         }
 
                         // kill all atp processes on machine older than 82 seconds
-                        ProcessKiller.killAllOlderThan(82,"leo");
-                        ProcessKiller.killAllOlderThan(82,"satallax");
-                        ProcessKiller.killAllOlderThan(82,"nitpick");
-                        ProcessKiller.killAllOlderThan(82,"isabelle");
+                        ProcessKiller.killAllOlderThan((int)timoutPerProblem+1,"leo");
+                        ProcessKiller.killAllOlderThan((int)timoutPerProblem+1,"satallax");
+                        ProcessKiller.killAllOlderThan((int)timoutPerProblem+1,"nitpick");
+                        ProcessKiller.killAllOlderThan((int)timoutPerProblem+1,"isabelle");
                     });
         }
 

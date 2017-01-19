@@ -46,9 +46,9 @@ public class NitpickWrapper {
             proc = nitpick.start();
             BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
             BufferedReader stdError = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
-            if (!proc.waitFor(timeout + 20, unit)) {
-                ProcessKiller.killAllOlderThan((int)timeout+10,"nitpick");
-                ProcessKiller.killAllOlderThan((int)timeout+10,"isabelle");
+            if (!proc.waitFor(timeout + 10, unit)) {
+                ProcessKiller.killAllOlderThan((int)timeout+9,"nitpick");
+                ProcessKiller.killAllOlderThan((int)timeout+9,"isabelle");
                 log.fine(filename.toString() + " : Proof Timeout");
                 this.timeout = true;
             }else{
@@ -56,12 +56,14 @@ public class NitpickWrapper {
                 Duration delta = Duration.between(start,end);
                 this.duration =  (double) delta.getSeconds() + ( (double) delta.getNano() ) / 1000000000.0;
             }
-            String s = null;
-            while ((s = stdInput.readLine()) != null) {
-                stdout += s;
-            }
-            while ((s = stdError.readLine()) != null) {
-                stderr += s;
+            if (!this.timeout) {
+                String s = null;
+                while ((s = stdInput.readLine()) != null) {
+                    stdout += s;
+                }
+                while ((s = stdError.readLine()) != null) {
+                    stderr += s;
+                }
             }
         } catch (IOException e) {
             if (this.stderr == null) this.stderr = e.getMessage();

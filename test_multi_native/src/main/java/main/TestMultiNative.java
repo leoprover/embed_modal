@@ -20,7 +20,7 @@ public class TestMultiNative {
         log.setLevel(Level.ALL);
 
         if (args.length!=6){
-            System.err.println("Unmatched argument size\nThree arguments needed: \n" +
+            System.err.println("Unmatched argument size\nSix arguments needed: \n" +
                     "/path/to/tptp/Problems/directory\n" +
                     "/path/to/result/file\n" +
                     "/path/to/progress/file\n" +
@@ -39,7 +39,7 @@ public class TestMultiNative {
         long timeout = Long.valueOf(timeout_string);
 
         if (!Files.isDirectory(Paths.get(inPathString))){
-            System.err.println("Unmatched argument size\nFive arguments needed: \n" +
+            System.err.println("Six arguments needed: \n" +
                     "/path/to/tptp/Problems/directory\n" +
                     "/path/to/result/file\n" +
                     "/path/to/progress/file\n" +
@@ -51,7 +51,7 @@ public class TestMultiNative {
         }
 
         if (Files.exists(Paths.get(outputPathString))){
-            System.err.println("Five arguments needed: \n" +
+            System.err.println("Six arguments needed: \n" +
                     "/path/to/tptp/Problems/directory\n" +
                     "/path/to/result/file\n" +
                     "/path/to/progress/file\n" +
