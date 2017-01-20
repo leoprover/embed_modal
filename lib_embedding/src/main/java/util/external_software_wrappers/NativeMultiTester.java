@@ -63,11 +63,12 @@ public class NativeMultiTester {
                             System.err.println("Could not write progress file " + progress.toString());
                             e.printStackTrace();
                         }
-
+                        System.out.println("::: progress saved");
                         // kill all atp processes on machine older than x+1 seconds
                         ProcessKiller.killAllOlderThan((int)timoutPerProblem+1,"mleancop");
+                        System.out.println("::: killed all mleancop");
                         ProcessKiller.killAllOlderThan((int)timoutPerProblem+1,"swipl");
-
+                        System.out.println("::: killed all swipl");
                     });
         }
 
