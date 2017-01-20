@@ -56,6 +56,7 @@ public class NativeMultiTester {
                         System.out.println(name + ": mleancop: " + mleancop.getAbbrevStatus());
 
                         // save progress
+                        info = info + "," + qmlProblem.mleancop.getAbbrevStatus() + "," + qmlProblem.mleancop.duration;
                         try {
                             if (Files.exists(progress)) Files.write(progress,info.getBytes(), StandardOpenOption.APPEND);
                             else Files.write(progress,info.getBytes());
