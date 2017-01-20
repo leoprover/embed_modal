@@ -27,30 +27,18 @@ public class Results {
     public List<Problem> newProblemResultCSA; // qmltp yields unsolved but atps have a result and they agree
     */
     public List<Problem> disagreementQmltpAtp; // if qmltp and atp results are different and all atp yield the same result
+    public List<Problem> disagreementQmltpMleancop; // if qmltp and atp results are different and all atp yield the same result
 
-    // concerning qmltp and rating
-    /*
-    public List<Problem> rating_1_00_THM; // solve 1.0 problem as theorem without disagreement of the atps, status is THM or UNK
-    public List<Problem> rating_1_00_CSA; // solve 1.0 problem as couter-satisfiable without disagreement of the atps, status is CSA or UNK
-    public List<Problem> rating_1_00_UNK; // no solution for 1.0 problems
-    public List<Problem> rating_1_00_Total; // all 1.0 problems
-    */
-
-    // not concerning qmltp
-    // public List<Problem> newProblems; // qmltp does not sopport this semantical setting
-    // public List<Problem> newProblemsSolved; // qmltp does not support this semantical setting and atps solve this problem (agree)
-
-    // concerning both
-    // TODO
-    //public List<Problem> totallyUnsolvedProblems; // neither qmltp nor atps have results in which atps agree
     public List<Problem> totalProblems; // all problems
 
     // atp specific
     public List<Problem> errorAtp; // at least one atp system has an error status
     public List<Problem> disagreementAtpAtp; // if at least two atp systems have different results
+    public List<Problem> disagreementAtpMleancop; // if at least two atp systems have different results
     public HashMap<String,List<Problem>> satallax; // STATUS -> List of Problems
     public HashMap<String,List<Problem>> leo;
     public HashMap<String,List<Problem>> nitpick;
+    public HashMap<String,List<Problem>> mleancop;
 
     // table
     public List<String> table;
@@ -67,9 +55,7 @@ public class Results {
         newProblemsSolved = new ArrayList<>(); // n
         */
         disagreementQmltpAtp = new ArrayList<>(); // y
-        /*
-        totallyUnsolvedProblems = new ArrayList<>(); // y + n
-        */
+        disagreementQmltpMleancop = new ArrayList<>();
         totalProblems = new ArrayList<>();
 
         /*
@@ -81,6 +67,7 @@ public class Results {
 
         errorAtp = new ArrayList<>();
         disagreementAtpAtp = new ArrayList<>(); // y + n
+        disagreementAtpMleancop = new ArrayList<>();
         satallax = new HashMap<>();
         satallax.put("ERR",new ArrayList<>());
         satallax.put("UNK",new ArrayList<>());
@@ -96,6 +83,11 @@ public class Results {
         nitpick.put("UNK",new ArrayList<>());
         nitpick.put("THM",new ArrayList<>());
         nitpick.put("CSA",new ArrayList<>());
+        mleancop = new HashMap<>();
+        mleancop.put("ERR",new ArrayList<>());
+        mleancop.put("UNK",new ArrayList<>());
+        mleancop.put("THM",new ArrayList<>());
+        mleancop.put("CSA",new ArrayList<>());
 
         table = new ArrayList<>();
         table.add("Semantics satSUM satTHM satCSA leoSUM leoTHM leoCSA nitSUM nitTHM nitCSA");
@@ -118,6 +110,11 @@ public class Results {
             cnitpick.put("UNK",new ArrayList<>());
             cnitpick.put("THM",new ArrayList<>());
             cnitpick.put("CSA",new ArrayList<>());
+            HashMap<String,List<Problem>> cmleancop = new HashMap<>();
+            cmleancop.put("ERR",new ArrayList<>());
+            cmleancop.put("UNK",new ArrayList<>());
+            cmleancop.put("THM",new ArrayList<>());
+            cmleancop.put("CSA",new ArrayList<>());
 
             for (Problem problem : test.getProblems()){
                 //System.out.println(problem.toString());
@@ -132,6 +129,11 @@ public class Results {
                 l.add(problem);
                 l = nitpick.get(problem.status_nitpick);
                 l.add(problem);
+                if (problem.status_mleancop != null) {
+                    //System.err.println("MLEANCOP HAS NO ERROR");
+                    l = mleancop.get(problem.status_mleancop);
+                    l.add(problem);
+                }
 
                 // save result for every atp in a list only for current test
                 // used for filling up table
@@ -141,7 +143,10 @@ public class Results {
                 l.add(problem);
                 l = cnitpick.get(problem.status_nitpick);
                 l.add(problem);
-
+                if (problem.status_mleancop != null) {
+                    l = cmleancop.get(problem.status_mleancop);
+                    l.add(problem);
+                }
                 // compare qmltp status with atp status: atp status is not qmltp status
                 //
                 // qmltp entry exists &&
@@ -161,8 +166,41 @@ public class Results {
                     disagreementQmltpAtp.add(problem);
                 }
 
-                // 1.0 problems
-                // TODO
+                // compare qmltp status with mleancop status: mleancop status is not qmltp status
+                //
+                // qmltp entry exists
+                // qmltp has a solution
+                // mleancop entry exists
+                // mleancop has a solution = solution is not UNK
+                // mleancop solution is NOT the same as qmltp solution
+                if (
+                        problem.status_qmltp != null &&
+                        !problem.status_qmltp.equals("UNK") &&
+                        problem.status_mleancop != null &&
+                        !problem.status_mleancop.equals(problem.status_qmltp)
+                        ){
+                    disagreementQmltpMleancop.add(problem);
+                }
+
+                // compare mleancop status with atp status: mleancop status is not agreed atp status
+                // compare qmltp status with mleancop status: mleancop status is not qmltp status
+                //
+                // mleancop entry exists
+                // mleancop has a solution = solution is not UNK
+                // atps have no error
+                // atps agree on solution
+                // atps have a solution = solution is not UNK
+                // atps solution is NOT the same as mleancop solution
+                if (
+                        problem.status_mleancop != null &&
+                        !problem.status_mleancop.equals("UNK") &&
+                        !hasError(problem) &&
+                        atpsAgree(problem) &&
+                        !getAgreedStatus(problem).equals("UNK") &&
+                        !getAgreedStatus(problem).equals(problem.status_mleancop)
+                        ){
+                    disagreementAtpMleancop.add(problem);
+                }
 
                 // atps disagree
                 if (
@@ -171,86 +209,9 @@ public class Results {
                     disagreementAtpAtp.add(problem);
                 }
 
-                /*
-                // GARBAGE
-                // qmltp entry exists
-                // this is the case for systems k,d,t,s4,s5 and domains const,cumul,vary and constants rigid and consequence ???
-                if (problem.status_qmltp != null){
+                // 1.0 problems
+                // TODO
 
-                    // no solution available in qmltp
-                    if (problem.status_qmltp.equals("UNK")){
-                        // atps agree on a solution
-                        String agreedStatus = getAgreedStatus(problem);
-                        if (atpsAgree(problem)){
-                            // atps have a solution
-                            if (!agreedStatus.equals("UNK")) {
-                                newProblemResultTotal.add(problem);
-                                if (agreedStatus.equals("THM")) newProblemResultTHM.add(problem);
-                                if (agreedStatus.equals("CSA")) newProblemResultCSA.add(problem);
-                            }
-                            // atps do not have a solution
-                            else totallyUnsolvedProblems.add(problem);
-                        }
-                        // atps do not agree on a solution
-                        else {
-                            disagreementAtpAtp.add(problem);
-                            totallyUnsolvedProblems.add(problem);
-                        }
-                    }
-                    // solution is available in qmltp
-                    else {
-                        // atps agree on a solution
-                        if (atpsAgree(problem)){
-                            String agreedStatus = getAgreedStatus(problem);
-                            // atps have no solution
-                            if (agreedStatus.equals("UNK")){
-                                // qmltp has no solution
-                                if (problem.status_qmltp.equals("UNK")) totallyUnsolvedProblems.add(problem);
-                                // qmltp has solution
-                                else unconfirmedProblems.add(problem);
-                            }
-                            // atps have solved problem
-                            else {
-                                // there is no solution in qmltp
-                                if (problem.status_qmltp.equals("UNK")){
-                                    newProblemResultTotal.add(problem);
-                                    if (agreedStatus.equals("THM")) newProblemResultTHM.add(problem);
-                                    if (agreedStatus.equals("CSA")) newProblemResultCSA.add(problem);
-                                }
-                                // there is a solution in qmltp
-                                else {
-                                    // qmltp solution and atp solution are equal
-                                    if (problem.status_qmltp.equals(agreedStatus)) confirmedProblems.add(problem);
-                                    // qmltp solution and atp solution disagree
-                                    else disagreementQmltpAtp.add(problem);
-                                }
-                            }
-
-                        }
-                        // atps do not agree on a solution
-                        else {
-                            disagreementAtpAtp.add(problem);
-                            unconfirmedProblems.add(problem);
-                        }
-                    }
-                }
-                // qmltp entry does not exist
-                else {
-                    newProblems.add(problem);
-                    // atps agree on problem
-                    if (atpsAgree(problem)){
-                        String agreedStatus = getAgreedStatus(problem);
-                        // atps have no solution
-                        if (agreedStatus.equals("UNK")) totallyUnsolvedProblems.add(problem);
-                        // atps have a solution
-                        else newProblemsSolved.add(problem);
-                    }
-                    // atps do not agree on problem
-                    else {
-                        totallyUnsolvedProblems.add(problem);
-                    }
-                }
-                */
             }
 
 
@@ -277,6 +238,12 @@ public class Results {
             entry.append(delimiter);
             entry.append(cnitpick.get("CSA").size());
             entry.append(delimiter);
+            entry.append(cmleancop.get("THM").size() + cmleancop.get("CSA").size());
+            entry.append(delimiter);
+            entry.append(cmleancop.get("THM").size());
+            entry.append(delimiter);
+            entry.append(cmleancop.get("CSA").size());
+            entry.append(delimiter);
             table.add(entry.toString());
         }
 
@@ -285,10 +252,11 @@ public class Results {
         System.out.println("Results:");
         this.outputToStdout();
         this.outputToFiles(outputPath);
+        System.out.println("FINISH");
     }
 
     private void outputToStdout(){
-        System.out.println("totalProblems:           " + totalProblems.size());
+        System.out.println("totalProblems:             " + totalProblems.size());
         /*
         System.out.println("ConfirmedProblems:       " + confirmedProblems.size());
         System.out.println("unconfirmedProblems:     " + unconfirmedProblems.size());
@@ -296,31 +264,38 @@ public class Results {
         System.out.println("newProblemResultTHM:     " + newProblemResultTHM.size());
         System.out.println("newProblemResultCSA:     " + newProblemResultCSA.size());
         */
-        System.out.println("disagreementQmltpAtp:    " + disagreementQmltpAtp.size());
+        System.out.println("disagreementQmltpAtp:      " + disagreementQmltpAtp.size());
+        System.out.println("disagreementQmltpMleancop: " + disagreementQmltpMleancop.size());
         /*
         System.out.println("newProblems:             " + newProblems.size());
         System.out.println("newProblemsSolved:       " + newProblemsSolved.size());
         System.out.println("totallyUnsolvedProblems: " + totallyUnsolvedProblems.size());
         */
-        System.out.println("disagreementAtpAtp:      " + disagreementAtpAtp.size());
+        System.out.println("disagreementAtpAtp:        " + disagreementAtpAtp.size());
+        System.out.println("disagreementAtpMleancop:   " + disagreementAtpMleancop.size());
         System.out.println();
-        System.out.println("ERR satallax             " + satallax.get("ERR").size());
-        System.out.println("UNK satallax             " + satallax.get("UNK").size());
-        System.out.println("THM satallax             " + satallax.get("THM").size());
-        System.out.println("CSA satallax             " + satallax.get("CSA").size());
-        System.out.println("ERR leo                  " + leo.get("ERR").size());
-        System.out.println("UNK leo                  " + leo.get("UNK").size());
-        System.out.println("THM leo                  " + leo.get("THM").size());
-        System.out.println("CSA leo                  " + leo.get("CSA").size());
-        System.out.println("ERR nitpick              " + nitpick.get("ERR").size());
-        System.out.println("UNK nitpick              " + nitpick.get("UNK").size());
-        System.out.println("THM nitpick              " + nitpick.get("THM").size());
-        System.out.println("CSA nitpick              " + nitpick.get("CSA").size());
+        System.out.println("ERR satallax               " + satallax.get("ERR").size());
+        System.out.println("UNK satallax               " + satallax.get("UNK").size());
+        System.out.println("THM satallax               " + satallax.get("THM").size());
+        System.out.println("CSA satallax               " + satallax.get("CSA").size());
+        System.out.println("ERR leo                    " + leo.get("ERR").size());
+        System.out.println("UNK leo                    " + leo.get("UNK").size());
+        System.out.println("THM leo                    " + leo.get("THM").size());
+        System.out.println("CSA leo                    " + leo.get("CSA").size());
+        System.out.println("ERR nitpick                " + nitpick.get("ERR").size());
+        System.out.println("UNK nitpick                " + nitpick.get("UNK").size());
+        System.out.println("THM nitpick                " + nitpick.get("THM").size());
+        System.out.println("CSA nitpick                " + nitpick.get("CSA").size());
+        System.out.println("ERR mleancop               " + mleancop.get("ERR").size());
+        System.out.println("UNK mleancop               " + mleancop.get("UNK").size());
+        System.out.println("THM mleancop               " + mleancop.get("THM").size());
+        System.out.println("CSA mleancop               " + mleancop.get("CSA").size());
         System.out.println();
         table.forEach(System.out::println);
     }
 
     private void outputToFiles(String outputPath){
+        System.out.println(Paths.get(outputPath.toString(),"totalProblems"));
         try {
             Files.write(Paths.get(outputPath.toString(),"totalProblems"),this.totalProblems.stream()
                     .map(p->p.system + "," + p.domains + "," + p.constants + "," + p.consequence + "," + p.name)
@@ -379,6 +354,14 @@ public class Results {
             System.err.println("Could not write disagreementQmltpAtp file");
             e.printStackTrace();
         }
+        try {
+            Files.write(Paths.get(outputPath.toString(),"disagreementQmltpMleancop"),this.disagreementQmltpMleancop.stream()
+                    .map(p->p.system + "," + p.domains + "," + p.constants + "," + p.consequence + "," + p.name)
+                    .collect(Collectors.joining("\n")).getBytes());
+        } catch (IOException e) {
+            System.err.println("Could not write disagreementQmltpMleancop file");
+            e.printStackTrace();
+        }
         /*
         try {
             Files.write(Paths.get(outputPath.toString(),"newProblems"),this.newProblems.stream()
@@ -405,12 +388,22 @@ public class Results {
             e.printStackTrace();
         }
         */
+
         try {
             Files.write(Paths.get(outputPath.toString(),"disagreementAtpAtp"),this.disagreementAtpAtp.stream()
                     .map(p->p.system + "," + p.domains + "," + p.constants + "," + p.consequence + "," + p.name)
                     .collect(Collectors.joining("\n")).getBytes());
         } catch (IOException e) {
             System.err.println("Could not write disagreementAtpAtp file");
+            e.printStackTrace();
+        }
+
+        try {
+            Files.write(Paths.get(outputPath.toString(),"disagreementAtpMleancop"),this.disagreementAtpMleancop.stream()
+                    .map(p->p.system + "," + p.domains + "," + p.constants + "," + p.consequence + "," + p.name)
+                    .collect(Collectors.joining("\n")).getBytes());
+        } catch (IOException e) {
+            System.err.println("Could not write disagreementAtpMleancop file");
             e.printStackTrace();
         }
         for (String status : satallax.keySet()){
@@ -439,6 +432,17 @@ public class Results {
             String filename = "nitpick_" + status;
             try {
                 Files.write(Paths.get(outputPath.toString(), filename ),this.nitpick.get(status).stream()
+                        .map(p->p.system + "," + p.domains + "," + p.constants + "," + p.consequence + "," + p.name)
+                        .collect(Collectors.joining("\n")).getBytes());
+            } catch (IOException e) {
+                System.err.println("Could not write " + filename + " file");
+                e.printStackTrace();
+            }
+        }
+        for (String status : mleancop.keySet()){
+            String filename = "mleancop" + status;
+            try {
+                Files.write(Paths.get(outputPath.toString(), filename ),this.mleancop.get(status).stream()
                         .map(p->p.system + "," + p.domains + "," + p.constants + "," + p.consequence + "," + p.name)
                         .collect(Collectors.joining("\n")).getBytes());
             } catch (IOException e) {
