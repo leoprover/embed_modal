@@ -87,6 +87,18 @@ public class NativeMultiTester {
             e.printStackTrace();
         }
 
+        System.out.println("sleeping now");
+        try {
+            Thread.sleep((timoutPerProblem+10)*1000);
+        } catch (InterruptedException e) {
+            System.out.println("sleep interrupted");
+            e.printStackTrace();
+        }
+        ProcessKiller.killAllOlderThan((int)timoutPerProblem+1,"mleancop");
+        System.out.println("::: killed all mleancop");
+        ProcessKiller.killAllOlderThan((int)timoutPerProblem+1,"swipl");
+        System.out.println("::: killed all swipl");
+
         // here should come the same stuff as in Problem tester satallax
     }
 
