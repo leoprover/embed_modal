@@ -177,6 +177,7 @@ public class Results {
                         problem.status_qmltp != null &&
                         !problem.status_qmltp.equals("UNK") &&
                         problem.status_mleancop != null &&
+                        !problem.status_mleancop.equals("UNK") &&
                         !problem.status_mleancop.equals(problem.status_qmltp)
                         ){
                     disagreementQmltpMleancop.add(problem);
@@ -294,11 +295,25 @@ public class Results {
         table.forEach(System.out::println);
     }
 
+    private String statusMleanCopNoNull(Problem p){
+        if (p == null) return "NUL";
+        return p.status_mleancop;
+    }
+
+    private String statusQmltpNoNull(Problem p){
+        if (p == null) return "NUL";
+        return p.status_qmltp;
+    }
+
+    private String combineProblem(Problem p){
+          return p.system + "," + p.domains + "," + p.constants + "," + p.consequence + "," + p.name + ","
+                + statusQmltpNoNull(p) + "," + getAgreedStatus(p) + "," + statusMleanCopNoNull(p);
+    }
     private void outputToFiles(String outputPath){
         System.out.println(Paths.get(outputPath.toString(),"totalProblems"));
         try {
             Files.write(Paths.get(outputPath.toString(),"totalProblems"),this.totalProblems.stream()
-                    .map(p->p.system + "," + p.domains + "," + p.constants + "," + p.consequence + "," + p.name)
+                    .map(p->combineProblem(p))
                     .collect(Collectors.joining("\n")).getBytes());
         } catch (IOException e) {
             System.err.println("Could not write totalProblems file");
@@ -348,7 +363,7 @@ public class Results {
         */
         try {
             Files.write(Paths.get(outputPath.toString(),"disagreementQmltpAtp"),this.disagreementQmltpAtp.stream()
-                    .map(p->p.system + "," + p.domains + "," + p.constants + "," + p.consequence + "," + p.name)
+                    .map(p->combineProblem(p))
                     .collect(Collectors.joining("\n")).getBytes());
         } catch (IOException e) {
             System.err.println("Could not write disagreementQmltpAtp file");
@@ -356,7 +371,7 @@ public class Results {
         }
         try {
             Files.write(Paths.get(outputPath.toString(),"disagreementQmltpMleancop"),this.disagreementQmltpMleancop.stream()
-                    .map(p->p.system + "," + p.domains + "," + p.constants + "," + p.consequence + "," + p.name)
+                    .map(p->combineProblem(p))
                     .collect(Collectors.joining("\n")).getBytes());
         } catch (IOException e) {
             System.err.println("Could not write disagreementQmltpMleancop file");
@@ -391,7 +406,7 @@ public class Results {
 
         try {
             Files.write(Paths.get(outputPath.toString(),"disagreementAtpAtp"),this.disagreementAtpAtp.stream()
-                    .map(p->p.system + "," + p.domains + "," + p.constants + "," + p.consequence + "," + p.name)
+                    .map(p->combineProblem(p))
                     .collect(Collectors.joining("\n")).getBytes());
         } catch (IOException e) {
             System.err.println("Could not write disagreementAtpAtp file");
@@ -400,7 +415,7 @@ public class Results {
 
         try {
             Files.write(Paths.get(outputPath.toString(),"disagreementAtpMleancop"),this.disagreementAtpMleancop.stream()
-                    .map(p->p.system + "," + p.domains + "," + p.constants + "," + p.consequence + "," + p.name)
+                    .map(p->combineProblem(p))
                     .collect(Collectors.joining("\n")).getBytes());
         } catch (IOException e) {
             System.err.println("Could not write disagreementAtpMleancop file");
@@ -410,7 +425,7 @@ public class Results {
             String filename = "satallax_" + status;
             try {
                 Files.write(Paths.get(outputPath.toString(), filename ),this.satallax.get(status).stream()
-                        .map(p->p.system + "," + p.domains + "," + p.constants + "," + p.consequence + "," + p.name)
+                        .map(p->combineProblem(p))
                         .collect(Collectors.joining("\n")).getBytes());
             } catch (IOException e) {
                 System.err.println("Could not write " + filename + " file");
@@ -421,7 +436,7 @@ public class Results {
             String filename = "leo_" + status;
             try {
                 Files.write(Paths.get(outputPath.toString(), filename ),this.leo.get(status).stream()
-                        .map(p->p.system + "," + p.domains + "," + p.constants + "," + p.consequence + "," + p.name)
+                        .map(p->combineProblem(p))
                         .collect(Collectors.joining("\n")).getBytes());
             } catch (IOException e) {
                 System.err.println("Could not write " + filename + " file");
@@ -432,7 +447,7 @@ public class Results {
             String filename = "nitpick_" + status;
             try {
                 Files.write(Paths.get(outputPath.toString(), filename ),this.nitpick.get(status).stream()
-                        .map(p->p.system + "," + p.domains + "," + p.constants + "," + p.consequence + "," + p.name)
+                        .map(p->combineProblem(p))
                         .collect(Collectors.joining("\n")).getBytes());
             } catch (IOException e) {
                 System.err.println("Could not write " + filename + " file");
@@ -443,7 +458,7 @@ public class Results {
             String filename = "mleancop" + status;
             try {
                 Files.write(Paths.get(outputPath.toString(), filename ),this.mleancop.get(status).stream()
-                        .map(p->p.system + "," + p.domains + "," + p.constants + "," + p.consequence + "," + p.name)
+                        .map(p->combineProblem(p))
                         .collect(Collectors.joining("\n")).getBytes());
             } catch (IOException e) {
                 System.err.println("Could not write " + filename + " file");
