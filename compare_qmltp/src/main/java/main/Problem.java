@@ -4,6 +4,7 @@ public class Problem {
     // status can be THM, CSA, UNK
     // qmltp can also have status ??? which means the status was something else than Theorem, Non-Theorem, Unsolved
     public String name = null;
+    public String problem = null;
     public String category = null;
     public String system = null;
     public String domains = null;

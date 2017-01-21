@@ -130,6 +130,7 @@ public class CompareQmltp {
 
             Problem p = new Problem();
             p.name = problem_name;
+            p.problem = problem;
             p.system = system;
             p.domains = domain;
             p.constants = constants;
