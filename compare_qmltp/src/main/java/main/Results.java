@@ -1,5 +1,7 @@
 package main;
 
+import main.Comparators.CombinedComparator;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -28,8 +30,8 @@ public class Results {
     */
     public List<Problem> disagreementQmltpAtp; // if qmltp and atp results are different and all atp yield the same result
     public List<Problem> disagreementQmltpMleancop; // if qmltp and atp results are different and all atp yield the same result
-
     public List<Problem> totalProblems; // all problems
+    public List<Problem> unique_THM;
 
     // atp specific
     public List<Problem> errorAtp; // at least one atp system has an error status
@@ -62,12 +64,8 @@ public class Results {
         disagreementQmltpMleancop = new ArrayList<>();
         totalProblems = new ArrayList<>();
 
-        /*
-        rating_1_00_THM = new ArrayList<>();
-        rating_1_00_CSA = new ArrayList<>();
-        rating_1_00_UNK = new ArrayList<>();
-        rating_1_00_Total = new ArrayList<>();
-        */
+
+        unique_THM = new ArrayList<>();
 
         errorAtp = new ArrayList<>();
         disagreementAtpAtp = new ArrayList<>(); // y + n
@@ -80,16 +78,25 @@ public class Results {
         satallax.put("UNK",new ArrayList<>());
         satallax.put("THM",new ArrayList<>());
         satallax.put("CSA",new ArrayList<>());
+        satallax.put("CSA_verified",new ArrayList<>());
+        //satallax.put("CSA_unverified",new ArrayList<>());
+        satallax.put("THM_unique",new ArrayList<>());
         leo = new HashMap<>();
         leo.put("ERR",new ArrayList<>());
         leo.put("UNK",new ArrayList<>());
         leo.put("THM",new ArrayList<>());
         leo.put("CSA",new ArrayList<>());
+        leo.put("CSA_verified",new ArrayList<>());
+        //leo.put("CSA_unverified",new ArrayList<>());
+        leo.put("THM_unique",new ArrayList<>());
         nitpick = new HashMap<>();
         nitpick.put("ERR",new ArrayList<>());
         nitpick.put("UNK",new ArrayList<>());
         nitpick.put("THM",new ArrayList<>());
         nitpick.put("CSA",new ArrayList<>());
+        nitpick.put("CSA_verified",new ArrayList<>());
+        //nitpick.put("CSA_unverified",new ArrayList<>());
+        nitpick.put("THM_unique",new ArrayList<>());
         mleancop = new HashMap<>();
         mleancop.put("ERR",new ArrayList<>());
         mleancop.put("UNK",new ArrayList<>());
@@ -97,31 +104,42 @@ public class Results {
         mleancop.put("CSA",new ArrayList<>());
 
         table = new ArrayList<>();
-        table.add("Semantics satSUM satTHM satCSA leoSUM leoTHM leoCSA nitSUM nitTHM nitCSA");
+        table.add("Semantics satSUM satTHM satCSA satCSA* leoSUM leoTHM leoCSA leoCSA* nitSUM nitTHM nitCSA nitCSA* U mleanSUM mleanTHM mleanCSA");
 
         for (Test test : this.tests){
             System.out.println("Evaluate: " + test.test_name + " " + test.system + " " + test.domains);
 
+            // ============================================================
+            // Maps for filling up Table entries. Reset after every Test
             HashMap<String,List<Problem>> csatallax = new HashMap<>();
             csatallax.put("ERR",new ArrayList<>());
             csatallax.put("UNK",new ArrayList<>());
             csatallax.put("THM",new ArrayList<>());
             csatallax.put("CSA",new ArrayList<>());
+            csatallax.put("CSA_verified",new ArrayList<>());
+            //csatallax.put("CSA_unverified",new ArrayList<>());
+            csatallax.put("THM_unique",new ArrayList<>());
             HashMap<String,List<Problem>> cleo = new HashMap<>();
             cleo.put("ERR",new ArrayList<>());
             cleo.put("UNK",new ArrayList<>());
             cleo.put("THM",new ArrayList<>());
             cleo.put("CSA",new ArrayList<>());
+            cleo.put("CSA_verified",new ArrayList<>());
+            //cleo.put("CSA_unverified",new ArrayList<>());
+            cleo.put("THM_unique",new ArrayList<>());
             HashMap<String,List<Problem>> cnitpick = new HashMap<>();
             cnitpick.put("ERR",new ArrayList<>());
             cnitpick.put("UNK",new ArrayList<>());
             cnitpick.put("THM",new ArrayList<>());
             cnitpick.put("CSA",new ArrayList<>());
+            cnitpick.put("CSA_verified",new ArrayList<>());
+            //cnitpick.put("CSA_unverified",new ArrayList<>());
             HashMap<String,List<Problem>> cmleancop = new HashMap<>();
             cmleancop.put("ERR",new ArrayList<>());
             cmleancop.put("UNK",new ArrayList<>());
             cmleancop.put("THM",new ArrayList<>());
             cmleancop.put("CSA",new ArrayList<>());
+            List<Problem> cunique_THM = new ArrayList<>();
 
             for (Problem problem : test.getProblems()){
                 //System.out.println(problem.toString());
@@ -129,31 +147,97 @@ public class Results {
                 // put all problems int a list
                 totalProblems.add(problem);
 
+                // ===========================================================
                 // save result for every atp in a list for all tests together
+                // and for each test individually (prefix c)
                 List<Problem> l = satallax.get(problem.status_satallax);
+                l.add(problem);
+                l = csatallax.get(problem.status_satallax);
                 l.add(problem);
                 l = leo.get(problem.status_leo);
                 l.add(problem);
-                l = nitpick.get(problem.status_nitpick);
-                l.add(problem);
-                if (problem.status_mleancop != null) {
-                    //System.err.println("MLEANCOP HAS NO ERROR");
-                    l = mleancop.get(problem.status_mleancop);
-                    l.add(problem);
-                }
-
-                // save result for every atp in a list only for current test
-                // used for filling up table
-                l = csatallax.get(problem.status_satallax);
-                l.add(problem);
                 l = cleo.get(problem.status_leo);
+                l.add(problem);
+                l = nitpick.get(problem.status_nitpick);
                 l.add(problem);
                 l = cnitpick.get(problem.status_nitpick);
                 l.add(problem);
                 if (problem.status_mleancop != null) {
+                    // save to mleancop map
+                    l = mleancop.get(problem.status_mleancop);
+                    l.add(problem);
                     l = cmleancop.get(problem.status_mleancop);
                     l.add(problem);
+
+                    // verified embedding CSA
+                    if (
+                            !hasError(problem) &&
+                            atpsAgree(problem) &&
+                            problem.status_satallax.equals("CSA") &&
+                            problem.status_mleancop.equals("CSA")
+                            )
+                    {
+                        l = satallax.get("CSA_verified");
+                        l.add(problem);
+                        l = csatallax.get("CSA_verified");
+                        l.add(problem);
+                    }
+                    if (
+                            !hasError(problem) &&
+                            atpsAgree(problem) &&
+                            problem.status_leo.equals("CSA") &&
+                            problem.status_mleancop.equals("CSA")
+                            )
+                    {
+                        l = leo.get("CSA_verified");
+                        l.add(problem);
+                        l = cleo.get("CSA_verified");
+                        l.add(problem);
+                    }
+                    if (
+                            !hasError(problem) &&
+                            atpsAgree(problem) &&
+                            problem.status_nitpick.equals("CSA") &&
+                            problem.status_mleancop.equals("CSA")
+                            )
+                    {
+                        l = nitpick.get("CSA_verified");
+                        l.add(problem);
+                        l = cnitpick.get("CSA_verified");
+                        l.add(problem);
+                    }
+
+                    // 1.0 THM
+                    if (
+                            !hasError(problem) &&
+                            atpsAgree(problem) &&
+                            problem.status_satallax.equals("THM") &&
+                            problem.status_mleancop.equals("UNK") // excludes contradictions with mleancop, maybe here should be !equals("THM")
+                            )
+                    {
+                        l = satallax.get("THM_unique");
+                        l.add(problem);
+                        l = csatallax.get("THM_unique");
+                        l.add(problem);
+                        unique_THM.add(problem);
+                        cunique_THM.add(problem);
+                    }
+                    if (
+                            !hasError(problem) &&
+                            atpsAgree(problem) &&
+                            problem.status_leo.equals("THM") &&
+                            problem.status_mleancop.equals("UNK") // excludes contradictions with mleancop, maybe here should be !equals("THM")
+                            )
+                    {
+                        l = leo.get("THM_unique");
+                        l.add(problem);
+                        l = cleo.get("THM_unique");
+                        l.add(problem);
+                        unique_THM.add(problem);
+                        cunique_THM.add(problem);
+                    }
                 }
+
                 // compare qmltp status with atp status: atp status is not qmltp status
                 //
                 // qmltp entry exists &&
@@ -243,42 +327,61 @@ public class Results {
                     mleancopCsaVaryCumul.add(problem);
                 }
 
-                // atps disagree
+                // atps disagree or have error
                 if (
                         !atpsAgree(problem)
                         ){
                     disagreementAtpAtp.add(problem);
                 }
 
-                // 1.0 problems
-                // TODO
 
             }
 
+            // create and add table entry for this test. columns are as follows
+            //
+            // Semantics
+            // satSUM satTHM satCSA satCSA*
+            // leoSUM leoTHM leoCSA leoCSA*
+            // nitSUM nitTHM nitCSA nitCSA*
+            // U
+            // mleanSUM mleanTHM mleanCSA
 
-            // create and add table entry for this test
-            String delimiter = " ";
+            String delimiter = " & ";
             StringBuilder entry = new StringBuilder();
+            // Semantics
             entry.append(test.test_name);
             entry.append(delimiter);
-            entry.append(csatallax.get("THM").size() + csatallax.get("CSA").size());
+            // satSUM satTHM satCSA satCSA*
+            entry.append(csatallax.get("THM").size() + csatallax.get("CSA_verified").size());
             entry.append(delimiter);
             entry.append(csatallax.get("THM").size());
             entry.append(delimiter);
-            entry.append(csatallax.get("CSA").size());
+            entry.append(csatallax.get("CSA_verified").size());
             entry.append(delimiter);
+            entry.append(csatallax.get("CSA").size() - csatallax.get("CSA_verified").size());
+            entry.append(delimiter);
+            // leoSUM leoTHM leoCSA leoCSA*
             entry.append(cleo.get("THM").size() + cleo.get("CSA").size());
             entry.append(delimiter);
             entry.append(cleo.get("THM").size());
             entry.append(delimiter);
-            entry.append(cleo.get("CSA").size());
+            entry.append(cleo.get("CSA_verified").size());
             entry.append(delimiter);
+            entry.append(cleo.get("CSA").size() - cleo.get("CSA_verified").size());
+            entry.append(delimiter);
+            // nitSUM nitTHM nitCSA nitCSA*
             entry.append(cnitpick.get("THM").size() + cnitpick.get("CSA").size());
             entry.append(delimiter);
             entry.append(cnitpick.get("THM").size());
             entry.append(delimiter);
-            entry.append(cnitpick.get("CSA").size());
+            entry.append(cnitpick.get("CSA_verified").size());
             entry.append(delimiter);
+            entry.append(cnitpick.get("CSA").size() - cnitpick.get("CSA_verified").size());
+            entry.append(delimiter);
+            // U
+            entry.append(cunique_THM.size());
+            entry.append(delimiter);
+            // mleanSUM mleanTHM mleanCSA
             entry.append(cmleancop.get("THM").size() + cmleancop.get("CSA").size());
             entry.append(delimiter);
             entry.append(cmleancop.get("THM").size());
@@ -322,20 +425,30 @@ public class Results {
         System.out.println("UNK satallax               " + satallax.get("UNK").size());
         System.out.println("THM satallax               " + satallax.get("THM").size());
         System.out.println("CSA satallax               " + satallax.get("CSA").size());
+        System.out.println("CSA_verified satallax      " + satallax.get("CSA_verified").size());
+        System.out.println("THM_unique satallax        " + satallax.get("THM_unique").size());
         System.out.println("ERR leo                    " + leo.get("ERR").size());
         System.out.println("UNK leo                    " + leo.get("UNK").size());
         System.out.println("THM leo                    " + leo.get("THM").size());
         System.out.println("CSA leo                    " + leo.get("CSA").size());
+        System.out.println("CSA_verified leo           " + leo.get("CSA_verified").size());
+        System.out.println("THM_unique leo             " + leo.get("THM_unique").size());
         System.out.println("ERR nitpick                " + nitpick.get("ERR").size());
         System.out.println("UNK nitpick                " + nitpick.get("UNK").size());
         System.out.println("THM nitpick                " + nitpick.get("THM").size());
         System.out.println("CSA nitpick                " + nitpick.get("CSA").size());
+        System.out.println("CSA_verified nitpick       " + nitpick.get("CSA_verified").size());
+        System.out.println("THM_unique nitpick         " + nitpick.get("THM_unique").size());
         System.out.println("ERR mleancop               " + mleancop.get("ERR").size());
         System.out.println("UNK mleancop               " + mleancop.get("UNK").size());
         System.out.println("THM mleancop               " + mleancop.get("THM").size());
         System.out.println("CSA mleancop               " + mleancop.get("CSA").size());
         System.out.println();
-        table.forEach(System.out::println);
+        System.out.println("THM unique sum             " + unique_THM.size());
+        System.out.println();
+        table.stream()
+                .sorted((e1,e2)->new CombinedComparator().compare(e1,e2))
+                .forEach(System.out::println);
     }
 
     private String statusMleanCopNoNull(Problem p){
