@@ -35,6 +35,10 @@ public class Results {
     public List<Problem> errorAtp; // at least one atp system has an error status
     public List<Problem> disagreementAtpAtp; // if at least two atp systems have different results
     public List<Problem> disagreementAtpMleancop; // if at least two atp systems have different results
+    public List<Problem> atpCsaWhenMleancopCsaVaryCumul; // mleancop and atps agree all on CSA in varyCumul domains
+    public List<Problem> mleancopCsaVaryCumul; // mleancop has CSA in vary/cumul domains
+    public List<Problem> atpCsaWhenMleancopThmVaryCumul; // mleancop has CSA in vary/cumul domains but Embedding has THM
+
     public HashMap<String,List<Problem>> satallax; // STATUS -> List of Problems
     public HashMap<String,List<Problem>> leo;
     public HashMap<String,List<Problem>> nitpick;
@@ -68,6 +72,9 @@ public class Results {
         errorAtp = new ArrayList<>();
         disagreementAtpAtp = new ArrayList<>(); // y + n
         disagreementAtpMleancop = new ArrayList<>();
+        atpCsaWhenMleancopCsaVaryCumul = new ArrayList<>();
+        mleancopCsaVaryCumul = new ArrayList<>();
+        atpCsaWhenMleancopThmVaryCumul = new ArrayList<>();
         satallax = new HashMap<>();
         satallax.put("ERR",new ArrayList<>());
         satallax.put("UNK",new ArrayList<>());
@@ -203,6 +210,39 @@ public class Results {
                     disagreementAtpMleancop.add(problem);
                 }
 
+                // atps agree on CSA and Mleancop has CSA in varying/cumulative semantics
+                if (
+                        problem.status_mleancop != null &&
+                        problem.status_mleancop.equals("CSA") &&
+                        ( problem.domains.equals("varying") || problem.domains.equals("cumulative") ) &&
+                        !hasError(problem) &&
+                        atpsAgree(problem) &&
+                        getAgreedStatus(problem).equals("CSA")
+                        ){
+                    atpCsaWhenMleancopCsaVaryCumul.add(problem);
+                }
+
+                // atps agree on CSA and Mleancop has THM in varying/cumulative semantics
+                if (
+                        problem.status_mleancop != null &&
+                        problem.status_mleancop.equals("THM") &&
+                        ( problem.domains.equals("varying") || problem.domains.equals("cumulative") ) &&
+                        !hasError(problem) &&
+                        atpsAgree(problem) &&
+                        getAgreedStatus(problem).equals("CSA")
+                        ){
+                    atpCsaWhenMleancopThmVaryCumul.add(problem);
+                }
+
+                // Mleancop has CSA on vary/cumul domain semantics
+                if (
+                        problem.status_mleancop != null &&
+                        problem.status_mleancop.equals("CSA") &&
+                        ( problem.domains.equals("varying") || problem.domains.equals("cumulative") )
+                        ){
+                    mleancopCsaVaryCumul.add(problem);
+                }
+
                 // atps disagree
                 if (
                         !atpsAgree(problem)
@@ -257,7 +297,7 @@ public class Results {
     }
 
     private void outputToStdout(){
-        System.out.println("totalProblems:             " + totalProblems.size());
+        System.out.println("totalProblems:                     " + totalProblems.size());
         /*
         System.out.println("ConfirmedProblems:       " + confirmedProblems.size());
         System.out.println("unconfirmedProblems:     " + unconfirmedProblems.size());
@@ -265,15 +305,18 @@ public class Results {
         System.out.println("newProblemResultTHM:     " + newProblemResultTHM.size());
         System.out.println("newProblemResultCSA:     " + newProblemResultCSA.size());
         */
-        System.out.println("disagreementQmltpAtp:      " + disagreementQmltpAtp.size());
-        System.out.println("disagreementQmltpMleancop: " + disagreementQmltpMleancop.size());
+        System.out.println("disagreementQmltpAtp:              " + disagreementQmltpAtp.size());
+        System.out.println("disagreementQmltpMleancop:         " + disagreementQmltpMleancop.size());
         /*
         System.out.println("newProblems:             " + newProblems.size());
         System.out.println("newProblemsSolved:       " + newProblemsSolved.size());
         System.out.println("totallyUnsolvedProblems: " + totallyUnsolvedProblems.size());
         */
-        System.out.println("disagreementAtpAtp:        " + disagreementAtpAtp.size());
-        System.out.println("disagreementAtpMleancop:   " + disagreementAtpMleancop.size());
+        System.out.println("disagreementAtpAtp:                " + disagreementAtpAtp.size());
+        System.out.println("disagreementAtpMleancop:           " + disagreementAtpMleancop.size());
+        System.out.println("mleancopCsaVaryCumul:              " + mleancopCsaVaryCumul.size());
+        System.out.println("atpCsaWhenMleancopCsaVaryCumul:    " + atpCsaWhenMleancopCsaVaryCumul.size());
+        System.out.println("atpCsaWhenMleancopThmVaryCumul:    " + atpCsaWhenMleancopThmVaryCumul.size());
         System.out.println();
         System.out.println("ERR satallax               " + satallax.get("ERR").size());
         System.out.println("UNK satallax               " + satallax.get("UNK").size());
@@ -419,6 +462,30 @@ public class Results {
                     .collect(Collectors.joining("\n")).getBytes());
         } catch (IOException e) {
             System.err.println("Could not write disagreementAtpMleancop file");
+            e.printStackTrace();
+        }
+        try {
+            Files.write(Paths.get(outputPath.toString(),"mleancopCsaVaryCumul"),this.mleancopCsaVaryCumul.stream()
+                    .map(p->combineProblem(p))
+                    .collect(Collectors.joining("\n")).getBytes());
+        } catch (IOException e) {
+            System.err.println("Could not write mleancopCsaVaryCumul file");
+            e.printStackTrace();
+        }
+        try {
+            Files.write(Paths.get(outputPath.toString(),"atpCsaWhenMleancopCsaVaryCumul"),this.atpCsaWhenMleancopCsaVaryCumul.stream()
+                    .map(p->combineProblem(p))
+                    .collect(Collectors.joining("\n")).getBytes());
+        } catch (IOException e) {
+            System.err.println("Could not write atpCsaWhenMleancopCsaVaryCumul file");
+            e.printStackTrace();
+        }
+        try {
+            Files.write(Paths.get(outputPath.toString(),"atpCsaWhenMleancopThmVaryCumul"),this.atpCsaWhenMleancopThmVaryCumul.stream()
+                    .map(p->combineProblem(p))
+                    .collect(Collectors.joining("\n")).getBytes());
+        } catch (IOException e) {
+            System.err.println("Could not write atpCsaWhenMleancopThmVaryCumul file");
             e.printStackTrace();
         }
         for (String status : satallax.keySet()){
