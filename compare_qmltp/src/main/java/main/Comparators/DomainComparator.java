@@ -7,6 +7,7 @@ public class DomainComparator implements Comparator {
     public int compare(Object o1, Object o2) {
         String s1 = o1.toString();
         String s2 = o2.toString();
+        if (s1.equals(s2))
         if (s1.contains("vary")) return -1;
         if (s2.contains("vary")) return 1;
         if (s1.contains("cumul")) return -1;
