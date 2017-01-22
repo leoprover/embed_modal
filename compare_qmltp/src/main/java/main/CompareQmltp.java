@@ -1,15 +1,21 @@
 package main;
 
+import exceptions.ParseException;
+import fofParser.QmfAstGen;
+import parser.ParseContext;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class CompareQmltp {
+
+    public static Map<String,Boolean> containsEqualityMap = new HashMap<>();
+    public static Map<String,ParseContext> problemMap = new HashMap<>();
+
 
     public static void main(String[] args) {
 
@@ -128,7 +134,25 @@ public class CompareQmltp {
             Path problem_filename = Paths.get(qmltp_directory,category,problem_name);
             String problem = new String(Files.readAllBytes(problem_filename));
 
+            if (!containsEqualityMap.containsKey(problem_name)) {
+                ParseContext ctx = null;
+                try {
+                    ctx = QmfAstGen.parse(problem, "tPTP_file", problem_name);
+                    problemMap.put(problem_name,ctx);
+                    if (ctx.getRoot().dfsRule("defined_infix_formula").isPresent() || ctx.getRoot().dfsRule("fol_infix_unary").isPresent()) {
+                        containsEqualityMap.put(problem_name,true);
+                    } else {
+                        containsEqualityMap.put(problem_name,false);
+                    }
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                    System.err.println("ParseException " + e.getMessage());
+                }
+            }
+
             Problem p = new Problem();
+            p.containsEquaility = containsEqualityMap.get(problem_name);
+            p.ctx = problemMap.get(problem_name);
             p.name = problem_name;
             p.problem = problem;
             p.system = system;

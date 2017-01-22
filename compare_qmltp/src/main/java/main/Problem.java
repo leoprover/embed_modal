@@ -1,5 +1,7 @@
 package main;
 
+import parser.ParseContext;
+
 public class Problem {
     // status can be THM, CSA, UNK
     // qmltp can also have status ??? which means the status was something else than Theorem, Non-Theorem, Unsolved
@@ -16,6 +18,8 @@ public class Problem {
     public String status_leo = null;
     public String status_nitpick = null;
     public String status_mleancop = null;
+    public ParseContext ctx = null;
+    public boolean containsEquaility = false;
     public double time_satallax;
     public double time_leo;
     public double time_nitpick;
