@@ -19,7 +19,7 @@ public class Problem {
     public String status_nitpick = null;
     public String status_mleancop = null;
     public ParseContext ctx = null;
-    public boolean containsEquaility = false;
+    public boolean containsEquality = false;
     public double time_satallax;
     public double time_leo;
     public double time_nitpick;

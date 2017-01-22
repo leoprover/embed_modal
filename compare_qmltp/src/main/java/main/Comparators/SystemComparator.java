@@ -12,6 +12,7 @@ public class SystemComparator implements Comparator {
         String kk1 = s1.substring(0,2);
         String kk2 = s2.substring(0,2);
         if (kk1.equals(kk2)) return 0;
+        if (!k1.equals("s") && k1.equals(k2)) return 0;
         if (k1.equals("k")) return -1;
         if (k2.equals("k")) return 1;
         if (k1.equals("d")) return -1;

@@ -1,6 +1,7 @@
 package main;
 
 import main.Comparators.CombinedComparator;
+import parser.ParseContext;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -19,19 +20,12 @@ public class Results {
         this.tests.add(t);
     }
 
-    // results
-    // concerning qmltp and status
-    /*
-    public List<Problem> confirmedProblems; // confirm result of qmltp without disagreement of the atps
-    public List<Problem> unconfirmedProblems; // qmltp yields a result but atps do not or atps disagree
-    public List<Problem> newProblemResultTotal; // qmltp yields unsolved but atps have a result and they agree
-    public List<Problem> newProblemResultTHM; // qmltp yields unsolved but atps have a result and they agree
-    public List<Problem> newProblemResultCSA; // qmltp yields unsolved but atps have a result and they agree
-    */
+    List<ParseContext> problemsContainingEqualities;
     public List<Problem> disagreementQmltpAtp; // if qmltp and atp results are different and all atp yield the same result
     public List<Problem> disagreementQmltpMleancop; // if qmltp and atp results are different and all atp yield the same result
     public List<Problem> totalProblems; // all problems
     public List<Problem> unique_THM;
+    public List<Problem> unique_CSA_constant;
 
     // atp specific
     public List<Problem> errorAtp; // at least one atp system has an error status
@@ -51,21 +45,17 @@ public class Results {
 
     public void evaluate(String outputPath){
 
-        /*
-        confirmedProblems = new ArrayList<>(); // y
-        unconfirmedProblems = new ArrayList<>(); // y
-        newProblemResultTotal = new ArrayList<>(); // y
-        newProblemResultTHM = new ArrayList<>(); // y
-        newProblemResultCSA = new ArrayList<>(); // y
-        newProblems = new ArrayList<>();
-        newProblemsSolved = new ArrayList<>(); // n
-        */
+        problemsContainingEqualities = CompareQmltp.problemMap.values().stream()
+                .filter(p->CompareQmltp.containsEqualityMap.get(p.getName()))
+                .collect(Collectors.toList());
+
         disagreementQmltpAtp = new ArrayList<>(); // y
         disagreementQmltpMleancop = new ArrayList<>();
         totalProblems = new ArrayList<>();
 
 
         unique_THM = new ArrayList<>();
+        unique_CSA_constant = new ArrayList<>();
 
         errorAtp = new ArrayList<>();
         disagreementAtpAtp = new ArrayList<>(); // y + n
@@ -79,6 +69,7 @@ public class Results {
         satallax.put("THM",new ArrayList<>());
         satallax.put("CSA",new ArrayList<>());
         satallax.put("CSA_verified",new ArrayList<>());
+        satallax.put("CSA_constant_unique",new ArrayList<>());
         //satallax.put("CSA_unverified",new ArrayList<>());
         satallax.put("THM_unique",new ArrayList<>());
         leo = new HashMap<>();
@@ -87,6 +78,7 @@ public class Results {
         leo.put("THM",new ArrayList<>());
         leo.put("CSA",new ArrayList<>());
         leo.put("CSA_verified",new ArrayList<>());
+        leo.put("CSA_constant_unique",new ArrayList<>());
         //leo.put("CSA_unverified",new ArrayList<>());
         leo.put("THM_unique",new ArrayList<>());
         nitpick = new HashMap<>();
@@ -95,6 +87,7 @@ public class Results {
         nitpick.put("THM",new ArrayList<>());
         nitpick.put("CSA",new ArrayList<>());
         nitpick.put("CSA_verified",new ArrayList<>());
+        nitpick.put("CSA_constant_unique",new ArrayList<>());
         //nitpick.put("CSA_unverified",new ArrayList<>());
         nitpick.put("THM_unique",new ArrayList<>());
         mleancop = new HashMap<>();
@@ -117,6 +110,7 @@ public class Results {
             csatallax.put("THM",new ArrayList<>());
             csatallax.put("CSA",new ArrayList<>());
             csatallax.put("CSA_verified",new ArrayList<>());
+            csatallax.put("CSA_constant_unique",new ArrayList<>());
             //csatallax.put("CSA_unverified",new ArrayList<>());
             csatallax.put("THM_unique",new ArrayList<>());
             HashMap<String,List<Problem>> cleo = new HashMap<>();
@@ -125,6 +119,7 @@ public class Results {
             cleo.put("THM",new ArrayList<>());
             cleo.put("CSA",new ArrayList<>());
             cleo.put("CSA_verified",new ArrayList<>());
+            cleo.put("CSA_constant_unique",new ArrayList<>());
             //cleo.put("CSA_unverified",new ArrayList<>());
             cleo.put("THM_unique",new ArrayList<>());
             HashMap<String,List<Problem>> cnitpick = new HashMap<>();
@@ -133,6 +128,7 @@ public class Results {
             cnitpick.put("THM",new ArrayList<>());
             cnitpick.put("CSA",new ArrayList<>());
             cnitpick.put("CSA_verified",new ArrayList<>());
+            cnitpick.put("CSA_constant_unique",new ArrayList<>());
             //cnitpick.put("CSA_unverified",new ArrayList<>());
             HashMap<String,List<Problem>> cmleancop = new HashMap<>();
             cmleancop.put("ERR",new ArrayList<>());
@@ -140,6 +136,7 @@ public class Results {
             cmleancop.put("THM",new ArrayList<>());
             cmleancop.put("CSA",new ArrayList<>());
             List<Problem> cunique_THM = new ArrayList<>();
+            List<Problem> cunique_CSA_constant = new ArrayList<>();
 
             for (Problem problem : test.getProblems()){
                 //System.out.println(problem.toString());
@@ -164,17 +161,22 @@ public class Results {
                 l.add(problem);
                 if (problem.status_mleancop != null) {
                     // save to mleancop map
-                    l = mleancop.get(problem.status_mleancop);
-                    l.add(problem);
-                    l = cmleancop.get(problem.status_mleancop);
-                    l.add(problem);
-
+                    //if (!problem.containsEquality) {
+                    if (!(problem.status_mleancop.equals("CSA") && getAgreedStatus(problem).equals("THM"))) {
+                        l = mleancop.get(problem.status_mleancop);
+                        l.add(problem);
+                        l = cmleancop.get(problem.status_mleancop);
+                        l.add(problem);
+                    }
+                    //}
                     // verified embedding CSA
                     if (
                             !hasError(problem) &&
                             atpsAgree(problem) &&
                             problem.status_satallax.equals("CSA") &&
-                            problem.status_mleancop.equals("CSA")
+                            ( problem.status_mleancop.equals("CSA") || problem.domains.equals("constant") )
+                            //&&
+                            //!problem.containsEquality
                             )
                     {
                         l = satallax.get("CSA_verified");
@@ -186,7 +188,8 @@ public class Results {
                             !hasError(problem) &&
                             atpsAgree(problem) &&
                             problem.status_leo.equals("CSA") &&
-                            problem.status_mleancop.equals("CSA")
+                            ( problem.status_mleancop.equals("CSA") || problem.domains.equals("constant") )
+                            //!problem.containsEquality
                             )
                     {
                         l = leo.get("CSA_verified");
@@ -198,7 +201,8 @@ public class Results {
                             !hasError(problem) &&
                             atpsAgree(problem) &&
                             problem.status_nitpick.equals("CSA") &&
-                            problem.status_mleancop.equals("CSA")
+                            ( problem.status_mleancop.equals("CSA") || problem.domains.equals("constant") )
+                            //!problem.containsEquality
                             )
                     {
                         l = nitpick.get("CSA_verified");
@@ -208,33 +212,116 @@ public class Results {
                     }
 
                     // 1.0 THM
+                    boolean unique = false;
                     if (
                             !hasError(problem) &&
                             atpsAgree(problem) &&
                             problem.status_satallax.equals("THM") &&
-                            problem.status_mleancop.equals("UNK") // excludes contradictions with mleancop, maybe here should be !equals("THM")
+                            ( !problem.status_mleancop.equals("THM") /*|| problem.containsEquality*/ )
                             )
                     {
                         l = satallax.get("THM_unique");
                         l.add(problem);
                         l = csatallax.get("THM_unique");
                         l.add(problem);
-                        unique_THM.add(problem);
-                        cunique_THM.add(problem);
+                        unique = true;
                     }
                     if (
                             !hasError(problem) &&
                             atpsAgree(problem) &&
                             problem.status_leo.equals("THM") &&
-                            problem.status_mleancop.equals("UNK") // excludes contradictions with mleancop, maybe here should be !equals("THM")
+                            ( !problem.status_mleancop.equals("THM") /* || problem.containsEquality*/ )
                             )
                     {
                         l = leo.get("THM_unique");
                         l.add(problem);
                         l = cleo.get("THM_unique");
                         l.add(problem);
+                        unique = true;
+                    }
+                    if (unique){
                         unique_THM.add(problem);
                         cunique_THM.add(problem);
+                    }
+
+                    // 1.0 CSA
+                    unique = false;
+                    if (
+                            !hasError(problem) &&
+                            atpsAgree(problem) &&
+                            problem.status_satallax.equals("CSA") &&
+                            problem.domains.equals("constant") &&
+                            ( problem.status_mleancop.equals("UNK") /*|| problem.containsEquality*/ )
+                            )
+                    {
+                        l = satallax.get("CSA_constant_unique");
+                        l.add(problem);
+                        l = csatallax.get("CSA_constant_unique");
+                        l.add(problem);
+                        unique = true;
+                    }
+                    if (
+                            !hasError(problem) &&
+                            atpsAgree(problem) &&
+                            problem.status_leo.equals("CSA") &&
+                            problem.domains.equals("constant") &&
+                            ( problem.status_mleancop.equals("UNK") /*|| problem.containsEquality*/ )
+                            )
+                    {
+                        l = leo.get("CSA_constant_unique");
+                        l.add(problem);
+                        l = cleo.get("CSA_constant_unique");
+                        l.add(problem);
+                        unique = true;
+                    }
+                    if (
+                            !hasError(problem) &&
+                            atpsAgree(problem) &&
+                            problem.status_nitpick.equals("CSA") &&
+                            problem.domains.equals("constant") &&
+                            ( problem.status_mleancop.equals("UNK") /*|| problem.containsEquality*/ )
+                            )
+                    {
+                        l = nitpick.get("CSA_constant_unique");
+                        l.add(problem);
+                        l = cnitpick.get("CSA_constant_unique");
+                        l.add(problem);
+                        unique = true;
+                    }
+                    if (unique){
+                        unique_CSA_constant.add(problem);
+                        cunique_CSA_constant.add(problem);
+                    }
+                } else {
+
+                    // 1.0 THM
+                    if (atpsAgree(problem) && getAgreedStatus(problem).equals("THM")) {
+                        unique_THM.add(problem);
+                        cunique_THM.add(problem);
+                    }
+
+                    // 1.0 CSA
+                    if (atpsAgree(problem) && getAgreedStatus(problem).equals("CSA") && problem.domains.equals("constant")){
+                        unique_CSA_constant.add(problem);
+                        cunique_CSA_constant.add(problem);
+                        if (problem.status_satallax.equals("CSA")){
+                            l = satallax.get("CSA_verified");
+                            l.add(problem);
+                            l = csatallax.get("CSA_verified");
+                            l.add(problem);
+                        }
+                        if (problem.status_leo.equals("CSA")){
+                            l = leo.get("CSA_verified");
+                            l.add(problem);
+                            l = cleo.get("CSA_verified");
+                            l.add(problem);
+                        }
+                        if (problem.status_nitpick.equals("CSA")){
+                            l = nitpick.get("CSA_verified");
+                            l.add(problem);
+                            l = cnitpick.get("CSA_verified");
+                            l.add(problem);
+                        }
                     }
                 }
 
@@ -269,6 +356,7 @@ public class Results {
                         !problem.status_qmltp.equals("UNK") &&
                         problem.status_mleancop != null &&
                         !problem.status_mleancop.equals("UNK") &&
+                        //!problem.containsEquality &&
                         !problem.status_mleancop.equals(problem.status_qmltp)
                         ){
                     disagreementQmltpMleancop.add(problem);
@@ -286,6 +374,7 @@ public class Results {
                 if (
                         problem.status_mleancop != null &&
                         !problem.status_mleancop.equals("UNK") &&
+                        //!problem.containsEquality &&
                         !hasError(problem) &&
                         atpsAgree(problem) &&
                         !getAgreedStatus(problem).equals("UNK") &&
@@ -298,6 +387,7 @@ public class Results {
                 if (
                         problem.status_mleancop != null &&
                         problem.status_mleancop.equals("CSA") &&
+                        //!problem.containsEquality &&
                         ( problem.domains.equals("varying") || problem.domains.equals("cumulative") ) &&
                         !hasError(problem) &&
                         atpsAgree(problem) &&
@@ -310,6 +400,7 @@ public class Results {
                 if (
                         problem.status_mleancop != null &&
                         problem.status_mleancop.equals("THM") &&
+                        //!problem.containsEquality &&
                         ( problem.domains.equals("varying") || problem.domains.equals("cumulative") ) &&
                         !hasError(problem) &&
                         atpsAgree(problem) &&
@@ -322,6 +413,7 @@ public class Results {
                 if (
                         problem.status_mleancop != null &&
                         problem.status_mleancop.equals("CSA") &&
+                        //!problem.containsEquality &&
                         ( problem.domains.equals("varying") || problem.domains.equals("cumulative") )
                         ){
                     mleancopCsaVaryCumul.add(problem);
@@ -346,11 +438,30 @@ public class Results {
             // U
             // mleanSUM mleanTHM mleanCSA
 
-            String delimiter = " & ";
+            String delimiter = " ";
             StringBuilder entry = new StringBuilder();
             // Semantics
             entry.append(test.test_name);
+
+            entry.append(" leo: ");
+            // leoSUM leoTHM leoCSA leoCSA*
+            entry.append(cleo.get("THM").size() + cleo.get("CSA_verified").size());
             entry.append(delimiter);
+            entry.append(cleo.get("THM").size());
+            entry.append(delimiter);
+            entry.append(cleo.get("CSA_verified").size());
+            entry.append(delimiter);
+            entry.append(cleo.get("CSA").size() - cleo.get("CSA_verified").size());
+            entry.append(" nit: ");
+            // nitSUM nitTHM nitCSA nitCSA*
+            entry.append(cnitpick.get("THM").size() + cnitpick.get("CSA_verified").size());
+            entry.append(delimiter);
+            entry.append(cnitpick.get("THM").size());
+            entry.append(delimiter);
+            entry.append(cnitpick.get("CSA_verified").size());
+            entry.append(delimiter);
+            entry.append(cnitpick.get("CSA").size() - cnitpick.get("CSA_verified").size());
+            entry.append(" sat: ");
             // satSUM satTHM satCSA satCSA*
             entry.append(csatallax.get("THM").size() + csatallax.get("CSA_verified").size());
             entry.append(delimiter);
@@ -359,28 +470,10 @@ public class Results {
             entry.append(csatallax.get("CSA_verified").size());
             entry.append(delimiter);
             entry.append(csatallax.get("CSA").size() - csatallax.get("CSA_verified").size());
-            entry.append(delimiter);
-            // leoSUM leoTHM leoCSA leoCSA*
-            entry.append(cleo.get("THM").size() + cleo.get("CSA").size());
-            entry.append(delimiter);
-            entry.append(cleo.get("THM").size());
-            entry.append(delimiter);
-            entry.append(cleo.get("CSA_verified").size());
-            entry.append(delimiter);
-            entry.append(cleo.get("CSA").size() - cleo.get("CSA_verified").size());
-            entry.append(delimiter);
-            // nitSUM nitTHM nitCSA nitCSA*
-            entry.append(cnitpick.get("THM").size() + cnitpick.get("CSA").size());
-            entry.append(delimiter);
-            entry.append(cnitpick.get("THM").size());
-            entry.append(delimiter);
-            entry.append(cnitpick.get("CSA_verified").size());
-            entry.append(delimiter);
-            entry.append(cnitpick.get("CSA").size() - cnitpick.get("CSA_verified").size());
-            entry.append(delimiter);
-            // U
-            entry.append(cunique_THM.size());
-            entry.append(delimiter);
+            entry.append(" U: ");
+            // U THM+CSA
+            entry.append(cunique_THM.size()+cunique_CSA_constant.size());
+            entry.append(" mle: ");
             // mleanSUM mleanTHM mleanCSA
             entry.append(cmleancop.get("THM").size() + cmleancop.get("CSA").size());
             entry.append(delimiter);
@@ -420,6 +513,7 @@ public class Results {
         System.out.println("mleancopCsaVaryCumul:              " + mleancopCsaVaryCumul.size());
         System.out.println("atpCsaWhenMleancopCsaVaryCumul:    " + atpCsaWhenMleancopCsaVaryCumul.size());
         System.out.println("atpCsaWhenMleancopThmVaryCumul:    " + atpCsaWhenMleancopThmVaryCumul.size());
+        System.out.println("problemsContainingEqualities %sem: " + problemsContainingEqualities.size());
         System.out.println();
         System.out.println("ERR satallax               " + satallax.get("ERR").size());
         System.out.println("UNK satallax               " + satallax.get("UNK").size());
@@ -445,6 +539,7 @@ public class Results {
         System.out.println("CSA mleancop               " + mleancop.get("CSA").size());
         System.out.println();
         System.out.println("THM unique sum             " + unique_THM.size());
+        System.out.println("CSA constant unique sum    " + unique_CSA_constant.size());
         System.out.println();
         table.stream()
                 .sorted((e1,e2)->new CombinedComparator().compare(e1,e2))
@@ -599,6 +694,14 @@ public class Results {
                     .collect(Collectors.joining("\n")).getBytes());
         } catch (IOException e) {
             System.err.println("Could not write atpCsaWhenMleancopThmVaryCumul file");
+            e.printStackTrace();
+        }
+        try {
+            Files.write(Paths.get(outputPath.toString(),"problemsContainingEqualities"),this.problemsContainingEqualities.stream()
+                    .map(p->p.getName())
+                    .collect(Collectors.joining("\n")).getBytes());
+        } catch (IOException e) {
+            System.err.println("Could not write problemsContainingEqualities file");
             e.printStackTrace();
         }
         for (String status : satallax.keySet()){

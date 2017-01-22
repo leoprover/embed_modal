@@ -9,8 +9,8 @@ public class CombinedComparator implements Comparator {
         if (consequence != 0) return consequence;
         int system = new SystemComparator().compare(o1,o2);
         if (system != 0) return system;
-        int domains = new DomainComparator().compare(o1,o2);
-        return domains;
-        //return 0;
+        //int domains = new DomainComparator().compare(o1,o2);
+        //return domains;
+        return 0;
     }
 }

@@ -151,7 +151,7 @@ public class CompareQmltp {
             }
 
             Problem p = new Problem();
-            p.containsEquaility = containsEqualityMap.get(problem_name);
+            p.containsEquality = containsEqualityMap.get(problem_name);
             p.ctx = problemMap.get(problem_name);
             p.name = problem_name;
             p.problem = problem;
