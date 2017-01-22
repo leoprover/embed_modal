@@ -22,10 +22,12 @@ public class Results {
 
     List<ParseContext> problemsContainingEqualities;
     public List<Problem> disagreementQmltpAtp; // if qmltp and atp results are different and all atp yield the same result
+    public List<Problem> disagreementQmltpCsaAtpThm; // if qmltp=CSA and atp=THM
     public List<Problem> disagreementQmltpMleancop; // if qmltp and atp results are different and all atp yield the same result
     public List<Problem> totalProblems; // all problems
     public List<Problem> unique_THM;
     public List<Problem> unique_CSA_constant;
+    public List<Problem> unique_concerning_qmltp_and_mleancop;
 
     // atp specific
     public List<Problem> errorAtp; // at least one atp system has an error status
@@ -50,12 +52,14 @@ public class Results {
                 .collect(Collectors.toList());
 
         disagreementQmltpAtp = new ArrayList<>(); // y
+        disagreementQmltpCsaAtpThm = new ArrayList<>(); // y
         disagreementQmltpMleancop = new ArrayList<>();
         totalProblems = new ArrayList<>();
 
 
         unique_THM = new ArrayList<>();
         unique_CSA_constant = new ArrayList<>();
+        unique_concerning_qmltp_and_mleancop = new ArrayList<>();
 
         errorAtp = new ArrayList<>();
         disagreementAtpAtp = new ArrayList<>(); // y + n
@@ -242,6 +246,10 @@ public class Results {
                     if (unique){
                         unique_THM.add(problem);
                         cunique_THM.add(problem);
+                        if (problem.status_qmltp != null){
+                            if (problem.status_qmltp.equals("UNK"))
+                                unique_concerning_qmltp_and_mleancop.add(problem);
+                        }
                     }
 
                     // 1.0 CSA
@@ -291,6 +299,10 @@ public class Results {
                     if (unique){
                         unique_CSA_constant.add(problem);
                         cunique_CSA_constant.add(problem);
+                        if (problem.status_qmltp != null){
+                            if (problem.status_qmltp.equals("UNK"))
+                                unique_concerning_qmltp_and_mleancop.add(problem);
+                        }
                     }
                 } else {
 
@@ -298,12 +310,20 @@ public class Results {
                     if (atpsAgree(problem) && getAgreedStatus(problem).equals("THM")) {
                         unique_THM.add(problem);
                         cunique_THM.add(problem);
+                        if (problem.status_qmltp != null){
+                            if (problem.status_qmltp.equals("UNK"))
+                                unique_concerning_qmltp_and_mleancop.add(problem);
+                        }
                     }
 
                     // 1.0 CSA
                     if (atpsAgree(problem) && getAgreedStatus(problem).equals("CSA") && problem.domains.equals("constant")){
                         unique_CSA_constant.add(problem);
                         cunique_CSA_constant.add(problem);
+                        if (problem.status_qmltp != null){
+                            if (problem.status_qmltp.equals("UNK"))
+                                unique_concerning_qmltp_and_mleancop.add(problem);
+                        }
                         if (problem.status_satallax.equals("CSA")){
                             l = satallax.get("CSA_verified");
                             l.add(problem);
@@ -342,6 +362,17 @@ public class Results {
                         !getAgreedStatus(problem).equals(problem.status_qmltp)
                         ){
                     disagreementQmltpAtp.add(problem);
+                }
+
+                // compare qmltp status with atp status: atp status is THM and QMLTP status is CSA
+                if (
+                        problem.status_qmltp != null &&
+                        !hasError(problem) &&
+                        atpsAgree(problem) &&
+                        getAgreedStatus(problem).equals("THM") &&
+                        problem.status_qmltp.equals("CSA")
+                        ){
+                    disagreementQmltpCsaAtpThm.add(problem);
                 }
 
                 // compare qmltp status with mleancop status: mleancop status is not qmltp status
@@ -502,6 +533,7 @@ public class Results {
         System.out.println("newProblemResultCSA:     " + newProblemResultCSA.size());
         */
         System.out.println("disagreementQmltpAtp:              " + disagreementQmltpAtp.size());
+        System.out.println("disagreementQmltpCsaAtpThm:        " + disagreementQmltpCsaAtpThm.size());
         System.out.println("disagreementQmltpMleancop:         " + disagreementQmltpMleancop.size());
         /*
         System.out.println("newProblems:             " + newProblems.size());
@@ -540,6 +572,7 @@ public class Results {
         System.out.println();
         System.out.println("THM unique sum             " + unique_THM.size());
         System.out.println("CSA constant unique sum    " + unique_CSA_constant.size());
+        System.out.println("unique_concerning_qmltp_and_mleancop    " + unique_concerning_qmltp_and_mleancop.size());
         System.out.println();
         table.stream()
                 .sorted((e1,e2)->new CombinedComparator().compare(e1,e2))
@@ -628,6 +661,14 @@ public class Results {
             System.err.println("Could not write disagreementQmltpMleancop file");
             e.printStackTrace();
         }
+        try {
+            Files.write(Paths.get(outputPath.toString(),"disagreementQmltpCsaAtpThm"),this.disagreementQmltpCsaAtpThm.stream()
+                    .map(p->combineProblem(p))
+                    .collect(Collectors.joining("\n")).getBytes());
+        } catch (IOException e) {
+            System.err.println("Could not write disagreementQmltpCsaAtpThm file");
+            e.printStackTrace();
+        }
         /*
         try {
             Files.write(Paths.get(outputPath.toString(),"newProblems"),this.newProblems.stream()
@@ -702,6 +743,14 @@ public class Results {
                     .collect(Collectors.joining("\n")).getBytes());
         } catch (IOException e) {
             System.err.println("Could not write problemsContainingEqualities file");
+            e.printStackTrace();
+        }
+        try {
+            Files.write(Paths.get(outputPath.toString(),"unique_concerning_qmltp_and_mleancop"),this.unique_concerning_qmltp_and_mleancop.stream()
+                    .map(p->combineProblem(p))
+                    .collect(Collectors.joining("\n")).getBytes());
+        } catch (IOException e) {
+            System.err.println("Could not write unique_concerning_qmltp_and_mleancop file");
             e.printStackTrace();
         }
         for (String status : satallax.keySet()){
