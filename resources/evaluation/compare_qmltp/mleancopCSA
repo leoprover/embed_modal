@@ -436,7 +436,6 @@ d,varying,rigid,local,SYM052+1.p,CSA,CSA,CSA
 d,varying,rigid,local,SYM053+1.p,CSA,CSA,CSA
 d,varying,rigid,local,SYM054+1.p,CSA,CSA,CSA
 d,varying,rigid,local,SYM055+1.p,CSA,CSA,CSA
-d,varying,rigid,local,SYM056+1.p,CSA,THM,CSA
 d,varying,rigid,local,SYM057+1.p,CSA,CSA,CSA
 d,varying,rigid,local,SYM058+1.p,CSA,UNK,CSA
 d,varying,rigid,local,SYM059+1.p,CSA,CSA,CSA
@@ -563,7 +562,6 @@ s4,constant,rigid,local,SYM041+1.p,CSA,CSA,CSA
 s4,constant,rigid,local,SYM044+1.p,CSA,CSA,CSA
 s4,constant,rigid,local,SYM048+1.p,CSA,CSA,CSA
 s4,constant,rigid,local,SYM051+1.p,CSA,CSA,CSA
-s4,constant,rigid,local,SYM052+1.p,CSA,THM,CSA
 s4,constant,rigid,local,SYM053+1.p,CSA,CSA,CSA
 s4,constant,rigid,local,SYM054+1.p,CSA,CSA,CSA
 s4,constant,rigid,local,SYM060+1.p,CSA,CSA,CSA
@@ -682,7 +680,6 @@ s4,varying,rigid,local,SYM051+1.p,CSA,CSA,CSA
 s4,varying,rigid,local,SYM052+1.p,CSA,CSA,CSA
 s4,varying,rigid,local,SYM053+1.p,CSA,CSA,CSA
 s4,varying,rigid,local,SYM054+1.p,CSA,CSA,CSA
-s4,varying,rigid,local,SYM056+1.p,CSA,THM,CSA
 s4,varying,rigid,local,SYM057+1.p,CSA,CSA,CSA
 s4,varying,rigid,local,SYM058+1.p,UNK,UNK,CSA
 s4,varying,rigid,local,SYM059+1.p,CSA,CSA,CSA
@@ -1018,7 +1015,6 @@ t,constant,rigid,local,SYM041+1.p,CSA,CSA,CSA
 t,constant,rigid,local,SYM044+1.p,CSA,CSA,CSA
 t,constant,rigid,local,SYM048+1.p,CSA,CSA,CSA
 t,constant,rigid,local,SYM051+1.p,CSA,CSA,CSA
-t,constant,rigid,local,SYM052+1.p,CSA,THM,CSA
 t,constant,rigid,local,SYM053+1.p,CSA,CSA,CSA
 t,constant,rigid,local,SYM054+1.p,CSA,CSA,CSA
 t,constant,rigid,local,SYM060+1.p,CSA,CSA,CSA
@@ -1221,7 +1217,6 @@ d,constant,rigid,local,SYM042+1.p,CSA,CSA,CSA
 d,constant,rigid,local,SYM044+1.p,CSA,CSA,CSA
 d,constant,rigid,local,SYM048+1.p,CSA,CSA,CSA
 d,constant,rigid,local,SYM051+1.p,CSA,CSA,CSA
-d,constant,rigid,local,SYM052+1.p,CSA,THM,CSA
 d,constant,rigid,local,SYM053+1.p,CSA,CSA,CSA
 d,constant,rigid,local,SYM054+1.p,CSA,CSA,CSA
 d,constant,rigid,local,SYM060+1.p,CSA,CSA,CSA
@@ -1392,7 +1387,6 @@ t,varying,rigid,local,SYM051+1.p,CSA,CSA,CSA
 t,varying,rigid,local,SYM052+1.p,CSA,CSA,CSA
 t,varying,rigid,local,SYM053+1.p,CSA,CSA,CSA
 t,varying,rigid,local,SYM054+1.p,CSA,CSA,CSA
-t,varying,rigid,local,SYM056+1.p,CSA,THM,CSA
 t,varying,rigid,local,SYM057+1.p,CSA,CSA,CSA
 t,varying,rigid,local,SYM058+1.p,UNK,UNK,CSA
 t,varying,rigid,local,SYM059+1.p,CSA,CSA,CSA
@@ -1472,7 +1466,6 @@ s5,constant,rigid,local,SYM035+1.p,THM,CSA,CSA
 s5,constant,rigid,local,SYM040+1.p,CSA,CSA,CSA
 s5,constant,rigid,local,SYM041+1.p,CSA,CSA,CSA
 s5,constant,rigid,local,SYM048+1.p,CSA,CSA,CSA
-s5,constant,rigid,local,SYM052+1.p,CSA,THM,CSA
 s5,constant,rigid,local,SYM054+1.p,CSA,CSA,CSA
 s5,constant,rigid,local,SYM060+1.p,CSA,CSA,CSA
 s5,constant,rigid,local,SYM061+1.p,CSA,CSA,CSA
@@ -1514,7 +1507,6 @@ s5,cumulative,rigid,local,SYM035+1.p,THM,CSA,CSA
 s5,cumulative,rigid,local,SYM040+1.p,CSA,CSA,CSA
 s5,cumulative,rigid,local,SYM041+1.p,CSA,CSA,CSA
 s5,cumulative,rigid,local,SYM048+1.p,CSA,CSA,CSA
-s5,cumulative,rigid,local,SYM052+1.p,CSA,THM,CSA
 s5,cumulative,rigid,local,SYM054+1.p,CSA,CSA,CSA
 s5,cumulative,rigid,local,SYM060+1.p,CSA,CSA,CSA
 s5,cumulative,rigid,local,SYM061+1.p,CSA,CSA,CSA
@@ -1600,7 +1592,6 @@ s5,varying,rigid,local,SYM050+1.p,CSA,CSA,CSA
 s5,varying,rigid,local,SYM052+1.p,CSA,CSA,CSA
 s5,varying,rigid,local,SYM053+1.p,CSA,CSA,CSA
 s5,varying,rigid,local,SYM054+1.p,CSA,CSA,CSA
-s5,varying,rigid,local,SYM056+1.p,CSA,THM,CSA
 s5,varying,rigid,local,SYM057+1.p,CSA,CSA,CSA
 s5,varying,rigid,local,SYM058+1.p,UNK,UNK,CSA
 s5,varying,rigid,local,SYM059+1.p,CSA,CSA,CSA
