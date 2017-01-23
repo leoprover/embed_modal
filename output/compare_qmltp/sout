@@ -1,0 +1,81 @@
+==============================================
+Results:
+totalProblems:                     23200
+disagreementQmltpAtp:              170
+disagreementQmltpCsaAtpThm:        10
+disagreementQmltpMleancop:         0
+disagreementAtpAtp:                0
+disagreementAtpMleancop:           143
+mleancopCsaVaryCumul:              1158
+atpCsaWhenMleancopCsaVaryCumul:    969
+atpCsaWhenMleancopThmVaryCumul:    134
+problemsContainingEqualities %sem: 55
+
+ERR satallax               0
+UNK satallax               12800
+THM satallax               7930
+CSA satallax               2470
+CSA_verified satallax      917
+THM_unique satallax        34
+ERR leo                    0
+UNK leo                    15976
+THM leo                    6364
+CSA leo                    860
+CSA_verified leo           441
+THM_unique leo             13
+ERR nitpick                0
+UNK nitpick                13908
+THM nitpick                0
+CSA nitpick                9292
+CSA_verified nitpick       2579
+THM_unique nitpick         0
+ERR mleancop               0
+UNK mleancop               1766
+THM mleancop               3582
+CSA mleancop               1603
+
+THM unique sum             5573
+CSA constant unique sum    1274
+unique_concerning_qmltp_and_mleancop    183
+unique_unsupported_semantics            5971
+
+s5_varying_rigid_local leo: 187 187 0 0 nit: 81 0 81 86 sat: 290 237 53 28 U: 1 mle: 450 358 92
+s4_decreasing_rigid_local leo: 165 165 0 0 nit: 0 0 0 190 sat: 217 217 0 86 U: 220 mle: 0 0 0
+s5_cumulative_rigid_local leo: 230 230 0 0 nit: 35 0 35 100 sat: 312 284 28 25 U: 3 mle: 475 436 39
+s5_constant_rigid_local leo: 275 275 0 0 nit: 70 0 70 0 sat: 375 321 54 0 U: 38 mle: 475 436 39
+k_decreasing_rigid_local leo: 94 94 0 29 nit: 0 0 0 264 sat: 118 118 0 124 U: 122 mle: 0 0 0
+t_varying_rigid_local leo: 169 131 38 2 nit: 130 0 130 95 sat: 239 164 75 29 U: 5 mle: 377 221 156
+t_decreasing_rigid_local leo: 141 141 0 11 nit: 0 0 0 222 sat: 177 177 0 91 U: 180 mle: 0 0 0
+k_varying_rigid_local leo: 81 81 0 65 nit: 0 0 0 286 sat: 105 105 0 135 U: 108 mle: 0 0 0
+k_cumulative_rigid_local leo: 98 98 0 29 nit: 0 0 0 267 sat: 122 122 0 122 U: 125 mle: 0 0 0
+d_constant_rigid_local leo: 211 160 51 0 nit: 223 0 223 0 sat: 192 181 11 0 U: 58 mle: 441 223 218
+t_constant_rigid_local leo: 247 204 43 0 nit: 142 0 142 0 sat: 317 234 83 0 U: 54 mle: 382 270 112
+s4_cumulative_rigid_local leo: 179 179 0 0 nit: 86 0 86 95 sat: 286 227 59 27 U: 3 mle: 443 348 95
+d_decreasing_rigid_local leo: 104 104 0 16 nit: 0 0 0 251 sat: 130 130 0 1 U: 133 mle: 0 0 0
+t_cumulative_rigid_local leo: 160 149 11 0 nit: 108 0 108 92 sat: 248 186 62 28 U: 4 mle: 381 250 131
+s4_varying_rigid_local leo: 155 155 0 0 nit: 110 0 110 101 sat: 270 200 70 28 U: 2 mle: 411 286 125
+s4_constant_rigid_local leo: 237 237 0 0 nit: 116 0 116 0 sat: 358 283 75 0 U: 47 mle: 445 364 81
+k_constant_rigid_local leo: 216 146 70 0 nit: 237 0 237 0 sat: 284 167 117 0 U: 427 mle: 0 0 0
+d_varying_rigid_local leo: 133 90 43 1 nit: 205 0 205 68 sat: 123 114 9 0 U: 1 mle: 454 184 270
+d_cumulative_rigid_local leo: 124 107 17 0 nit: 185 0 185 67 sat: 134 133 1 0 U: 0 mle: 451 206 245
+s5_decreasing_rigid_local leo: 230 230 0 0 nit: 0 0 0 119 sat: 284 284 0 53 U: 293 mle: 0 0 0
+k_constant_rigid_global leo: 231 152 79 0 nit: 256 0 256 0 sat: 266 184 82 0 U: 453 mle: 0 0 0
+k_cumulative_rigid_global leo: 102 102 0 31 nit: 0 0 0 350 sat: 135 135 0 87 U: 137 mle: 0 0 0
+k_decreasing_rigid_global leo: 97 97 0 30 nit: 0 0 0 356 sat: 130 130 0 89 U: 132 mle: 0 0 0
+k_varying_rigid_global leo: 85 85 0 67 nit: 0 0 0 380 sat: 117 117 0 100 U: 119 mle: 0 0 0
+d_varying_rigid_global leo: 91 91 0 44 nit: 0 0 0 372 sat: 126 126 0 8 U: 128 mle: 0 0 0
+d_decreasing_rigid_global leo: 104 104 0 17 nit: 0 0 0 344 sat: 143 143 0 1 U: 145 mle: 0 0 0
+d_cumulative_rigid_global leo: 111 111 0 17 nit: 0 0 0 338 sat: 147 147 0 1 U: 149 mle: 0 0 0
+d_constant_rigid_global leo: 214 164 50 0 nit: 240 0 240 0 sat: 208 198 10 0 U: 451 mle: 0 0 0
+t_cumulative_rigid_global leo: 149 149 0 11 nit: 0 0 0 285 sat: 195 195 0 62 U: 198 mle: 0 0 0
+t_decreasing_rigid_global leo: 140 140 0 10 nit: 0 0 0 296 sat: 186 186 0 63 U: 189 mle: 0 0 0
+t_varying_rigid_global leo: 131 131 0 39 nit: 0 0 0 308 sat: 172 172 0 76 U: 175 mle: 0 0 0
+t_constant_rigid_global leo: 248 209 39 0 nit: 161 0 161 0 sat: 304 249 55 0 U: 423 mle: 0 0 0
+s4_varying_rigid_global leo: 157 157 0 0 nit: 0 0 0 282 sat: 199 199 0 70 U: 203 mle: 0 0 0
+s4_cumulative_rigid_global leo: 181 181 0 0 nit: 0 0 0 244 sat: 227 227 0 58 U: 234 mle: 0 0 0
+s4_constant_rigid_global leo: 240 240 0 0 nit: 122 0 122 0 sat: 334 287 47 0 U: 423 mle: 0 0 0
+s4_decreasing_rigid_global leo: 169 169 0 0 nit: 0 0 0 261 sat: 217 217 0 58 U: 221 mle: 0 0 0
+s5_decreasing_rigid_global leo: 230 230 0 0 nit: 0 0 0 181 sat: 286 286 0 25 U: 293 mle: 0 0 0
+s5_cumulative_rigid_global leo: 228 228 0 0 nit: 0 0 0 180 sat: 285 285 0 25 U: 292 mle: 0 0 0
+s5_varying_rigid_global leo: 188 188 0 0 nit: 0 0 0 233 sat: 238 238 0 53 U: 243 mle: 0 0 0
+s5_constant_rigid_global leo: 273 273 0 0 nit: 72 0 72 0 sat: 351 325 26 0 U: 415 mle: 0 0 0
