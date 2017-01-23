@@ -28,6 +28,7 @@ public class Results {
     public List<Problem> unique_THM;
     public List<Problem> unique_CSA_constant;
     public List<Problem> unique_concerning_qmltp_and_mleancop;
+    public List<Problem> unique_unsupported_semantics;
 
     // atp specific
     public List<Problem> errorAtp; // at least one atp system has an error status
@@ -60,6 +61,7 @@ public class Results {
         unique_THM = new ArrayList<>();
         unique_CSA_constant = new ArrayList<>();
         unique_concerning_qmltp_and_mleancop = new ArrayList<>();
+        unique_unsupported_semantics= new ArrayList<>();
 
         errorAtp = new ArrayList<>();
         disagreementAtpAtp = new ArrayList<>(); // y + n
@@ -163,6 +165,14 @@ public class Results {
                 l.add(problem);
                 l = cnitpick.get(problem.status_nitpick);
                 l.add(problem);
+
+                if (problem.status_qmltp == null) {
+                    if (!hasError(problem) && atpsAgree(problem)){
+                        if (getAgreedStatus(problem).equals("THM")) unique_unsupported_semantics.add(problem);
+                        if (getAgreedStatus(problem).equals("CSA") && problem.domains.equals("constant")) unique_unsupported_semantics.add(problem);
+                    }
+                }
+
                 if (problem.status_mleancop != null) {
                     // save to mleancop map
                     //if (!problem.containsEquality) {
@@ -573,6 +583,7 @@ public class Results {
         System.out.println("THM unique sum             " + unique_THM.size());
         System.out.println("CSA constant unique sum    " + unique_CSA_constant.size());
         System.out.println("unique_concerning_qmltp_and_mleancop    " + unique_concerning_qmltp_and_mleancop.size());
+        System.out.println("unique_unsupported_semantics            " + unique_unsupported_semantics.size());
         System.out.println();
         table.stream()
                 .sorted((e1,e2)->new CombinedComparator().compare(e1,e2))
@@ -751,6 +762,14 @@ public class Results {
                     .collect(Collectors.joining("\n")).getBytes());
         } catch (IOException e) {
             System.err.println("Could not write unique_concerning_qmltp_and_mleancop file");
+            e.printStackTrace();
+        }
+        try {
+            Files.write(Paths.get(outputPath.toString(),"unique_unsupported_semantics"),this.unique_unsupported_semantics.stream()
+                    .map(p->combineProblem(p))
+                    .collect(Collectors.joining("\n")).getBytes());
+        } catch (IOException e) {
+            System.err.println("Could not write unique_unsupported_semantics file");
             e.printStackTrace();
         }
         for (String status : satallax.keySet()){
