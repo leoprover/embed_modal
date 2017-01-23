@@ -8,12 +8,8 @@ To convert a modal problem run
 
     java -jar embed/target/embed-1.0-SNAPSHOT-shaded.jar 
     -f modal 
-    -i /home/tg/university/bachelor_thesis/software/resources/tptp_files/modal1.p 
-    -o /home/tg/university/bachelor_thesis/software/output/output.p 
-    -dotin /home/tg/university/bachelor_thesis/software/output/output.in.dot 
-    -dotout /home/tg/university/bachelor_thesis/software/output/output.out.dot 
-    -dotbin dot 
-    -log /home/tg/university/bachelor_thesis/software/output/log.log
+    -i <input_file_or_directory>
+    -o <output_file_or_directory>
 
 ## Parameter Usage
     -f choose embedding
