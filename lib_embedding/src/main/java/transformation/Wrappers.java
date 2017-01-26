@@ -282,7 +282,7 @@ public class Wrappers {
         TransformContext transformContext = null;
         ModalTransformator transformator = new ModalTransformator(root);
         transformContext = transformator.transform();
-        //System.out.println(EmbeddingDefinitions.getAllDefinitions());
+        //System.out.println(Common.getAllDefinitions());
         //System.out.println(transformContext.getProblem());
 
         // create output dot

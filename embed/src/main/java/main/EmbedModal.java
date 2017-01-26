@@ -205,7 +205,7 @@ public class EmbedModal {
             System.out.println("Free logic embedding not implemented yet.");
         }
 
-        //System.out.println(EmbeddingDefinitions.getAllDefinitions());
+        //System.out.println(Common.getAllDefinitions());
         System.exit(0);
     }
 
