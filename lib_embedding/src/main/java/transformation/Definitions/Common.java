@@ -32,7 +32,8 @@ public class Common {
 
     // THIS IS UGLY - replace it by numbering quantifications later
     public static String escapeType(String type){
-        return type
+        String normalizedType = normalizeType(type);
+        return normalizedType
                 .replaceAll("[$]","_d_")
                 .replaceAll("[>]","_t_")
                 .replaceAll("[ ]","")

@@ -53,6 +53,7 @@ grammar Hmf;
 // restructure lexer rules especially from middle section and end, maybe move all lexer rules to the end
 // check whitespace usages for whole grammar, tptp requires whitespaces at some points which is excluded from this grammar but could be introduced
 // check for antlr's fragment applicability on lexer rules e.g. SQ_CHAR and DO_CHAR
+// "asd" and 'asd' not working well, test with syn1 and syn2
 
 // ==============================================================================
 // FILE LAYER

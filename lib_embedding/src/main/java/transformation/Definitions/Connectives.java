@@ -97,8 +97,8 @@ public class Connectives {
     public static final String dia_prefix = "mdia";
     public static final String box_unimodal = box_prefix;
     public static final String dia_unimodal = dia_prefix;
-    public static final String box_int = box_prefix + "_int";
-    public static final String dia_int = dia_prefix + "_int";
+    public static final String box_int_prefix = box_prefix + "_int";
+    public static final String dia_int_prefix = dia_prefix + "_int";
 
     public static String getBoxDefinitionUnimodal(){
         return "" +

@@ -92,7 +92,7 @@ public class AccessibilityRelation {
     public static String declareRelation(String relationName){
         // TODO alter for multimodal systems
         //String escapedRelation = escapeRelation(relation);
-        return "thf( rel_" + relationName + "_type , type , ( " + relationName + ":" + w + ">" + w + ">$o) ).";
+        return "thf( " + relationName + "_type , type , ( " + relationName + ":" + w + ">" + w + ">$o) ).";
     }
 
     public static String applyPropertyToRelation(AccessibilityRelationProperty p, String relationName){

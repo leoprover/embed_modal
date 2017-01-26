@@ -29,7 +29,7 @@ public class ModalTransformator {
     private Set<String> usedModalities;
     private Set<String> usedSymbols;
 
-    // TPTP operators
+    // TPTP THF operators
     private static Map<String,String> operatorToEmbeddingName;
     static{
         operatorToEmbeddingName = new HashMap<>();
@@ -63,6 +63,10 @@ public class ModalTransformator {
         TransformContext ctx = this.actualTransformation();
         return ctx;
     }
+
+    /***********************************************************************************
+     * Transformation
+     ***********************************************************************************/
 
     private TransformContext actualTransformation() throws TransformationException {
 
@@ -174,14 +178,53 @@ public class ModalTransformator {
             parent.delChild(semanticalRoot);
         }
 
-        String modalDefinitions = getModalDefinitions();
+        String modalDefinitions = preProblemInsertions();
         //System.out.println(modalDefinitions.toString());
         //System.out.println(this.transformedRoot.toStringWithLinebreaksFormatted());
 
-        String auxiliaryDefinitions = getAuxiliaryDefinitions();
+        String auxiliaryDefinitions = postProblemInsertion();
 
         return new TransformContext(modalDefinitions, auxiliaryDefinitions, this.transformedRoot, this.originalRoot, this.thfAnalyzer, this.semanticsAnalyzer);
     }
+
+    /***********************************************************************************
+     * Embedding of nullary and unary operators: $true $false $box $dia ~
+     ***********************************************************************************/
+
+    private void replaceNullaryAndUnaryOperators(Node leaf){
+        switch (leaf.getLabel()){
+            // embed true and false
+            case "$true":
+                leaf.setLabel("mtrue");
+                usedConnectives.add("mtrue");
+                break;
+            case "$false":
+                leaf.setLabel("mfalse");
+                usedConnectives.add("mfalse");
+                break;
+            // embed simple modality
+            // box and dia already have @
+            case "$box":
+                leaf.setLabel("mbox");
+                //usedConnectives.add("mbox");
+                break;
+            case "$dia":
+                leaf.setLabel("mdia");
+                //usedConnectives.add("mdia");
+                break;
+            case "~":
+                leaf.setLabel("mnot @");
+                usedConnectives.add("mnot");
+                break;
+            default:
+                // do nothing
+        }
+
+    }
+
+    /***********************************************************************************
+     * Embedding of quantified formulas: forall, exists, lambda
+     ***********************************************************************************/
 
     /*
      * @param n has rule thf_quantified_formula
@@ -276,6 +319,9 @@ public class ModalTransformator {
 
     }
 
+    /***********************************************************************************
+     * Embedding of binary tuples: & |
+     ***********************************************************************************/
     /*
      * @param n has rule thf_binary_tuple
      */
@@ -324,10 +370,15 @@ public class ModalTransformator {
         usedConnectives.add(opName);
     }
 
+    /***********************************************************************************
+     * Embedding of binary pairs: <=>  =>  <=  <~>  ~|  ~& = !=
+     ***********************************************************************************/
+
     /*
      * @param n has rule thf_binary_pair
      */
     private void embed_thf_binary_pair(Node n){
+        // Connectives = | !=
         // exploit alpha beta eta equality for embedding equality
         if (n.getChild(1).getFirstChild().getLabel().equals("=") || n.getChild(1).getFirstChild().getLabel().equals("!=")){
             String w = this.getUnusedVariableName("W");
@@ -337,69 +388,14 @@ public class ModalTransformator {
             n.addChild(closingBrackets);
             return;
         }
+
+        // Connectives <=> | => | <= | <~> | ~| | ~&
         embed_thf_binary_tuple(n); // same method
-        // retrieve operator <=> | => | <= | <~> | ~| | ~& | = | !=
-
-        /*
-        String op = n.getChild(1).getFirstLeaf().getLabel();
-        String opName = operatorToEmbeddingName.get(op);
-
-        // insert operator
-        // A = B is converted to meq A = B
-        Node newOperator = new Node(opName,opName);
-        n.addChildAt(newOperator, 0);
-
-        // add an @ before the A and replace = leaf with @
-        // meq A = B is converted to meq @ A @ B
-        Node firstAt = new Node("apply","@");
-        n.addChildAt(firstAt,1);
-        Node secondAt = new Node("apply","@");
-        n.replaceChildAt(3,secondAt);
-
-
-        // add brackets around both A and B
-        Node openingBracketA = new Node("opening bracket", "(");
-        n.addChildAt(openingBracketA, 2);
-        Node closingBracketA = new Node("closing bracket", ")");
-        n.addChildAt(closingBracketA, 4);
-        Node openingBracketB = new Node("opening bracket", "(");
-        n.addChildAt(openingBracketB, 6);
-        Node closingBracketB = new Node("closing bracket", ")");
-        n.addChildAt(closingBracketB, 8);
-        */
-
     }
 
-    private void replaceNullaryAndUnaryOperators(Node leaf){
-        switch (leaf.getLabel()){
-            // embed true and false
-            case "$true":
-                leaf.setLabel("mtrue");
-                usedConnectives.add("mtrue");
-                break;
-            case "$false":
-                leaf.setLabel("mfalse");
-                usedConnectives.add("mfalse");
-                break;
-            // embed simple modality
-            // box and dia already have @
-            case "$box":
-                leaf.setLabel("mbox");
-                //usedConnectives.add("mbox");
-                break;
-            case "$dia":
-                leaf.setLabel("mdia");
-                //usedConnectives.add("mdia");
-                break;
-            case "~":
-                leaf.setLabel("mnot @");
-                usedConnectives.add("mnot");
-                break;
-            default:
-                // do nothing
-        }
-
-    }
+    /***********************************************************************************
+     * Auxiliary functions
+     ***********************************************************************************/
 
     private String getUnusedVariableName(String prefix){
         int i = 0;
@@ -412,7 +408,11 @@ public class ModalTransformator {
         return ret;
     }
 
-    private String getModalDefinitions() throws TransformationException{
+    /***********************************************************************************
+     * Modal declarations, definitions and axioms
+     ***********************************************************************************/
+
+    private String preProblemInsertions() throws TransformationException{
         StringBuilder def = new StringBuilder();
 
         // declare world_type_declaration type
@@ -537,7 +537,7 @@ public class ModalTransformator {
         return def.toString();
     }
 
-    private String getAuxiliaryDefinitions() throws TransformationException {
+    private String postProblemInsertion() throws TransformationException {
         StringBuilder def = new StringBuilder();
         def.append("% define exists-in-world assertion for user-defined constants\n");
         for (String q: this.declaredUserConstants.keySet()) {
