@@ -467,7 +467,7 @@ public class ModalTransformator {
         def.append("\n\n");
 
         // introduce used operators which are not valid operator nor quantifiers
-        def.append("% define nullary, unary and binary operators which are not quantifiers or valid operator\n");
+        def.append("% define nullary, unary and binary connectives which are no quantifiers\n");
         for (String o : usedConnectives){
             def.append(Connectives.modalSymbolDefinitions.get(o));
             def.append("\n");
@@ -508,30 +508,33 @@ public class ModalTransformator {
                     def.append("\n");
                 } // else nothing, since either constant or unrestricted varying
             }
-
         }
 
-        def.append("\n% define exists quantifiers\n");
-        for (String q : typesExistsQuantifiers){
-            SemanticsAnalyzer.DomainType defaultDomainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(
-                    SemanticsAnalyzer.domainDefault, SemanticsAnalyzer.DomainType.CONSTANT);
-            SemanticsAnalyzer.DomainType domainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(q, defaultDomainType);
-            if (domainType == SemanticsAnalyzer.DomainType.CONSTANT)
-                def.append(Quantification.mexists_const_th0(q));
-            else
-                def.append(Quantification.mexists_varying_th0(q));
-            def.append("\n");
+        if (!typesExistsQuantifiers.isEmpty()) {
+            def.append("\n% define exists quantifiers\n");
+            for (String q : typesExistsQuantifiers) {
+                SemanticsAnalyzer.DomainType defaultDomainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(
+                        SemanticsAnalyzer.domainDefault, SemanticsAnalyzer.DomainType.CONSTANT);
+                SemanticsAnalyzer.DomainType domainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(q, defaultDomainType);
+                if (domainType == SemanticsAnalyzer.DomainType.CONSTANT)
+                    def.append(Quantification.mexists_const_th0(q));
+                else
+                    def.append(Quantification.mexists_varying_th0(q));
+                def.append("\n");
+            }
         }
-        def.append("\n% define for all quantifiers\n");
-        for (String q: typesForAllQuantifiers){
-            SemanticsAnalyzer.DomainType defaultDomainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(
-                    SemanticsAnalyzer.domainDefault, SemanticsAnalyzer.DomainType.CONSTANT);
-            SemanticsAnalyzer.DomainType domainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(q, defaultDomainType);
-            if (domainType == SemanticsAnalyzer.DomainType.CONSTANT)
-                def.append(Quantification.mforall_const_th0(q));
-            else
-                def.append(Quantification.mforall_varying_th0(q));
-            def.append("\n");
+        if (!typesForAllQuantifiers.isEmpty()) {
+            def.append("\n% define for all quantifiers\n");
+            for (String q : typesForAllQuantifiers) {
+                SemanticsAnalyzer.DomainType defaultDomainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(
+                        SemanticsAnalyzer.domainDefault, SemanticsAnalyzer.DomainType.CONSTANT);
+                SemanticsAnalyzer.DomainType domainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(q, defaultDomainType);
+                if (domainType == SemanticsAnalyzer.DomainType.CONSTANT)
+                    def.append(Quantification.mforall_const_th0(q));
+                else
+                    def.append(Quantification.mforall_varying_th0(q));
+                def.append("\n");
+            }
         }
 
         return def.toString();
@@ -539,7 +542,6 @@ public class ModalTransformator {
 
     private String postProblemInsertion() throws TransformationException {
         StringBuilder def = new StringBuilder();
-        def.append("% define exists-in-world assertion for user-defined constants\n");
         for (String q: this.declaredUserConstants.keySet()) {
             if (!q.equals("$tType")) {
                 if (this.typesForVaryingQuantifiers.contains(q)) {
@@ -562,6 +564,7 @@ public class ModalTransformator {
             }
 
         }
-        return def.toString();
+        if (def.toString().length() == 0) return "";
+        return "% define exists-in-world assertion for user-defined constants\n" + def.toString();
     }
 }
