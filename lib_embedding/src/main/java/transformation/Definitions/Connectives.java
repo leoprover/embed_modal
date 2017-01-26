@@ -112,7 +112,7 @@ public class Connectives {
         return "" +
                 "thf( " + dia_unimodal + "_type , type , ( " + dia_unimodal + ": (" + w + ">$o)>" + w + ">$o) ).\n" +
                 "thf( " + dia_unimodal + "_def , definition , ( " + dia_unimodal + " = (" +
-                "^ [A:" + w + ">$o,W:" + w + "] : ! [V:" + w + "] : ( (" + AccessibilityRelation.getRelationNameUnimodal() + "@W@V) => (A@V) )" +
+                "^ [A:" + w + ">$o,W:" + w + "] : ? [V:" + w + "] : ( (" + AccessibilityRelation.getRelationNameUnimodal() + "@W@V) => (A@V) )" +
                 "))).";
     }
 }
