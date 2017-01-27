@@ -104,23 +104,19 @@ public class Connectives {
     public static final String box_int_prefix = box_prefix + "_int";
     public static final String dia_int_prefix = dia_prefix + "_int";
 
-    public static String getBoxDefinitionUnimodal(){
+    public static String getModalOperatorDefinition(String normalizedModalOperator){
         return "" +
-                "thf( " + box_unimodal + "_type , type , ( " + box_unimodal + ": (" + w + ">$o)>" + w + ">$o) ).\n" +
-                "thf( " + box_unimodal + "_def , definition , ( " + box_unimodal + " = (" +
-                "^ [A:" + w + ">$o,W:" + w + "] : ! [V:" + w + "] : ( (" + AccessibilityRelation.getRelationNameUnimodal() + "@W@V) => (A@V) )" +
+                "thf( " + normalizedModalOperator + "_type , type , ( " + normalizedModalOperator + ": (" + w + ">$o)>" + w + ">$o) ).\n" +
+                "thf( " + normalizedModalOperator + "_def , definition , ( " + normalizedModalOperator + " = (" +
+                "^ [A:" + w + ">$o,W:" + w + "] : ! [V:" + w + "] : ( (" + AccessibilityRelation.getNormalizedRelationName(normalizedModalOperator) + "@W@V) => (A@V) )" +
                 "))).";
     }
 
-    public static String getDiaDefinitionUnimodal(){
-        return "" +
-                "thf( " + dia_unimodal + "_type , type , ( " + dia_unimodal + ": (" + w + ">$o)>" + w + ">$o) ).\n" +
-                "thf( " + dia_unimodal + "_def , definition , ( " + dia_unimodal + " = (" +
-                "^ [A:" + w + ">$o,W:" + w + "] : ? [V:" + w + "] : ( (" + AccessibilityRelation.getRelationNameUnimodal() + "@W@V) => (A@V) )" +
-                "))).";
-    }
-
-    public static String getNormalizedEscapedModalOperator(Node n) throws AnalysisException {
+    /*
+     * modalOperator has to be the tree which contains all parts of the modal operator
+     * e.g. for $box @ 1 it contains both $box and 1
+     */
+    public static String getNormalizedModalOperator(Node n) throws AnalysisException {
         // TODO assert this is a valid operator
         String op = n.toStringLeafs();
         Node firstLeaf = n.getFirstLeaf();

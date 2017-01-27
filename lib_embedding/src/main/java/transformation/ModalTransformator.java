@@ -52,6 +52,7 @@ public class ModalTransformator {
         typesForVaryingQuantifiers = new HashSet<>();
         declaredUserConstants = new HashMap<>();
         usedConnectives = new HashSet<>();
+        usedModalities = new HashSet<>();
         usedSymbols = new HashSet<>();
     }
 
@@ -68,7 +69,7 @@ public class ModalTransformator {
      * Transformation
      ***********************************************************************************/
 
-    private TransformContext actualTransformation() throws TransformationException {
+    private TransformContext actualTransformation() throws TransformationException, AnalysisException {
 
         // collect all symbols to avoid variable capture when defining new bound variabls
         this.originalRoot.getLeafsDfs().stream().forEach(n->this.usedSymbols.add(n.getLabel()));
@@ -191,7 +192,7 @@ public class ModalTransformator {
      * Embedding of nullary and unary operators: $true $false $box $dia ~
      ***********************************************************************************/
 
-    private void replaceNullaryAndUnaryOperators(Node leaf){
+    private void replaceNullaryAndUnaryOperators(Node leaf) throws AnalysisException {
         switch (leaf.getLabel()){
             // embed true and false
             case "$true":
@@ -205,11 +206,13 @@ public class ModalTransformator {
             // embed simple modality
             // box and dia already have @
             case "$box":
-                leaf.setLabel("mbox");
+                embed_modality_box_or_dia(leaf);
+                //leaf.setLabel("mbox");
                 //usedConnectives.add("mbox");
                 break;
             case "$dia":
-                leaf.setLabel("mdia");
+                embed_modality_box_or_dia(leaf);
+                //leaf.setLabel("mdia");
                 //usedConnectives.add("mdia");
                 break;
             case "~":
@@ -220,6 +223,15 @@ public class ModalTransformator {
                 // do nothing
         }
 
+    }
+
+    /***********************************************************************************
+     * Embedding of modalities: $box $dia $box_int $box_dia
+     ***********************************************************************************/
+    private void embed_modality_box_or_dia(Node boxOrDiaLeaf) throws AnalysisException {
+        String normalizedModalOperator = Connectives.getNormalizedModalOperator(boxOrDiaLeaf);
+        boxOrDiaLeaf.setLabel(normalizedModalOperator);
+        usedModalities.add(normalizedModalOperator);
     }
 
     /***********************************************************************************
@@ -423,8 +435,12 @@ public class ModalTransformator {
         // introduce accessibility relations
         // Only one modality
         def.append("% declare accessibility relations\n");
-        def.append(AccessibilityRelation.declareRelation(AccessibilityRelation.getRelationNameUnimodal()));
-        def.append("\n\n");
+        for (String normalizedModalityName : usedModalities){
+            String normalizedRelationName = AccessibilityRelation.getNormalizedRelationName(normalizedModalityName);
+            def.append(AccessibilityRelation.getRelationDeclaration(normalizedRelationName));
+            def.append("\n");
+        }
+        def.append("\n");
 
         // introduce used accessibility relation properties
         // has to be reimplemented for multiple modalities
@@ -442,14 +458,29 @@ public class ModalTransformator {
 
         // introduce properties on the accessibility relations
         // Only one modality, has to be reimplemented for multiple modalities
+
         def.append("% assign properties to accessibility relations\n");
         if (semanticsAnalyzer.modalityToAxiomList.get(SemanticsAnalyzer.modalitiesDefault) == null){
             throw new TransformationException("No default value for modalities found.");
         }
-        for(SemanticsAnalyzer.AccessibilityRelationProperty p : semanticsAnalyzer.modalityToAxiomList.get(SemanticsAnalyzer.modalitiesDefault)){
-            if (p != SemanticsAnalyzer.AccessibilityRelationProperty.K) {
-                def.append(AccessibilityRelation.applyPropertyToRelation(p, AccessibilityRelation.getRelationNameUnimodal()));
-                def.append("\n");
+        for (String normalizedModalOperatorName : usedModalities) {
+            String normalizedRelationName = AccessibilityRelation.getNormalizedRelationName(normalizedModalOperatorName);
+            Set<SemanticsAnalyzer.AccessibilityRelationProperty> properties;
+            if (semanticsAnalyzer.modalityToAxiomList.containsKey(normalizedRelationName)){
+                properties = semanticsAnalyzer.modalityToAxiomList.get(normalizedRelationName);
+            } else {
+                if ( semanticsAnalyzer.modalityToAxiomList.containsKey(SemanticsAnalyzer.modalitiesDefault) ){
+                    properties = semanticsAnalyzer.modalityToAxiomList.get(SemanticsAnalyzer.modalitiesDefault);
+                } else {
+                    throw new TransformationException("Modal operator does not have semantics: " + normalizedModalOperatorName);
+                }
+            }
+
+            for (SemanticsAnalyzer.AccessibilityRelationProperty p : properties ) {
+                if (p != SemanticsAnalyzer.AccessibilityRelationProperty.K) {
+                    def.append(AccessibilityRelation.applyPropertyToRelation(p, normalizedRelationName));
+                    def.append("\n");
+                }
             }
         }
         def.append("\n");
@@ -472,9 +503,10 @@ public class ModalTransformator {
             def.append(Connectives.modalSymbolDefinitions.get(o));
             def.append("\n");
         }
-        def.append(Connectives.getBoxDefinitionUnimodal());
-        def.append("\n");
-        def.append(Connectives.getDiaDefinitionUnimodal());
+        for (String normalizedModalOperatorName : usedModalities){
+            def.append(Connectives.getModalOperatorDefinition(normalizedModalOperatorName));
+            def.append("\n");
+        }
         def.append("\n");
 
         // introduce quantifiers

@@ -1,6 +1,8 @@
 package transformation.Definitions;
 
+import exceptions.AnalysisException;
 import transformation.SemanticsAnalyzer.AccessibilityRelationProperty;
+import util.tree.Node;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,31 +18,31 @@ public class AccessibilityRelation {
      ***************************************************************************/
     public static final String mreflexive = "" +
             "thf( mreflexive_type , type , ( mreflexive : (" + w + ">" + w + ">$o)>$o ) ).\n" +
-            "thf( mreflexive , definition , ( mreflexive = (" +
+            "thf( mreflexive_def , definition , ( mreflexive = (" +
             "^ [R:" + w + ">" + w + ">$o] : ! [A:" + w + "] : (R@A@A)" +
             "))).";
 
     public static final String msymmetric = "" +
             "thf( msymmetric_type , type , ( msymmetric : (" + w + ">" + w + ">$o)>$o ) ).\n" +
-            "thf( msymmetric , definition , ( msymmetric = (" +
+            "thf( msymmetric_def , definition , ( msymmetric = (" +
             "^ [R:" + w + ">" + w + ">$o] : ! [A:" + w + ",B:" + w + "] : ( (R@A@B) => (R@B@A) )" +
             "))).";
 
     public static final String mtransitive = "" +
             "thf( mtransitive_type , type , ( mtransitive : (" + w + ">" + w + ">$o)>$o ) ).\n" +
-            "thf( mtransitive , definition , ( mtransitive = (" +
+            "thf( mtransitive_def , definition , ( mtransitive = (" +
             "^ [R:" + w + ">" + w + ">$o] : ! [A:" + w + ",B:" + w + ",C:" + w + "] : ( ( (R@A@B) & (R@B@C) ) => (R@A@C) )" +
             "))).";
 
     public static final String mserial = "" +
             "thf( mserial_type , type , ( mserial : (" + w + ">" + w + ">$o)>$o ) ).\n" +
-            "thf( mserial , definition , ( mserial = (" +
+            "thf( mserial_def , definition , ( mserial = (" +
             "^ [R:" + w + ">" + w + ">$o] : ! [A:" + w + "] : ? [B:" + w + "] : (R@A@B)" +
             "))).";
 
     public static final String meuclidean = "" +
             "thf( meuclidean_type , type , ( meuclidean : (" + w + ">" + w + ">$o)>$o ) ).\n" +
-            "thf( meuclidean , definition , ( meuclidean = (" +
+            "thf( meuclidean_def , definition , ( meuclidean = (" +
             "^ [R:" + w + ">" + w + ">$o] : ! [A:" + w + ",B:" + w + ",C:" + w + "] : ( ( (R@A@B) & (R@A@C) ) => (R@B@C) )" +
             "))).";
 
@@ -65,51 +67,32 @@ public class AccessibilityRelation {
      * box operators // accessibility relations declarations
      ***************************************************************************/
 
-    public static String accessibility_relation_prefix = "mrel";
-    public static String default_accessibility_relation_name = "r";
-    public static String accessiblity_relation_name_unimodal = accessibility_relation_prefix + "_" + default_accessibility_relation_name;
-    public static String accessiblity_relation_box_int_prefix = accessibility_relation_prefix + "_box_int";
+    public static final String accessibility_relation_prefix = "mrel";
 
     public static String getAccessibilityRelationPropertyDefinitionByAccessibilityRelationProperty(AccessibilityRelationProperty p){
         return accessibilityRelationPropertyDefinitions.get(p);
     }
 
-    public static String getRelationNameUnimodal(){
-        return accessiblity_relation_name_unimodal;
-    }
-
-    public static String getRelationNameInt(String int_index){
-        return accessiblity_relation_box_int_prefix + "_" + int_index;
+    public static String getNormalizedRelationName(String normalizedModalOperator){
+        return accessibility_relation_prefix + "_" + normalizedModalOperator;
     }
 
     /*
-     * Multimodal operators with index int
+     * modalOperator has to be the tree which contains all parts of the modal operator
+     * e.g. for $box @ 1 it contains both $box and 1
      */
-    public static String getRelationDeclarationInt(String int_index){
-        return "";
+    public static String getNormalizedRelationName(Node modalOperator) throws AnalysisException {
+        return accessibility_relation_prefix + "_" + Connectives.getNormalizedModalOperator(modalOperator);
     }
 
-    public static String declareRelation(String relationName){
-        // TODO alter for multimodal systems
-        //String escapedRelation = escapeRelation(relation);
-        return "thf( " + relationName + "_type , type , ( " + relationName + ":" + w + ">" + w + ">$o) ).";
+    public static String getRelationDeclaration(String normalizedRelationName){
+        return "thf( " + normalizedRelationName + "_type , type , ( " + normalizedRelationName + ":" + w + ">" + w + ">$o) ).";
     }
 
-    public static String applyPropertyToRelation(AccessibilityRelationProperty p, String relationName){
-        // TODO alter formultimodal systems
-        return "thf( " + relationName + "_" + accessibilityRelationPropertyNames.get(p) + " , axiom , ( " +
-                accessibilityRelationPropertyNames.get(p) + " @ " + relationName + " ) ).";
+    public static String applyPropertyToRelation(AccessibilityRelationProperty p, String normalizedRelationName){
+        return "thf( " + normalizedRelationName + "_" + accessibilityRelationPropertyNames.get(p) + " , axiom , ( " +
+                accessibilityRelationPropertyNames.get(p) + " @ " + normalizedRelationName + " ) ).";
     }
-
-
-
-
-    private static String escapeRelation(String relation){
-        // TODO for multimodal systems
-        return relation;
-    }
-
-
 
 
 }

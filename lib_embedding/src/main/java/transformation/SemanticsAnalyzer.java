@@ -286,7 +286,7 @@ public class SemanticsAnalyzer {
                 //System.out.println("SPECIFIC");
                 Node operator = d.getFirstChild();
                 Node properties = d.getLastChild();
-                String normalizedEscapedModalOperator = Connectives.getNormalizedEscapedModalOperator(operator);
+                String normalizedEscapedModalOperator = Connectives.getNormalizedModalOperator(operator);
                 Set<AccessibilityRelationProperty> propertyList = resolveModalityEntry(properties.toStringLeafs());
                 //System.out.println(operator.toStringLeafs());
                 //System.out.println(resolveModalityEntry(properties.toStringLeafs()));

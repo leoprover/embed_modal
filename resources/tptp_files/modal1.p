@@ -10,9 +10,9 @@ thf( complicated_s5 , logic , ( $modal := [
       $consequence := [ $global , myaxiom := $local ] ,
       $modalities := [ $modal_system_S5 , $box_int @ 1 := $modal_system_T ] ] ) ).
 
-%thf( p_decl , type , ( p : $o ) ).
-%thf( p_is_valid, axiom, (p)).
-%thf( necessitation , conjecture , ( $box @ p ) ).
+thf( p_decl , type , ( p : $o ) ).
+thf( p_is_valid, axiom, (p)).
+thf( necessitation , conjecture , ( $box @ p ) ).
 %thf( necessitation , conjecture , ( $box_int @ 1 @ p ) ).
 %thf( necessitation , conjecture , ( $box_int @ 2 @ p ) ).
 

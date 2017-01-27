@@ -5,9 +5,9 @@ public class Common {
     /***************************************************************************
      * World type definition
      ***************************************************************************/
-    public static final String w = "w_type";
+    public static final String w = "mworld";
     public static final String world_type_declaration = "" +
-            "thf( w_type_type , type , ( " + w + ":$tType ) ).";
+            "thf( " + w + "_type , type , ( " + w + ":$tType ) ).";
     public static final String truth_type = "(" + w + ">$o)";
 
     /***************************************************************************
@@ -15,13 +15,13 @@ public class Common {
      ***************************************************************************/
     public static final String mvalid = "" +
             "thf( mvalid_type , type , ( mvalid: (" + w + ">$o)>$o ) ).\n" +
-            "thf( mvalid , definition , ( mvalid = (" +
+            "thf( mvalid_def , definition , ( mvalid = (" +
             "^ [S:" + w + ">$o] : ! [W:" + w + "] : (S@W)" +
             "))).";
 
     public static final String mactual = "" +
             "thf( mactual_type , type , ( mactual: ( ( " + w + ">$o ) >$o ) ) ).\n" +
-            "thf( mactual , definition , ( mactual = ( " +
+            "thf( mactual_def , definition , ( mactual = ( " +
             "^ [Phi:(" + w + ">$o)] : ( Phi @ mcurrentworld ) ) ) ).";
 
 
