@@ -481,21 +481,25 @@ public class ModalTransformator {
         def.append("\n");
 
         // define accessibility relation properties
-        def.append("% define accessibility relation properties\n");
+        boolean propertyDefined = false;
         Set<SemanticsAnalyzer.AccessibilityRelationProperty> allProperties = new HashSet<>();
         for (Set<SemanticsAnalyzer.AccessibilityRelationProperty> set : semanticsAnalyzer.modalityToAxiomList.values()){
             allProperties.addAll(set);
         }
         for(SemanticsAnalyzer.AccessibilityRelationProperty p :  allProperties){
             if (p != SemanticsAnalyzer.AccessibilityRelationProperty.K) {
+                if (!propertyDefined) def.append("% define accessibility relation properties\n");
+                propertyDefined = true;
                 def.append(AccessibilityRelation.getAccessibilityRelationPropertyDefinitionByAccessibilityRelationProperty(p));
                 def.append("\n");
             }
         }
-        def.append("\n");
-
+        if (propertyDefined) def.append("\n");
         // introduce properties on the accessibility relations
+        if (propertyDefined) def.append("% assign properties to accessibility relations\n");
         for (String normalizedModalOperatorName : usedModalities) {
+            //System.out.println(normalizedModalOperatorName);
+            //System.out.println(semanticsAnalyzer.modalityToAxiomList.get(normalizedModalOperatorName));
             String normalizedRelationName = AccessibilityRelation.getNormalizedRelationName(normalizedModalOperatorName);
             Set<SemanticsAnalyzer.AccessibilityRelationProperty> properties = this.semanticsAnalyzer.modalityToAxiomList.getOrDefault(normalizedModalOperatorName,
                     this.semanticsAnalyzer.modalityToAxiomList.getOrDefault(SemanticsAnalyzer.modalitiesDefault,null));
@@ -507,7 +511,7 @@ public class ModalTransformator {
                 }
             }
         }
-        def.append("\n");
+        if (propertyDefined) def.append("\n");
 
         // introduce mvalid for global consequence
         def.append("% define valid operator\n");

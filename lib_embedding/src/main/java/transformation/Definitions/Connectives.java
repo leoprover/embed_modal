@@ -120,6 +120,7 @@ public class Connectives {
         // TODO assert this is a valid operator
         String op = n.toStringLeafs();
         Node firstLeaf = n.getFirstLeaf();
+
         // $box
         if (firstLeaf.getLabel().equals("$box")){
             return box_unimodal;
@@ -128,10 +129,9 @@ public class Connectives {
         if (firstLeaf.getLabel().equals("$dia")){
             return dia_unimodal;
         }
-
-        Optional<Node> unsigned_integer = n.getLastChild().dfsRule("unsigned_integer");
         // $box_int @ <int>
         if (firstLeaf.getLabel().equals("$box_int")){
+            Optional<Node> unsigned_integer = n.getLastChild().dfsRule("unsigned_integer");
             if (unsigned_integer.isPresent()){
                 return box_int_prefix + "_" + unsigned_integer.get().getFirstLeaf().getLabel();
             } else {
@@ -140,12 +140,15 @@ public class Connectives {
         }
         // $dia_int @ <int>
         if (firstLeaf.getLabel().equals("$dia_int")){
+            Optional<Node> unsigned_integer = n.getLastChild().dfsRule("unsigned_integer");
             if (unsigned_integer.isPresent()){
                 return dia_int_prefix + "_" + unsigned_integer.get().getFirstLeaf().getLabel();
             } else {
                 throw new AnalysisException("$box_int was not applied to an unsigned_integer: " + n.toString());
             }
         }
+
+
 
         throw new AnalysisException("Invalid modal operator: " + n.toString());
 

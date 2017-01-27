@@ -269,7 +269,7 @@ public class SemanticsAnalyzer {
             this.modalityToAxiomList.put(modalitiesDefault,propertyList);
         }
 
-        // at least one modality declaration which is a list with rules for specific modalities and
+        // at least one modality declaration which is a list with rules for specific modalities (system or name) and
         // probably a default value which is an axiom or a system or a list of axioms
         else{
             // find all logical modalSymbolDefinitions
