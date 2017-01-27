@@ -6,14 +6,14 @@
 
 thf( complicated_s5 , logic , ( $modal := [
       $constants := [ $rigid , myconstant := $flexible ] ,
-      $quantification := [ $constant, human := $varying ] ,
-      $consequence := [ $global , myaxiom := $local ] ,
+      $quantification := [ $constant, human := $cumulative ] ,
+      $consequence := [ $local ] ,
       $modalities := [ $modal_system_K, $box_int @ 1 := $modal_system_T  ] ] ) ).
 
 %thf( p_decl , type , ( p : $o ) ).
 %thf( p_is_valid, axiom, (p)).
 %thf( mydomain_type , type , ( human : $tType ) ).
-thf( necessitation , conjecture , ( $box @ p ) ).
+thf( necessitation , conjecture , ( $box @ (! [X:human] : (X=X) )  )).
 thf( necessitation , conjecture , ( $box_int @ 1 @ p ) ).
 %thf( necessitation , conjecture , ( $box_int @ 2 @ p ) ).
 %thf( necessitation , conjecture , ( ! [X:$i] : (X=X) ) ).

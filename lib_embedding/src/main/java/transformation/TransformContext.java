@@ -27,32 +27,38 @@ public class TransformContext {
 
     public String getProblem(){
         StringBuilder problem = new StringBuilder();
-        problem.append("% -------------------------------------------------------------------------\n");
-        problem.append("% user types definitions \n");
-        problem.append("% -------------------------------------------------------------------------\n");
-        problem.append("\n");
-        for (Node userType : this.userTypes){
-            problem.append(userType.toStringLeafs());
+        if (!this.userTypes.isEmpty()) {
+            problem.append("% -------------------------------------------------------------------------\n");
+            problem.append("% user type definitions \n");
+            problem.append("% -------------------------------------------------------------------------\n");
+            problem.append("\n");
+            for (Node userType : this.userTypes) {
+                problem.append(userType.toStringLeafs());
+                problem.append("\n");
+            }
             problem.append("\n");
         }
-        problem.append("\n");
-        problem.append("% -------------------------------------------------------------------------\n");
-        problem.append("% modal definitions \n");
-        problem.append("% -------------------------------------------------------------------------\n");
-        problem.append("\n");
-        problem.append(this.modalDefintions);
-        problem.append("\n");
+        if (!this.modalDefintions.isEmpty()) {
+            problem.append("% -------------------------------------------------------------------------\n");
+            problem.append("% modal definitions \n");
+            problem.append("% -------------------------------------------------------------------------\n");
+            problem.append("\n");
+            problem.append(this.modalDefintions);
+            problem.append("\n");
+        }
         problem.append("% -------------------------------------------------------------------------\n");
         problem.append("% transformed problem\n");
         problem.append("% -------------------------------------------------------------------------\n");
         problem.append("\n");
-        problem.append(this.transformedRoot.toStringWithLinebreaksFormatted());
+        problem.append(this.transformedRoot.toStringWithLinebreaks());
         problem.append("\n\n");
-        problem.append("% -------------------------------------------------------------------------\n");
-        problem.append("% auxiliary definitions \n");
-        problem.append("% -------------------------------------------------------------------------\n");
-        problem.append("\n");
-        problem.append(this.auxiliaryDefinitions);
+        if (!this.auxiliaryDefinitions.equals("")) {
+            problem.append("% -------------------------------------------------------------------------\n");
+            problem.append("% auxiliary definitions \n");
+            problem.append("% -------------------------------------------------------------------------\n");
+            problem.append("\n");
+            problem.append(this.auxiliaryDefinitions);
+        }
         problem.append("\n");
         return problem.toString();
     }

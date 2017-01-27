@@ -514,35 +514,41 @@ public class ModalTransformator {
         if (propertyDefined) def.append("\n");
 
         // introduce mvalid for global consequence
-        def.append("% define valid operator\n");
-        def.append(Common.mvalid);
-        def.append("\n\n");
+        if (this.semanticsAnalyzer.axiomNameToConsequenceType.values().contains(SemanticsAnalyzer.ConsequenceType.GLOBAL)) {
+            def.append("% define valid operator\n");
+            def.append(Common.mvalid);
+            def.append("\n\n");
+        }
 
         // introduce current world constant and actuality operator for local consequence
-        def.append("% define current-world constant and actuality operator\n");
-        def.append(Quantification.mcurrentworld);
-        def.append("\n");
-        def.append(Common.mactual);
-        def.append("\n\n");
+        if (this.semanticsAnalyzer.axiomNameToConsequenceType.values().contains(SemanticsAnalyzer.ConsequenceType.LOCAL)) {
+            def.append("% define current-world constant and actuality operator\n");
+            def.append(Quantification.mcurrentworld);
+            def.append("\n");
+            def.append(Common.mactual);
+            def.append("\n\n");
+        }
 
         // introduce used operators which are not valid operator nor quantifiers
-        def.append("% define nullary, unary and binary connectives which are no quantifiers\n");
-        for (String o : usedConnectives){
-            def.append(Connectives.modalSymbolDefinitions.get(o));
+        if (!(usedConnectives.isEmpty() && usedModalities.isEmpty())) {
+            def.append("% define nullary, unary and binary connectives which are no quantifiers\n");
+            for (String o : usedConnectives) {
+                def.append(Connectives.modalSymbolDefinitions.get(o));
+                def.append("\n");
+            }
+            for (String normalizedModalOperatorName : usedModalities) {
+                def.append(Connectives.getModalOperatorDefinition(normalizedModalOperatorName));
+                def.append("\n");
+            }
             def.append("\n");
         }
-        for (String normalizedModalOperatorName : usedModalities){
-            def.append(Connectives.getModalOperatorDefinition(normalizedModalOperatorName));
-            def.append("\n");
-        }
-        def.append("\n");
 
         // introduce quantifiers
         //typesForAllQuantifiers.add("$o>$o");
         //typesExistsQuantifiers.add("plushie>$o");
         //typesForAllQuantifiers.add("plushie>$o");
         if (!typesForVaryingQuantifiers.isEmpty()) {
-            def.append("\n% define exists-in-world predicates for quantified types and non-emptiness axioms\n");
+            def.append("% define exists-in-world predicates for quantified types and non-emptiness axioms\n");
             for (String q: typesExistsQuantifiers) { // for each type that a  quantor is used, introduce
                 // an according eiw predicate
                 def.append(Quantification.eiw_th0(q));
@@ -555,7 +561,7 @@ public class ModalTransformator {
                     def.append("\n");
                 }
             }
-            def.append("\n% define domain restrictions\n");
+            boolean domainRestrictionsAdded = false;
             for (String q: typesForVaryingQuantifiers) { // insert domain restriction (cumulative etc) if necessary
                 //SemanticsAnalyzer.DomainType defaultDomainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(
                 //        SemanticsAnalyzer.domainDefault, SemanticsAnalyzer.DomainType.CONSTANT);
@@ -563,9 +569,13 @@ public class ModalTransformator {
                         this.semanticsAnalyzer.domainToDomainType.getOrDefault(SemanticsAnalyzer.domainDefault,null));
                 if (domainType == null) throw new TransformationException("No explicit or default domain semantics found for domain " + q);
                 if (domainType == SemanticsAnalyzer.DomainType.CUMULATIVE) {
+                    if (!domainRestrictionsAdded) def.append("\n% define domain restrictions\n");
+                    domainRestrictionsAdded = true;
                     def.append(Quantification.cumulative_eiw_th0(q));
                     def.append("\n");
                 } else if (domainType == SemanticsAnalyzer.DomainType.DECREASING) {
+                    if (!domainRestrictionsAdded) def.append("\n% define domain restrictions\n");
+                    domainRestrictionsAdded = true;
                     def.append(Quantification.decreasing_eiw_th0(q));
                     def.append("\n");
                 } // else nothing, since either constant or unrestricted varying
