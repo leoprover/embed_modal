@@ -99,5 +99,31 @@ public class TestSemanticsAnalyzer {
         test.modalityToAxiomList = modalityToAxiomList;
         semantics.add(test);
 
+        test = new SemanticsTest();
+        input = "  thf( 2 , logic , ( $modal := [\n" +
+                "      $constants := [ $rigid , myconstant := $flexible ] ,\n" +
+                "      $quantification := [ $constant , human := $varying ] ,\n" +
+                "      $consequence := [ $global , myaxiom := $local ] ,\n" +
+                "      $modalities := [ $modal_system_S5 , $box_int @ 1 := $modal_system_T ] ] ) ).";
+        constantToConstantType = new HashMap<>();
+        axiomNameToConsequenceType = new HashMap<>();
+        domainToDomainType = new HashMap<>();
+        modalityToAxiomList = new HashMap<>();
+        constantToConstantType.put(SemanticsAnalyzer.constantDefault, SemanticsAnalyzer.ConstantType.RIGID);
+        constantToConstantType.put("myconstant", SemanticsAnalyzer.ConstantType.FLEXIBLE);
+        axiomNameToConsequenceType.put(SemanticsAnalyzer.consequenceDefault, SemanticsAnalyzer.ConsequenceType.GLOBAL);
+        axiomNameToConsequenceType.put("myaxiom", SemanticsAnalyzer.ConsequenceType.LOCAL);
+        domainToDomainType.put(SemanticsAnalyzer.domainDefault, SemanticsAnalyzer.DomainType.CONSTANT);
+        domainToDomainType.put("human", SemanticsAnalyzer.DomainType.VARYING);
+        modalityToAxiomList.put(SemanticsAnalyzer.modalitiesDefault,SemanticsAnalyzer.modal_systems.get("$modal_system_S5"));
+        modalityToAxiomList.put(Connectives.box_int_prefix + "_1",SemanticsAnalyzer.modal_systems.get("$modal_system_T"));
+        test.name = "more involved";
+        test.input = input;
+        test.constantToConstantType = constantToConstantType;
+        test.axiomNameToConsequenceType = axiomNameToConsequenceType;
+        test.domainToDomainType = domainToDomainType;
+        test.modalityToAxiomList = modalityToAxiomList;
+        semantics.add(test);
+
     }
 }

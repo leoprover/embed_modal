@@ -271,27 +271,25 @@ public class SemanticsAnalyzer {
 
         // at least one modality declaration which is a list with rules for specific modalities and
         // probably a default value which is an axiom or a system or a list of axioms
-        // TODO
         else{
-            //log.warning("Modalities are default value + others. This is not supported yet");
             // find all logical modalSymbolDefinitions
             Optional<Node> default_value = node.dfsRule("logic_defn_element");
             if (default_value.isPresent() && !default_value.get().dfsRule("logic_defn_rule").isPresent()){
-                System.out.println("DEFAULT");
+                //System.out.println("DEFAULT");
                 Set<AccessibilityRelationProperty> propertyList = resolveModalityEntry(default_value.get().toStringLeafs());
-                System.out.println(default_value.get().toStringLeafs());
+                //System.out.println(default_value.get().toStringLeafs());
                 this.modalityToAxiomList.put(modalitiesDefault,propertyList);
             }
 
             List<Node> thf_logic_defns = node.dfsRuleAll("logic_defn_rule");
             for (Node d : thf_logic_defns){
-                System.out.println("SPECIFIC");
+                //System.out.println("SPECIFIC");
                 Node operator = d.getFirstChild();
                 Node properties = d.getLastChild();
                 String normalizedEscapedModalOperator = Connectives.getNormalizedEscapedModalOperator(operator);
                 Set<AccessibilityRelationProperty> propertyList = resolveModalityEntry(properties.toStringLeafs());
-                System.out.println(operator.toStringLeafs());
-                System.out.println(resolveModalityEntry(properties.toStringLeafs()));
+                //System.out.println(operator.toStringLeafs());
+                //System.out.println(resolveModalityEntry(properties.toStringLeafs()));
                 this.modalityToAxiomList.put(normalizedEscapedModalOperator,propertyList);
             }
         }
