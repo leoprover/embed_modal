@@ -28,6 +28,7 @@ public class ModalTransformator {
     private Set<String> usedConnectives;
     private Set<String> usedModalities;
     private Set<String> usedSymbols;
+    private List<Node> userTypes; // $tType nodes (leafs)
 
     // TPTP THF operators
     private static Map<String,String> operatorToEmbeddingName;
@@ -54,6 +55,7 @@ public class ModalTransformator {
         usedConnectives = new HashSet<>();
         usedModalities = new HashSet<>();
         usedSymbols = new HashSet<>();
+        userTypes = new ArrayList<>();
     }
 
     public TransformContext transform() throws TransformationException,AnalysisException {
@@ -83,6 +85,9 @@ public class ModalTransformator {
                 if (l.getLabel().equals("$o")) {
                     l.setLabel(Common.truth_type);
                 }
+
+                // user types
+                if (l.getLabel().equals("$tType")) userTypes.add(l);
             }
             // if it is a type declaration (and not a definition) add labels (name and type) to the map of constants (for varying domains)
             Optional<Node> typeable = type_statement.dfsRule("thf_typeable_formula");
@@ -179,13 +184,18 @@ public class ModalTransformator {
             parent.delChild(semanticalRoot);
         }
 
+
+
         String modalDefinitions = preProblemInsertions();
         //System.out.println(modalDefinitions.toString());
         //System.out.println(this.transformedRoot.toStringWithLinebreaksFormatted());
 
         String auxiliaryDefinitions = postProblemInsertion();
 
-        return new TransformContext(modalDefinitions, auxiliaryDefinitions, this.transformedRoot, this.originalRoot, this.thfAnalyzer, this.semanticsAnalyzer);
+        // extract user types to be placed in front of problem
+        extractUserTypes();
+
+        return new TransformContext(modalDefinitions, auxiliaryDefinitions, this.userTypes, this.transformedRoot, this.originalRoot, this.thfAnalyzer, this.semanticsAnalyzer);
     }
 
     /***********************************************************************************
@@ -418,6 +428,20 @@ public class ModalTransformator {
     }
 
     /***********************************************************************************
+     * Sorting user types ($tType)
+     ***********************************************************************************/
+
+    private void extractUserTypes(){
+        List<Node> newUserTypes = new ArrayList<>();
+        for (Node leaf : this.userTypes){
+            Node userTypeNode = leaf.getParentOfRule("tPTP_input");
+            newUserTypes.add(userTypeNode);
+            userTypeNode.getParent().delChild(userTypeNode);
+        }
+        userTypes = newUserTypes;
+    }
+
+    /***********************************************************************************
      * Auxiliary functions
      ***********************************************************************************/
 
@@ -445,7 +469,6 @@ public class ModalTransformator {
         def.append("\n\n");
 
         // introduce accessibility relations
-        // Only one modality
         def.append("% declare accessibility relations\n");
         for (String normalizedModalityName : usedModalities){
             String normalizedRelationName = AccessibilityRelation.getNormalizedRelationName(normalizedModalityName);
@@ -455,7 +478,6 @@ public class ModalTransformator {
         def.append("\n");
 
         // introduce used accessibility relation properties
-        // has to be reimplemented for multiple modalities
         if (semanticsAnalyzer.modalityToAxiomList.get(SemanticsAnalyzer.modalitiesDefault) == null){
             throw new TransformationException("No default value for modalities found.");
         }
@@ -469,8 +491,6 @@ public class ModalTransformator {
         def.append("\n");
 
         // introduce properties on the accessibility relations
-        // Only one modality, has to be reimplemented for multiple modalities
-
         def.append("% assign properties to accessibility relations\n");
         if (semanticsAnalyzer.modalityToAxiomList.get(SemanticsAnalyzer.modalitiesDefault) == null){
             throw new TransformationException("No default value for modalities found.");
