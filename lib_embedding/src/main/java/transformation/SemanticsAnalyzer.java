@@ -273,10 +273,12 @@ public class SemanticsAnalyzer {
         // probably a default value which is an axiom or a system or a list of axioms
         else{
             // find all logical modalSymbolDefinitions
-            Optional<Node> default_value = node.dfsRule("logic_defn_element");
-            if (default_value.isPresent() && !default_value.get().dfsRule("logic_defn_rule").isPresent()){
+            Optional<Node> logic_defn_element = node.dfsRule("logic_defn_element");
+            // we are in a subtree of a default value
+            if (logic_defn_element.isPresent() && !logic_defn_element.get().dfsRule("logic_defn_rule").isPresent()){
                 //System.out.println("DEFAULT");
-                Set<AccessibilityRelationProperty> propertyList = resolveModalityEntry(default_value.get().toStringLeafs());
+                Node default_node = node.dfsRule("thf_formula_list").get().getFirstChild();
+                Set<AccessibilityRelationProperty> propertyList = resolveModalityEntry(default_node.toStringLeafs());
                 //System.out.println(default_value.get().toStringLeafs());
                 this.modalityToAxiomList.put(modalitiesDefault,propertyList);
             }
