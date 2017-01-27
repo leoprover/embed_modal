@@ -114,6 +114,7 @@ logic_defn_rule             : logic_defn_lhs ASSIGNMENT logic_defn_rhs
 logic_defn_lhs              : LOGIC_OPTIONS
                             | MODAL_OPTIONS
                             | thf_function
+                            | thf_apply_formula
                             | thf_top_level_type
                             ;
 logic_defn_rhs              : thf_logic_formula

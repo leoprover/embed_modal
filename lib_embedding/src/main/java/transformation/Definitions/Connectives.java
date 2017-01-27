@@ -1,7 +1,11 @@
 package transformation.Definitions;
 
+import exceptions.AnalysisException;
+import util.tree.Node;
+
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class Connectives {
     private static final String w = Common.w;
@@ -114,5 +118,40 @@ public class Connectives {
                 "thf( " + dia_unimodal + "_def , definition , ( " + dia_unimodal + " = (" +
                 "^ [A:" + w + ">$o,W:" + w + "] : ? [V:" + w + "] : ( (" + AccessibilityRelation.getRelationNameUnimodal() + "@W@V) => (A@V) )" +
                 "))).";
+    }
+
+    public static String getNormalizedEscapedModalOperator(Node n) throws AnalysisException {
+        // TODO assert this is a valid operator
+        String op = n.toStringLeafs();
+        Node firstLeaf = n.getFirstLeaf();
+        // $box
+        if (firstLeaf.getLabel().equals("$box")){
+            return box_unimodal;
+        }
+        // $dia
+        if (firstLeaf.getLabel().equals("$dia")){
+            return dia_unimodal;
+        }
+
+        Optional<Node> unsigned_integer = n.getLastChild().dfsRule("unsigned_integer");
+        // $box_int @ <int>
+        if (firstLeaf.getLabel().equals("$box_int")){
+            if (unsigned_integer.isPresent()){
+                return box_int_prefix + "_" + unsigned_integer.get().getFirstLeaf().getLabel();
+            } else {
+                throw new AnalysisException("$box_int was not applied to an unsigned_integer: " + n.toString());
+            }
+        }
+        // $dia_int @ <int>
+        if (firstLeaf.getLabel().equals("$dia_int")){
+            if (unsigned_integer.isPresent()){
+                return dia_int_prefix + "_" + unsigned_integer.get().getFirstLeaf().getLabel();
+            } else {
+                throw new AnalysisException("$box_int was not applied to an unsigned_integer: " + n.toString());
+            }
+        }
+
+        throw new AnalysisException("Invalid modal operator: " + n.toString());
+
     }
 }

@@ -18,8 +18,8 @@ public class ModalTransformator {
 
     private final Node originalRoot;
     private Node transformedRoot;
-    private ThfAnalyzer thfAnalyzer;
-    private SemanticsAnalyzer semanticsAnalyzer;
+    public ThfAnalyzer thfAnalyzer;
+    public SemanticsAnalyzer semanticsAnalyzer;
 
     private Set<String> typesExistsQuantifiers;
     private Set<String> typesForAllQuantifiers;

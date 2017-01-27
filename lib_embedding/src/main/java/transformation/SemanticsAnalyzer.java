@@ -2,6 +2,7 @@ package transformation;
 
 
 import exceptions.AnalysisException;
+import transformation.Definitions.Connectives;
 import util.tree.Node;
 
 import java.util.*;
@@ -25,25 +26,25 @@ public class SemanticsAnalyzer {
     public enum DomainType{CONSTANT, VARYING, CUMULATIVE, DECREASING}
     public enum AccessibilityRelationProperty{K,T,B,D,FOUR,FIVE}
 
-    protected Map<String, ConstantType> constantToConstantType;
-    protected Map<String, ConsequenceType> axiomNameToConsequenceType;
-    protected Map<String, DomainType> domainToDomainType;
-    protected Map<String, Set<AccessibilityRelationProperty>> modalityToAxiomList;
+    public Map<String, ConstantType> constantToConstantType;
+    public Map<String, ConsequenceType> axiomNameToConsequenceType;
+    public Map<String, DomainType> domainToDomainType;
+    public Map<String, Set<AccessibilityRelationProperty>> modalityToAxiomList;
 
-    protected static String constantDefault = "$default";
-    protected static String consequenceDefault = "$default";
-    protected static String domainDefault = "$default";
-    protected static String modalitiesDefault = "$default";
+    public static String constantDefault = "$default";
+    public static String consequenceDefault = "$default";
+    public static String domainDefault = "$default";
+    public static String modalitiesDefault = "$default";
 
     static Map<String,AccessibilityRelationProperty> modal_axioms;
-    private static Map<String,Set<AccessibilityRelationProperty>> modal_systems;
-    private static Map<String,ConsequenceType> consequenceTypes;
-    private static Map<String,ConstantType> constantTypes;
-    private static Map<String,DomainType> domainTypes;
-    private static Set<String> thfListSymbols;
-    private static Predicate<Node> isAxiom;
-    private static Predicate<Node> isSystem;
-    private static Predicate<Node> isThfListSymbol;
+    public static Map<String,Set<AccessibilityRelationProperty>> modal_systems;
+    public static Map<String,ConsequenceType> consequenceTypes;
+    public static Map<String,ConstantType> constantTypes;
+    public static Map<String,DomainType> domainTypes;
+    public static Set<String> thfListSymbols;
+    public static Predicate<Node> isAxiom;
+    public static Predicate<Node> isSystem;
+    public static Predicate<Node> isThfListSymbol;
 
     static{
         /*
@@ -257,10 +258,7 @@ public class SemanticsAnalyzer {
         }
     }
 
-    /*
-     * supports only one modality by default value
-     */
-    private void analyzeModalities(Node node){
+    private void analyzeModalities(Node node) throws AnalysisException {
         log.finest("Analyzing modalities in " + node);
         //System.out.println(node);
 
@@ -275,20 +273,26 @@ public class SemanticsAnalyzer {
         // probably a default value which is an axiom or a system or a list of axioms
         // TODO
         else{
-            log.warning("Modalities are default value + others. This is not supported yet");
+            //log.warning("Modalities are default value + others. This is not supported yet");
             // find all logical modalSymbolDefinitions
-            List<Node> thf_logic_defns = node.dfsRuleAll("logic_defn");
+            Optional<Node> default_value = node.dfsRule("logic_defn_element");
+            if (default_value.isPresent() && !default_value.get().dfsRule("logic_defn_rule").isPresent()){
+                System.out.println("DEFAULT");
+                Set<AccessibilityRelationProperty> propertyList = resolveModalityEntry(default_value.get().toStringLeafs());
+                System.out.println(default_value.get().toStringLeafs());
+                this.modalityToAxiomList.put(modalitiesDefault,propertyList);
+            }
+
+            List<Node> thf_logic_defns = node.dfsRuleAll("logic_defn_rule");
             for (Node d : thf_logic_defns){
-                Optional<Node> logic_defn_rule = d.dfsRule("logic_defn_rule");
-
-                // rule means specific modality
-                if (logic_defn_rule.isPresent()){
-
-                }
-                // otherwise it is default value
-                else{
-
-                }
+                System.out.println("SPECIFIC");
+                Node operator = d.getFirstChild();
+                Node properties = d.getLastChild();
+                String normalizedEscapedModalOperator = Connectives.getNormalizedEscapedModalOperator(operator);
+                Set<AccessibilityRelationProperty> propertyList = resolveModalityEntry(properties.toStringLeafs());
+                System.out.println(operator.toStringLeafs());
+                System.out.println(resolveModalityEntry(properties.toStringLeafs()));
+                this.modalityToAxiomList.put(normalizedEscapedModalOperator,propertyList);
             }
         }
 
