@@ -477,12 +477,13 @@ public class ModalTransformator {
         }
         def.append("\n");
 
-        // introduce used accessibility relation properties
-        if (semanticsAnalyzer.modalityToAxiomList.get(SemanticsAnalyzer.modalitiesDefault) == null){
-            throw new TransformationException("No default value for modalities found.");
-        }
+        // define accessibility relation properties
         def.append("% define accessibility relation properties\n");
-        for(SemanticsAnalyzer.AccessibilityRelationProperty p :  semanticsAnalyzer.modalityToAxiomList.get(SemanticsAnalyzer.modalitiesDefault)){
+        Set<SemanticsAnalyzer.AccessibilityRelationProperty> allProperties = new HashSet<>();
+        for (Set<SemanticsAnalyzer.AccessibilityRelationProperty> set : semanticsAnalyzer.modalityToAxiomList.values()){
+            allProperties.addAll(set);
+        }
+        for(SemanticsAnalyzer.AccessibilityRelationProperty p :  allProperties){
             if (p != SemanticsAnalyzer.AccessibilityRelationProperty.K) {
                 def.append(AccessibilityRelation.getAccessibilityRelationPropertyDefinitionByAccessibilityRelationProperty(p));
                 def.append("\n");
@@ -491,15 +492,11 @@ public class ModalTransformator {
         def.append("\n");
 
         // introduce properties on the accessibility relations
-        def.append("% assign properties to accessibility relations\n");
-        if (semanticsAnalyzer.modalityToAxiomList.get(SemanticsAnalyzer.modalitiesDefault) == null){
-            throw new TransformationException("No default value for modalities found.");
-        }
         for (String normalizedModalOperatorName : usedModalities) {
             String normalizedRelationName = AccessibilityRelation.getNormalizedRelationName(normalizedModalOperatorName);
             Set<SemanticsAnalyzer.AccessibilityRelationProperty> properties;
-            if (semanticsAnalyzer.modalityToAxiomList.containsKey(normalizedRelationName)){
-                properties = semanticsAnalyzer.modalityToAxiomList.get(normalizedRelationName);
+            if (semanticsAnalyzer.modalityToAxiomList.containsKey(normalizedModalOperatorName)){
+                properties = semanticsAnalyzer.modalityToAxiomList.get(normalizedModalOperatorName);
             } else {
                 if ( semanticsAnalyzer.modalityToAxiomList.containsKey(SemanticsAnalyzer.modalitiesDefault) ){
                     properties = semanticsAnalyzer.modalityToAxiomList.get(SemanticsAnalyzer.modalitiesDefault);
