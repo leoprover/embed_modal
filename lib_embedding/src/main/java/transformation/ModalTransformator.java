@@ -203,21 +203,24 @@ public class ModalTransformator {
                 leaf.setLabel("mfalse");
                 usedConnectives.add("mfalse");
                 break;
+            case "~":
+                leaf.setLabel("mnot @");
+                usedConnectives.add("mnot");
+                break;
             // embed simple modality
             // box and dia already have @
             case "$box":
                 embed_modality_box_or_dia(leaf);
-                //leaf.setLabel("mbox");
-                //usedConnectives.add("mbox");
                 break;
             case "$dia":
                 embed_modality_box_or_dia(leaf);
-                //leaf.setLabel("mdia");
-                //usedConnectives.add("mdia");
                 break;
-            case "~":
-                leaf.setLabel("mnot @");
-                usedConnectives.add("mnot");
+            // embed integer indexed modalities
+            case "$box_int":
+                embed_modality_box_or_dia_int(leaf);
+                break;
+            case "$dia_int":
+                embed_modality_box_or_dia_int(leaf);
                 break;
             default:
                 // do nothing
@@ -231,6 +234,15 @@ public class ModalTransformator {
     private void embed_modality_box_or_dia(Node boxOrDiaLeaf) throws AnalysisException {
         String normalizedModalOperator = Connectives.getNormalizedModalOperator(boxOrDiaLeaf);
         boxOrDiaLeaf.setLabel(normalizedModalOperator);
+        usedModalities.add(normalizedModalOperator);
+    }
+
+    private void embed_modality_box_or_dia_int(Node boxOrDiaIntLeaf) throws AnalysisException {
+        Node operatorTree = boxOrDiaIntLeaf.getNextTopBranchingNode(); // should be thf_apply_formula
+        String normalizedModalOperator = Connectives.getNormalizedModalOperator(operatorTree);
+        operatorTree.delAllChildren();
+        Node newOperator = new Node("t_box_dia_int" , normalizedModalOperator);
+        operatorTree.addChild(newOperator);
         usedModalities.add(normalizedModalOperator);
     }
 

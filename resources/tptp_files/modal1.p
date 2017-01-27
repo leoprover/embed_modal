@@ -13,7 +13,6 @@ thf( complicated_s5 , logic , ( $modal := [
 thf( p_decl , type , ( p : $o ) ).
 thf( p_is_valid, axiom, (p)).
 thf( necessitation , conjecture , ( $box @ p ) ).
-%thf( necessitation , conjecture , ( $box_int @ 1 @ p ) ).
-%thf( necessitation , conjecture , ( $box_int @ 2 @ p ) ).
+thf( necessitation , conjecture , ( $box_int @ 1 @ p ) ).
 
 
