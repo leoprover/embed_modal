@@ -7,7 +7,6 @@
 
 # Fixes
 * parser grammar: Full THF compliance
-* remove default values
 * more documentation
 * restrict problem output to definitions which are necessary
 * normalize types and formulas

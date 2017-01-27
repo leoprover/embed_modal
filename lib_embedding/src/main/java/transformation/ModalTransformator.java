@@ -161,7 +161,8 @@ public class ModalTransformator {
             String identifier = statement.getParent().getChild(2).toStringLeafs();
             SemanticsAnalyzer.ConsequenceType consequence = semanticsAnalyzer.axiomNameToConsequenceType.getOrDefault(
                     identifier,semanticsAnalyzer.axiomNameToConsequenceType.getOrDefault(
-                            SemanticsAnalyzer.consequenceDefault,SemanticsAnalyzer.ConsequenceType.GLOBAL));
+                            SemanticsAnalyzer.consequenceDefault,null));
+            if (consequence == null) throw new TransformationException("No explicit or default consequence semantics found for identifier " + identifier );
             if (consequence.equals(SemanticsAnalyzer.ConsequenceType.GLOBAL)) {
                 // insert valid operator
                 Node validLeft = new Node("t_validLeft", "( mvalid @ (");
@@ -322,9 +323,11 @@ public class ModalTransformator {
                 // add embedded quantifier functor and add quantifier for the type to
                 Node quant;
                 String normalizedType = Common.normalizeType(type);
-                SemanticsAnalyzer.DomainType defaultDomainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(
-                        SemanticsAnalyzer.domainDefault, SemanticsAnalyzer.DomainType.CONSTANT);
-                SemanticsAnalyzer.DomainType domainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(normalizedType, defaultDomainType);
+                //SemanticsAnalyzer.DomainType defaultDomainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(
+                //        SemanticsAnalyzer.domainDefault, SemanticsAnalyzer.DomainType.CONSTANT);
+                SemanticsAnalyzer.DomainType domainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(normalizedType,
+                        this.semanticsAnalyzer.domainToDomainType.getOrDefault(SemanticsAnalyzer.domainDefault,null));
+                if (domainType == null) throw new TransformationException("No explicit or default domain semantics found for domain " + type);
                 if (quantifier.equals("!")){
                     if (domainType == SemanticsAnalyzer.DomainType.CONSTANT)
                         quant = new Node("t_quantifier", Quantification.embedded_forall(type));
@@ -494,17 +497,9 @@ public class ModalTransformator {
         // introduce properties on the accessibility relations
         for (String normalizedModalOperatorName : usedModalities) {
             String normalizedRelationName = AccessibilityRelation.getNormalizedRelationName(normalizedModalOperatorName);
-            Set<SemanticsAnalyzer.AccessibilityRelationProperty> properties;
-            if (semanticsAnalyzer.modalityToAxiomList.containsKey(normalizedModalOperatorName)){
-                properties = semanticsAnalyzer.modalityToAxiomList.get(normalizedModalOperatorName);
-            } else {
-                if ( semanticsAnalyzer.modalityToAxiomList.containsKey(SemanticsAnalyzer.modalitiesDefault) ){
-                    properties = semanticsAnalyzer.modalityToAxiomList.get(SemanticsAnalyzer.modalitiesDefault);
-                } else {
-                    throw new TransformationException("Modal operator does not have semantics: " + normalizedModalOperatorName);
-                }
-            }
-
+            Set<SemanticsAnalyzer.AccessibilityRelationProperty> properties = this.semanticsAnalyzer.modalityToAxiomList.getOrDefault(normalizedModalOperatorName,
+                    this.semanticsAnalyzer.modalityToAxiomList.getOrDefault(SemanticsAnalyzer.modalitiesDefault,null));
+            if (properties == null) throw new TransformationException("No explicit or default domain semantics found for modal operator " + normalizedModalOperatorName);
             for (SemanticsAnalyzer.AccessibilityRelationProperty p : properties ) {
                 if (p != SemanticsAnalyzer.AccessibilityRelationProperty.K) {
                     def.append(AccessibilityRelation.applyPropertyToRelation(p, normalizedRelationName));
@@ -558,9 +553,11 @@ public class ModalTransformator {
             }
             def.append("\n% define domain restrictions\n");
             for (String q: typesForVaryingQuantifiers) { // insert domain restriction (cumulative etc) if necessary
-                SemanticsAnalyzer.DomainType defaultDomainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(
-                        SemanticsAnalyzer.domainDefault, SemanticsAnalyzer.DomainType.CONSTANT);
-                SemanticsAnalyzer.DomainType domainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(q, defaultDomainType);
+                //SemanticsAnalyzer.DomainType defaultDomainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(
+                //        SemanticsAnalyzer.domainDefault, SemanticsAnalyzer.DomainType.CONSTANT);
+                SemanticsAnalyzer.DomainType domainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(q,
+                        this.semanticsAnalyzer.domainToDomainType.getOrDefault(SemanticsAnalyzer.domainDefault,null));
+                if (domainType == null) throw new TransformationException("No explicit or default domain semantics found for domain " + q);
                 if (domainType == SemanticsAnalyzer.DomainType.CUMULATIVE) {
                     def.append(Quantification.cumulative_eiw_th0(q));
                     def.append("\n");
@@ -574,9 +571,11 @@ public class ModalTransformator {
         if (!typesExistsQuantifiers.isEmpty()) {
             def.append("\n% define exists quantifiers\n");
             for (String q : typesExistsQuantifiers) {
-                SemanticsAnalyzer.DomainType defaultDomainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(
-                        SemanticsAnalyzer.domainDefault, SemanticsAnalyzer.DomainType.CONSTANT);
-                SemanticsAnalyzer.DomainType domainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(q, defaultDomainType);
+                //SemanticsAnalyzer.DomainType defaultDomainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(
+                //        SemanticsAnalyzer.domainDefault, SemanticsAnalyzer.DomainType.CONSTANT);
+                SemanticsAnalyzer.DomainType domainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(q,
+                        this.semanticsAnalyzer.domainToDomainType.getOrDefault(SemanticsAnalyzer.domainDefault,null));
+                if (domainType == null) throw new TransformationException("No explicit or default domain semantics found for domain " + q);
                 if (domainType == SemanticsAnalyzer.DomainType.CONSTANT)
                     def.append(Quantification.mexists_const_th0(q));
                 else
@@ -587,9 +586,11 @@ public class ModalTransformator {
         if (!typesForAllQuantifiers.isEmpty()) {
             def.append("\n% define for all quantifiers\n");
             for (String q : typesForAllQuantifiers) {
-                SemanticsAnalyzer.DomainType defaultDomainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(
-                        SemanticsAnalyzer.domainDefault, SemanticsAnalyzer.DomainType.CONSTANT);
-                SemanticsAnalyzer.DomainType domainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(q, defaultDomainType);
+                //SemanticsAnalyzer.DomainType defaultDomainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(
+                //        SemanticsAnalyzer.domainDefault, SemanticsAnalyzer.DomainType.CONSTANT);
+                SemanticsAnalyzer.DomainType domainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(q,
+                        this.semanticsAnalyzer.domainToDomainType.getOrDefault(SemanticsAnalyzer.domainDefault,null));
+                if (domainType == null) throw new TransformationException("No explicit or default domain semantics found for domain " + q);
                 if (domainType == SemanticsAnalyzer.DomainType.CONSTANT)
                     def.append(Quantification.mforall_const_th0(q));
                 else
