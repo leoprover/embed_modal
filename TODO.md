@@ -8,8 +8,8 @@
 # Fixes
 * parser grammar: Full THF compliance
 * more documentation
-* restrict problem output to definitions which are necessary
 * normalize types and formulas
+* check if there are already any identifiers which are used in the embedding
 * cleanup code
 
 # Unit Tests
