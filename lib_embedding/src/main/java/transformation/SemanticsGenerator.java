@@ -90,8 +90,10 @@ public class SemanticsGenerator {
     }
 
     public static String thfName(String sentence){
+        if (sentence.equals("")) return "";
         int start = sentence.indexOf("(");
         int end = sentence.indexOf(",",start+1);
+        if (start < 0 || end < 0) return "";
         return sentence.substring(start+1,end).trim();
     }
 

@@ -24,6 +24,13 @@ public class Wrappers {
 
     private static final Logger log = Logger.getLogger( "default" );
 
+    /*
+     * Converts a directory and its sub*directories to modal logical thf problems.
+     * Output is mapped to a similar subdirectory structure
+     * @param inPath input directory containing problems/subdirectories
+     * @param oPath output directory
+     * One directory structures for every single semantics
+     */
     public static void convertModalMultipleSemanticsOnMultipleDirectoriesTraverseDirectory(Path inPath, String oPath, boolean dotin, boolean dotout, String dotBin, String[] semantics){
         if (Files.isDirectory(inPath)){
             log.info("Input is a directory " + inPath.toString());
@@ -33,13 +40,18 @@ public class Wrappers {
             List<String> parseErrors = new ArrayList<>();
             List<Pair<String,String>> otherErrors = new ArrayList<>();
 
-            System.out.println("Semantics: " + semantics.length);
-            for (String sem : semantics){
-                System.out.println(sem);
+            if (semantics != null) {
+                log.fine("Semantics: " + semantics.length);
+                for (String sem : semantics) {
+                    log.finer("Semantics in list: " + sem);
+                }
+            } else {
+                semantics = new String[1];
+                semantics[0] = "";
             }
-
-            System.out.println("Embedding now.");
+            log.info("Embedding.");
             for (String sem : semantics) {
+                log.info("Current semantics: " + sem);
                 Path out_s = Paths.get(oPath,SemanticsGenerator.thfName(sem));
                 try (Stream<Path> paths = Files.walk(inPath)) {
 
@@ -53,7 +65,7 @@ public class Wrappers {
                             Files.createDirectories(newDir);
                             log.info("Created directory " + newDir.toString());
                         } catch (IOException e) {
-                            log.warning("Could not create directory " + newDir.toString() + " ::: " + e.getMessage());
+                            log.severe("Could not create directory " + newDir.toString() + " ::: " + e.getMessage());
                         }
                     });
 
@@ -65,11 +77,14 @@ public class Wrappers {
                             log.info("Processing " + String.valueOf(problems.get()) + ": " + f.toString());
                             String subdir = f.toString().substring(inPath.getParent().toString().length());
                             Path outPath = Paths.get(out_s.toString(), subdir);
-                            Path inDot = Paths.get(outPath.toString() + ".in.dot");
-                            Path outDot = Paths.get(outPath.toString() + ".out.dot");
-                            System.out.println(outPath.toString());
+                            Path inDot = Paths.get(outPath.toString() + "-in.dot");
+                            Path outDot = Paths.get(outPath.toString() + "-out.dot");
+                            //System.out.println(outPath.toString());
                             if (!dotin) inDot = null;
                             if (!dotout) outDot = null;
+
+
+                            // call embedding wrapper
                             try {
                                 boolean success = convertModal(f, outPath, inDot, outDot, dotBin, sem);
                                 if (!success) {
@@ -83,26 +98,26 @@ public class Wrappers {
                                 otherErrors.add(new Pair<String, String>(f.toString(), error));
                                 problemsOtherErrors.getAndIncrement();
                                 //e.printStackTrace();
-                                //System.exit(1);
                             }
                         });
+
                         // write errors to file
                         try {
                             Files.write(Paths.get(out_s.toString(), "OtherErrors"), otherErrors.stream()
                                     .map(p -> p.getKey() + " ::: " + p.getValue())
                                     .collect(Collectors.joining("\n")).getBytes());
                         } catch (IOException e) {
-                            System.err.println("Could not write OtherErrors file");
+                            log.warning("Could not write OtherErrors file");
                             e.printStackTrace();
                         }
                         try {
                             Files.write(Paths.get(out_s.toString(), "ParseErrors"), parseErrors.stream()
                                     .collect(Collectors.joining("\n")).getBytes());
                         } catch (IOException e) {
-                            System.err.println("Could not write ParseErrors file");
+                            log.warning("Could not write ParseErrors file");
                             e.printStackTrace();
                         }
-                        System.out.println("Problems total:" + problems.get() + " parseErrors:" + problemsParseErrors.get() + " otherErrors:" + problemsOtherErrors.get());
+                        log.info("Problems total:" + problems.get() + " parseErrors:" + problemsParseErrors.get() + " otherErrors:" + problemsOtherErrors.get());
 
                     } catch (IOException e) {
                         log.severe("Could not traverse directory " + inPath.toString() + " ::: " + e.getMessage());
@@ -123,6 +138,7 @@ public class Wrappers {
      * Output is mapped to a similar subdirectory structure
      * @param inPath input directory containing problems/subdirectories
      * @param oPath output directory
+     * One directory structure for all semantics
      */
     public static void convertModalMultipleSemanticsTraverseDirectory(Path inPath, String oPath, boolean dotin, boolean dotout, String dotBin, String[] semantics){
         if (Files.isDirectory(inPath)){
@@ -156,10 +172,12 @@ public class Wrappers {
                         log.info("Processing " + String.valueOf(problems.get()) + ": " + f.toString());
                         String subdir = f.toString().substring(inPath.getParent().toString().length());
                         Path outPath = Paths.get(oPath,subdir);
-                        Path inDot = Paths.get(outPath.toString()+".in.dot");
-                        Path outDot = Paths.get(outPath.toString()+".out.dot");
+                        Path inDot = Paths.get(outPath.toString());
+                        Path outDot = Paths.get(outPath.toString());
                         if (!dotin) inDot = null;
                         if (!dotout) outDot = null;
+
+                        // call to embedding wrapper
                         try {
                             boolean success = convertModalMultipleSemantics(f,outPath,inDot,outDot,dotBin,semantics);
                             if (!success){
@@ -173,9 +191,9 @@ public class Wrappers {
                             otherErrors.add(new Pair<String, String>(f.toString(),error));
                             problemsOtherErrors.getAndIncrement();
                             //e.printStackTrace();
-                            //System.exit(1);
                         }
                     });
+
                     // write errors to file
                     try {
                         Files.write(Paths.get(oPath,"OtherErrors"),otherErrors.stream()
@@ -192,9 +210,8 @@ public class Wrappers {
                         System.err.println("Could not write ParseErrors file");
                         e.printStackTrace();
                     }
-                    System.out.println("Problems total:" + problems.get() + " parseErrors:" + problemsParseErrors.get() + " otherErrors:" + problemsOtherErrors.get());
+                    log.info("Problems total:" + problems.get() + " parseErrors:" + problemsParseErrors.get() + " otherErrors:" + problemsOtherErrors.get());
 
-                    System.exit(0);
                 } catch (IOException e){
                     log.severe("Could not traverse directory " + inPath.toString() + " ::: " + e.getMessage());
                     log.severe("Exit.");
@@ -212,23 +229,23 @@ public class Wrappers {
     /*
      * Wrapper for convertModel which creates multiple problems from one problem and an array containing semantics
      * The problem must not include semantics since multiple semantics declaration results in undefined behavior
+     * experimental output
      */
     public static boolean convertModalMultipleSemantics(Path inPath, Path outPath, Path inDot, Path outDot, String dotBin, String[] semantics) throws IOException, exceptions.ParseException, AnalysisException, TransformationException {
         if (semantics == null) return convertModal(inPath,outPath,inDot,outDot,dotBin,null);
         else{
-            if (semantics.length == 1){
-                return convertModal(inPath,outPath,inDot,outDot,dotBin,semantics[0]);
-            }
-            boolean success = false;
-            for (int i = 0; i < semantics.length ; i++){
-                Path t_outPath = Paths.get(outPath.toString() + "." + i);
+            boolean success = true;
+            for (String sem : semantics){
+                String semName = SemanticsGenerator.thfName(sem);
+                log.info("Converting with semantics " + semName + " file " + inPath.toString());
+                String outproblem = outPath.toString();
+                if (outproblem.endsWith(".p")) outproblem = outproblem.substring(0,outproblem.lastIndexOf(".p"));
+                Path t_outPath = Paths.get(outproblem + "-" + semName + ".p");
                 Path t_inDot = null;
                 Path t_outDot = null;
-                if (inDot != null) t_inDot = Paths.get(inDot.toString() + "." + i);
-                if (outDot != null) t_outDot = Paths.get(outDot.toString() + "." + i);
-                //System.out.println(t_inDot);
-                //System.out.println(t_outDot);
-                success |= convertModal(inPath,t_outPath,t_inDot,t_outDot,dotBin,semantics[i]);
+                if (inDot != null) t_inDot = Paths.get(outproblem + "-" + semName + ".dot");
+                if (outDot != null) t_outDot = Paths.get(outproblem + "-" + semName + ".dot");
+                success &= convertModal(inPath,t_outPath,t_inDot,t_outDot,dotBin,sem);
             }
             return success;
         }
@@ -240,7 +257,13 @@ public class Wrappers {
      * semantics can be null ( semantics is already in the problem file )
      */
     public static boolean convertModal(Path inPath, Path outPath, Path inDot, Path outDot, String dotBin, String semantics) throws IOException, exceptions.ParseException, AnalysisException, TransformationException {
-        //log.info("Processing " + inPath.toString());
+        String semName = "";
+        if (semantics != null) {
+            semName = SemanticsGenerator.thfName(semantics);
+            log.info("Processing " + inPath.toString() + " using additional semantics " + semName);
+        } else {
+            log.info("Processing " + inPath.toString());
+        }
         // read file
         if (!Files.isRegularFile(inPath)){
             throw new IOException("Could not read file " + inPath + " ::: " + "Not a regular file or does not exist");
@@ -251,6 +274,7 @@ public class Wrappers {
         } catch (IOException e) {
             throw new IOException("Could not read file " + inPath + " ::: " + e.getMessage());
         }
+        if (problem.contains("$modal")) log.warning("Problem may already contain semantical definitions.");
 
         // add optional semantics
         if (semantics == null) semantics = "";
@@ -264,9 +288,11 @@ public class Wrappers {
 
         // create input dot
         if (inDot != null){
+            log.info("Creating input dot file " + inDot.toString());
             String dotIn = root.toDot();
             Files.write(inDot, dotIn.getBytes());
             if (dotBin != null){
+                log.info("Creating input ps file " + inDot.toString() + ".ps");
                 String cmd = dotBin + " -Tps " + inDot + " -o " + inDot + ".ps";
                 Runtime.getRuntime().exec(cmd);
             }
@@ -282,14 +308,15 @@ public class Wrappers {
         TransformContext transformContext = null;
         ModalTransformator transformator = new ModalTransformator(root);
         transformContext = transformator.transform();
-        //System.out.println(Common.getAllDefinitions());
-        //System.out.println(transformContext.getProblem());
+        log.info("Transformed problem.");
 
         // create output dot
         if (outDot != null){
+            log.info("Creating output dot file " + outDot.toString());
             String dotIn = transformContext.transformedRoot.toDot();
             Files.write(outDot, dotIn.getBytes());
             if (dotBin != null){
+                log.info("Creating output ps file " + outDot.toString() + ".ps");
                 String cmd = dotBin + " -Tps " + outDot + " -o " + outDot + ".ps";
                 Runtime.getRuntime().exec(cmd);
             }
@@ -297,9 +324,8 @@ public class Wrappers {
 
         // output
         String newProblem = transformContext.getProblemIncludingOld();
-        //System.out.println(newProblem);
         Files.write(outPath,newProblem.getBytes());
-
+        log.info("Transformed problem was written to " + outPath.toString());
         return true;
     }
 }
