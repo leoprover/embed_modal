@@ -11,7 +11,7 @@ To convert a modal problem run
     -i <input_file>
     -o <output_file>
 
-To convert a directory containing
+To convert a directory containing modal problems
 
     java -jar embed/target/embed-1.0-SNAPSHOT-shaded.jar 
     -f modal 
