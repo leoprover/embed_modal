@@ -5,13 +5,11 @@
 * more axioms and axiom schemes
 * embed should provide more standard semantics
 
-# Fixes
+# TODO
 * parser grammar: Full THF compliance
 * more documentation
 * normalize types and formulas
-* check if there are already any identifiers which are used in the embedding
-* cleanup code
-* logging
+* check if there are already any identifiers which are used in the embedding meta-symbols
 
 # Unit Tests
 * semantics analysis
