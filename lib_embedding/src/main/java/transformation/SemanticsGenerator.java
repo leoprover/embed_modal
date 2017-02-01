@@ -22,6 +22,8 @@ public class SemanticsGenerator {
     public static String[] rigid_local;
     public static String[] rigid;
     public static String[] all_supported;
+    public static String[] all;
+
 
     static{
         systems = new String[5];
@@ -77,6 +79,13 @@ public class SemanticsGenerator {
             for (int domain = 0; domain < domains.length; domain++)
                 for (int consequence = 0; consequence < consequences.length; consequence++)
                     rigid[system * domains.length * consequences.length + domain * consequences.length + consequence] = semanticsCube[system][domain][0][consequence];//
+        }
+        all = new String[systems.length * domains.length * consequences.length * constants.length];
+        for (int system = 0; system < systems.length; system++){
+            for (int domain = 0; domain < domains.length; domain++)
+                for (int consequence = 0; consequence < consequences.length; consequence++)
+                    for (int constant = 0; constant < constants.length; constant++)
+                        all[system * domains.length * consequences.length * constants.length + domain * consequences.length * constants.length + constants.length * consequence + constant] = semanticsCube[system][domain][constant][consequence];//
         }
         all_supported = rigid;
     }
