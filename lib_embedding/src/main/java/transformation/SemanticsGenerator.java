@@ -26,12 +26,16 @@ public class SemanticsGenerator {
 
 
     static{
-        systems = new String[5];
+        systems = new String[9];
         systems[0] = "$modal_system_K";
         systems[1] = "$modal_system_D";
         systems[2] = "$modal_system_T";
         systems[3] = "$modal_system_S4";
         systems[4] = "$modal_system_S5";
+        systems[5] = "$modal_system_CD";
+        systems[6] = "$modal_system_BOXM";
+        systems[7] = "$modal_system_C4";
+        systems[8] = "$modal_system_C";
         domains = new String[4];
         domains[0] = "$constant";
         domains[1] = "$varying";

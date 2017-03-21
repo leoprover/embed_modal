@@ -140,6 +140,10 @@ MODAL_AXIOM                 : '$modal_axiom_K' // box(s -> t) -> (box s -> box t
                             | '$modal_axiom_D' // box s -> dia s
                             | '$modal_axiom_4' // box s -> box box s
                             | '$modal_axiom_5' // dia s -> box dia s
+                            | '$modal_axiom_CD' // dia s -> box s
+                            | '$modal_axiom_BOXM' // box (box s -> s)
+                            | '$modal_axiom_C4' // box box s -> box s
+                            | '$modal_axiom_C' // dia box s -> box dia s
                             ;
 MODAL_AXIOM_SYSTEM          : '$modal_system_K' // Axiom: K
                             | '$modal_system_T' // Axiom: K + T

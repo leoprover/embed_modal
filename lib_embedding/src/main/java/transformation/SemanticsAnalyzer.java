@@ -24,7 +24,7 @@ public class SemanticsAnalyzer {
     public enum ConsequenceType{GLOBAL, LOCAL}
     public enum ConstantType{RIGID, FLEXIBLE}
     public enum DomainType{CONSTANT, VARYING, CUMULATIVE, DECREASING}
-    public enum AccessibilityRelationProperty{K,T,B,D,FOUR,FIVE}
+    public enum AccessibilityRelationProperty{K,T,B,D,FOUR,FIVE,CD,BOXM,C4,C}
 
     public Map<String, ConstantType> constantToConstantType;
     public Map<String, ConsequenceType> axiomNameToConsequenceType;
@@ -71,6 +71,10 @@ public class SemanticsAnalyzer {
         modal_axioms.put("$modal_axiom_D",AccessibilityRelationProperty.D);
         modal_axioms.put("$modal_axiom_4",AccessibilityRelationProperty.FOUR);
         modal_axioms.put("$modal_axiom_5",AccessibilityRelationProperty.FIVE);
+        modal_axioms.put("$modal_axiom_CD",AccessibilityRelationProperty.CD);
+        modal_axioms.put("$modal_axiom_BOXM",AccessibilityRelationProperty.BOXM);
+        modal_axioms.put("$modal_axiom_C4",AccessibilityRelationProperty.C4);
+        modal_axioms.put("$modal_axiom_C",AccessibilityRelationProperty.C);
         modal_systems = new HashMap<>();
         modal_systems.put("$modal_system_K", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K)));
         modal_systems.put("$modal_system_T", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.T)));

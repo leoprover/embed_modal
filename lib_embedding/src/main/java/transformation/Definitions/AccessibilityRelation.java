@@ -46,6 +46,27 @@ public class AccessibilityRelation {
             "^ [R:" + w + ">" + w + ">$o] : ! [A:" + w + ",B:" + w + ",C:" + w + "] : ( ( (R@A@B) & (R@A@C) ) => (R@B@C) )" +
             "))).";
 
+    public static final String mfunctional = "" +
+            "thf( mfunctional_type , type , ( mfunctional : (" + w + ">" + w + ">$o)>$o ) ).\n" +
+            "thf( mfunctional_def , definition , ( mfunctional = (" +
+            "^ [R:" + w + ">" + w + ">$o] : ! [A:" + w + ",B:" + w + ",C:" + w + "] : ( ( (R@A@B) & (R@A@C) ) => ( B = C ) )" +
+            "))).";
+    public static final String mshiftreflexive = "" +
+            "thf( mshiftreflexive_type , type , ( mshiftreflexive : (" + w + ">" + w + ">$o)>$o ) ).\n" +
+            "thf( mshiftreflexive_def , definition , ( mshiftreflexive = (" +
+            "^ [R:" + w + ">" + w + ">$o] : ! [A:" + w + ",B:" + w + "] : ( (R@A@B) => (R@B@B) )" +
+            "))).";
+    public static final String mdense = "" +
+            "thf( mdense_type , type , ( mdense : (" + w + ">" + w + ">$o)>$o ) ).\n" +
+            "thf( mdense_def , definition , ( mdense = (" +
+            "^ [R:" + w + ">" + w + ">$o] : ! [A:" + w + ",B:" + w + "] : ( (R@A@B) => ( ? [C:" + w + "] : ( (R@A@C) & (R@C@B) ) ) )" +
+            "))).";
+    public static final String mconvergent = "" +
+            "thf( mconvergent_type , type , ( mconvergent : (" + w + ">" + w + ">$o)>$o ) ).\n" +
+            "thf( mconvergent_def , definition , ( mconvergent = (" +
+            "^ [R:" + w + ">" + w + ">$o] : ! [A:" + w + ",B:" + w + ",C:" + w + "] : ( ( (R@A@B) & (R@A@C) ) => ( ? [D:" + w + "] : ( (R@B@D) & (R@C@D) ) ) )" +
+            "))).";
+
     static{
         accessibilityRelationPropertyDefinitions = new HashMap<>();
         accessibilityRelationPropertyDefinitions.put(AccessibilityRelationProperty.T, mreflexive);
@@ -53,6 +74,10 @@ public class AccessibilityRelation {
         accessibilityRelationPropertyDefinitions.put(AccessibilityRelationProperty.D, mserial);
         accessibilityRelationPropertyDefinitions.put(AccessibilityRelationProperty.FOUR, mtransitive);
         accessibilityRelationPropertyDefinitions.put(AccessibilityRelationProperty.FIVE, meuclidean);
+        accessibilityRelationPropertyDefinitions.put(AccessibilityRelationProperty.CD, mfunctional);
+        accessibilityRelationPropertyDefinitions.put(AccessibilityRelationProperty.BOXM, mshiftreflexive);
+        accessibilityRelationPropertyDefinitions.put(AccessibilityRelationProperty.C4, mdense);
+        accessibilityRelationPropertyDefinitions.put(AccessibilityRelationProperty.C, mconvergent);
     }
     static{
         accessibilityRelationPropertyNames = new HashMap<>();
@@ -61,6 +86,10 @@ public class AccessibilityRelation {
         accessibilityRelationPropertyNames.put(AccessibilityRelationProperty.D, "mserial");
         accessibilityRelationPropertyNames.put(AccessibilityRelationProperty.FOUR, "mtransitive");
         accessibilityRelationPropertyNames.put(AccessibilityRelationProperty.FIVE, "meuclidean");
+        accessibilityRelationPropertyNames.put(AccessibilityRelationProperty.CD, "mfunctional");
+        accessibilityRelationPropertyNames.put(AccessibilityRelationProperty.BOXM, "mshiftreflexive");
+        accessibilityRelationPropertyNames.put(AccessibilityRelationProperty.C4, "mdense");
+        accessibilityRelationPropertyNames.put(AccessibilityRelationProperty.C, "mconvergent");
     }
 
     /***************************************************************************
