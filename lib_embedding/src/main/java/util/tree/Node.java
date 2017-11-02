@@ -611,7 +611,7 @@ public class Node {
     }
 
     public String toStringLeafs(){
-        return this.getLeafsDfs().stream().map(l->l.getLabel()).collect(Collectors.joining(" "));
+        return this.getLeafsDfs().stream().map(l->l.getLabel()).collect(Collectors.joining());
     }
 
     /*

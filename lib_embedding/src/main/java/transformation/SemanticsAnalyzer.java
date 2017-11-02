@@ -69,6 +69,7 @@ public class SemanticsAnalyzer {
         modal_axioms.put("$modal_axiom_5",AccessibilityRelationProperty.FIVE);
         modal_systems = new HashMap<>();
         modal_systems.put("$modal_system_K", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K)));
+        modal_systems.put("$modal_system_KB", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.B)));
         modal_systems.put("$modal_system_T", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.T)));
         modal_systems.put("$modal_system_D", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.D)));
         modal_systems.put("$modal_system_S4", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.T, AccessibilityRelationProperty.FOUR)));
@@ -267,7 +268,9 @@ public class SemanticsAnalyzer {
         // only default value which is an axiom or a system or a list of axioms
         if (!node.dfsRule("logic_defn_rule").isPresent()){
             Set<AccessibilityRelationProperty> propertyList = resolveModalityEntry(node.toStringLeafs());
+            System.out.println(propertyList.toString());
             log.finest("Found default value " + accessibilityRelationPropertyListToString(propertyList) + " for modalities only");
+            System.out.println("Found default value " + accessibilityRelationPropertyListToString(propertyList) + " for modalities only");
             this.modalityToAxiomList.put(modalitiesDefault,propertyList);
         }
 
@@ -328,13 +331,16 @@ public class SemanticsAnalyzer {
     private static Set<AccessibilityRelationProperty> resolveModalityEntry(String entry){
         Set<AccessibilityRelationProperty> axioms = new HashSet<>();
         log.finest("Resolving modality entry " + entry);
+        System.out.println("Resolving modality entry " + entry);
 
         // $modal_axiom_4
         log.finest("Trying resolving to single modal axiom.");
         AccessibilityRelationProperty p = modal_axioms.getOrDefault(entry,null);
         if (!(p == null)){
             log.finest("Modality entry was the valid axiom "+ p.name());
+            System.out.println("Modality entry was the valid axiom "+ p.name());
             axioms.add(p);
+            System.out.println(axioms.toString());
             return axioms;
         }
 
