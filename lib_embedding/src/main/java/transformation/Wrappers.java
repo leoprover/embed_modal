@@ -251,12 +251,11 @@ public class Wrappers {
         }
     }
 
-    /*
-     * converts one problem
-     * inDot outDot dotBin can be null
-     * semantics can be null ( semantics is already in the problem file )
-     */
-    public static boolean convertModal(Path inPath, Path outPath, Path inDot, Path outDot, String dotBin, String semantics) throws IOException, exceptions.ParseException, AnalysisException, TransformationException {
+    public static String convertModalToString(Path inPath) throws IOException, exceptions.ParseException, AnalysisException, TransformationException {
+        return convertModalToString(inPath, null, null, null, null);
+    }
+
+    public static String convertModalToString(Path inPath, Path inDot, Path outDot, String dotBin, String semantics) throws IOException, exceptions.ParseException, AnalysisException, TransformationException {
         String semName = "";
         if (semantics != null) {
             semName = SemanticsGenerator.thfName(semantics);
@@ -300,8 +299,7 @@ public class Wrappers {
 
         // check for parse error
         if (parseContext.hasParseError()){
-            log.warning("Parse Error " + parseContext.getParseError() + " in file " + inPath.toString());
-            return false;
+            throw new exceptions.ParseException("Parse Error " + parseContext.getParseError() + " in file " + inPath.toString());
         }
 
         // embed
@@ -323,9 +321,23 @@ public class Wrappers {
         }
 
         // output
-        String newProblem = transformContext.getProblemIncludingOld();
-        Files.write(outPath,newProblem.getBytes());
-        log.info("Transformed problem was written to " + outPath.toString());
-        return true;
+        return transformContext.getProblemIncludingOld();
+    }
+
+    /*
+     * converts one problem
+     * inDot outDot dotBin can be null
+     * semantics can be null ( semantics is already in the problem file )
+     */
+    public static boolean convertModal(Path inPath, Path outPath, Path inDot, Path outDot, String dotBin, String semantics) throws IOException, exceptions.ParseException, AnalysisException, TransformationException {
+        try {
+            String newProblem = convertModalToString(inPath, inDot, outDot, dotBin, semantics);
+            Files.write(outPath,newProblem.getBytes());
+            log.info("Transformed problem was written to " + outPath.toString());
+            return true;
+        } catch(Exception e) {
+            log.severe(e.toString());
+            return false;
+        }
     }
 }
