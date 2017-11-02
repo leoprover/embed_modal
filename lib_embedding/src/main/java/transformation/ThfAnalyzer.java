@@ -51,7 +51,7 @@ public class ThfAnalyzer {
             if (!i.hasChildren()) throw new AnalysisException("tptp_input has no children");
             Node tptpInput = i.getChild(0);
             String tptp_input_rule = tptpInput.getRule();
-            log.finest("Thf formula " + tptp_input_rule + " found.");
+            log.finest("Thf formula " + tptp_input_rule + " found: " + tptpInput.toStringLeafs().trim().replace("\n"," "));
             switch (tptp_input_rule) {
                 //log.finest("Switch rule " + tptp_input_rule)
                 //case "comment":
@@ -61,14 +61,13 @@ public class ThfAnalyzer {
                 case "annotated_formula":
                     if (!tptpInput.hasChildren()) throw new AnalysisException("annotated_formula has no children");
                     String annotated_rule = tptpInput.getChild(0).getRule();
-                    log.finest("Annotated formula " + annotated_rule + " found.");
                     switch (annotated_rule) {
                         case "thf_annotated":
-                            //log.finest("thf_annotated formula found");
+                            log.finest("thf_annotated formula found.");
                             analyzeThfAnnotated(tptpInput.getChild(0));
                             break;
                         default:
-                            //log.finest("Case default: annotated_rule not in switch statement: " + annotated_rule);
+                            log.finest("No thf_annotated formula found. annotated_rule not in switch statement : " + annotated_rule);
                             break;
                     }
                     break;

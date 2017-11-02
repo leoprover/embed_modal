@@ -44,8 +44,8 @@ public class SatallaxWrapper {
             proc = satallax.start();
             BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
             BufferedReader stdError = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
-            if (!proc.waitFor(timeout+20, unit)){
-                ProcessKiller.killAllOlderThan((int)timeout+10,"satallax");
+            if (!proc.waitFor(timeout+2, unit)){
+                ProcessKiller.killAllOlderThan((int)timeout+1,"satallax");
                 log.fine(filename.toString() + " : Proof Timeout");
                 this.timeout = true;
             }
@@ -54,12 +54,14 @@ public class SatallaxWrapper {
                 Duration delta = Duration.between(start,end);
                 this.duration =  (double) delta.getSeconds() + ( (double) delta.getNano() ) / 1000000000.0;
             }
-            String s = null;
-            while ((s = stdInput.readLine()) != null) {
-                stdout += s;
-            }
-            while ((s = stdError.readLine()) != null) {
-                stderr += s;
+            if (!this.timeout) {
+                String s = null;
+                while ((s = stdInput.readLine()) != null) {
+                    stdout += s;
+                }
+                while ((s = stdError.readLine()) != null) {
+                    stderr += s;
+                }
             }
         } catch (IOException e) {
             if (this.stderr == null) this.stderr = e.getMessage();

@@ -38,30 +38,41 @@ public class MLeanCopWrapper {
             ProcessBuilder mleancop = new ProcessBuilder(params);
             Instant start = Instant.now();
             proc = mleancop.start();
+            System.out.println("::: mleancop started");
             BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
             BufferedReader stdError = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
             if (!proc.waitFor(timeout+11, unit)) {
+                System.out.println("::: waited but timeout");
                 ProcessKiller.killAllOlderThan((int)timeout+10,"mleancop");
-                ProcessKiller.killAllOlderThan((int)timeout+10,"swipl");
                 log.fine(filename.toString() + " : Proof Timeout");
                 this.timeout = true;
             }else{
+                System.out.println("::: waited no timeout");
                 Instant end = Instant.now();
                 Duration delta = Duration.between(start,end);
                 this.duration =  (double) delta.getSeconds() + ( (double) delta.getNano() ) / 1000000000.0;
             }
-            String s = null;
-            while ((s = stdInput.readLine()) != null) {
-                stdout += s;
-            }
-            while ((s = stdError.readLine()) != null) {
-                stderr += s;
+            if (!this.timeout) {
+                String s = null;
+                System.out.println("::: now reading stdout");
+                while ((s = stdInput.readLine()) != null) {
+                    System.out.println("::: reading one line from stdout");
+                    stdout += s;
+                }
+                System.out.println("::: finished reading from stdout. now reading stderr");
+                while ((s = stdError.readLine()) != null) {
+                    System.out.println("::: reading one line from stderr");
+                    stderr += s;
+                }
+                System.out.println("::: finished reading from stderr");
             }
         } catch (IOException e) {
             if (this.stderr == null) this.stderr = e.getMessage();
             if (this.stdout == null) this.stdout = e.getMessage();
+            System.out.println("::: IOException");
             System.out.println(e.toString());
         } catch (InterruptedException e) {
+            System.out.println("::: Interrupted Exception");
             System.err.println(filename.toString() + " : Interrupted Exception.");
             if (this.stderr == null) this.stderr = e.getMessage();
             if (this.stdout == null) this.stdout = e.getMessage();
@@ -71,6 +82,8 @@ public class MLeanCopWrapper {
             this.status = extractSZSStatus(this.stdout);
             //System.out.println(this.status);
         }
+        System.out.println("::: Mleancop call finished");
+
             /*
             if (!proc.waitFor(timeout, unit)) {
                 log.fine(filename.toString() + " : Proof Timeout");

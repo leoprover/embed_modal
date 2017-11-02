@@ -1,5 +1,8 @@
 package main;
 
+import main.Comparators.CombinedComparator;
+import parser.ParseContext;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -17,107 +20,129 @@ public class Results {
         this.tests.add(t);
     }
 
-    // results
-    // concerning qmltp and status
-    /*
-    public List<Problem> confirmedProblems; // confirm result of qmltp without disagreement of the atps
-    public List<Problem> unconfirmedProblems; // qmltp yields a result but atps do not or atps disagree
-    public List<Problem> newProblemResultTotal; // qmltp yields unsolved but atps have a result and they agree
-    public List<Problem> newProblemResultTHM; // qmltp yields unsolved but atps have a result and they agree
-    public List<Problem> newProblemResultCSA; // qmltp yields unsolved but atps have a result and they agree
-    */
+    List<ParseContext> problemsContainingEqualities;
     public List<Problem> disagreementQmltpAtp; // if qmltp and atp results are different and all atp yield the same result
-
-    // concerning qmltp and rating
-    /*
-    public List<Problem> rating_1_00_THM; // solve 1.0 problem as theorem without disagreement of the atps, status is THM or UNK
-    public List<Problem> rating_1_00_CSA; // solve 1.0 problem as couter-satisfiable without disagreement of the atps, status is CSA or UNK
-    public List<Problem> rating_1_00_UNK; // no solution for 1.0 problems
-    public List<Problem> rating_1_00_Total; // all 1.0 problems
-    */
-
-    // not concerning qmltp
-    // public List<Problem> newProblems; // qmltp does not sopport this semantical setting
-    // public List<Problem> newProblemsSolved; // qmltp does not support this semantical setting and atps solve this problem (agree)
-
-    // concerning both
-    // TODO
-    //public List<Problem> totallyUnsolvedProblems; // neither qmltp nor atps have results in which atps agree
+    public List<Problem> disagreementQmltpCsaAtpThm; // if qmltp=CSA and atp=THM
+    public List<Problem> disagreementQmltpMleancop; // if qmltp and atp results are different and all atp yield the same result
     public List<Problem> totalProblems; // all problems
+    public List<Problem> unique_THM;
+    public List<Problem> unique_CSA_constant;
+    public List<Problem> unique_concerning_qmltp_and_mleancop;
+    public List<Problem> unique_unsupported_semantics;
 
     // atp specific
     public List<Problem> errorAtp; // at least one atp system has an error status
     public List<Problem> disagreementAtpAtp; // if at least two atp systems have different results
+    public List<Problem> disagreementAtpMleancop; // if at least two atp systems have different results
+    public List<Problem> atpCsaWhenMleancopCsaVaryCumul; // mleancop and atps agree all on CSA in varyCumul domains
+    public List<Problem> mleancopCsaVaryCumul; // mleancop has CSA in vary/cumul domains
+    public List<Problem> atpCsaWhenMleancopThmVaryCumul; // mleancop has CSA in vary/cumul domains but Embedding has THM
+
     public HashMap<String,List<Problem>> satallax; // STATUS -> List of Problems
     public HashMap<String,List<Problem>> leo;
     public HashMap<String,List<Problem>> nitpick;
+    public HashMap<String,List<Problem>> mleancop;
 
     // table
     public List<String> table;
 
     public void evaluate(String outputPath){
 
-        /*
-        confirmedProblems = new ArrayList<>(); // y
-        unconfirmedProblems = new ArrayList<>(); // y
-        newProblemResultTotal = new ArrayList<>(); // y
-        newProblemResultTHM = new ArrayList<>(); // y
-        newProblemResultCSA = new ArrayList<>(); // y
-        newProblems = new ArrayList<>();
-        newProblemsSolved = new ArrayList<>(); // n
-        */
+        problemsContainingEqualities = CompareQmltp.problemMap.values().stream()
+                .filter(p->CompareQmltp.containsEqualityMap.get(p.getName()))
+                .collect(Collectors.toList());
+
         disagreementQmltpAtp = new ArrayList<>(); // y
-        /*
-        totallyUnsolvedProblems = new ArrayList<>(); // y + n
-        */
+        disagreementQmltpCsaAtpThm = new ArrayList<>(); // y
+        disagreementQmltpMleancop = new ArrayList<>();
         totalProblems = new ArrayList<>();
 
-        /*
-        rating_1_00_THM = new ArrayList<>();
-        rating_1_00_CSA = new ArrayList<>();
-        rating_1_00_UNK = new ArrayList<>();
-        rating_1_00_Total = new ArrayList<>();
-        */
+
+        unique_THM = new ArrayList<>();
+        unique_CSA_constant = new ArrayList<>();
+        unique_concerning_qmltp_and_mleancop = new ArrayList<>();
+        unique_unsupported_semantics= new ArrayList<>();
 
         errorAtp = new ArrayList<>();
         disagreementAtpAtp = new ArrayList<>(); // y + n
+        disagreementAtpMleancop = new ArrayList<>();
+        atpCsaWhenMleancopCsaVaryCumul = new ArrayList<>();
+        mleancopCsaVaryCumul = new ArrayList<>();
+        atpCsaWhenMleancopThmVaryCumul = new ArrayList<>();
         satallax = new HashMap<>();
         satallax.put("ERR",new ArrayList<>());
         satallax.put("UNK",new ArrayList<>());
         satallax.put("THM",new ArrayList<>());
         satallax.put("CSA",new ArrayList<>());
+        satallax.put("CSA_verified",new ArrayList<>());
+        satallax.put("CSA_constant_unique",new ArrayList<>());
+        //satallax.put("CSA_unverified",new ArrayList<>());
+        satallax.put("THM_unique",new ArrayList<>());
         leo = new HashMap<>();
         leo.put("ERR",new ArrayList<>());
         leo.put("UNK",new ArrayList<>());
         leo.put("THM",new ArrayList<>());
         leo.put("CSA",new ArrayList<>());
+        leo.put("CSA_verified",new ArrayList<>());
+        leo.put("CSA_constant_unique",new ArrayList<>());
+        //leo.put("CSA_unverified",new ArrayList<>());
+        leo.put("THM_unique",new ArrayList<>());
         nitpick = new HashMap<>();
         nitpick.put("ERR",new ArrayList<>());
         nitpick.put("UNK",new ArrayList<>());
         nitpick.put("THM",new ArrayList<>());
         nitpick.put("CSA",new ArrayList<>());
+        nitpick.put("CSA_verified",new ArrayList<>());
+        nitpick.put("CSA_constant_unique",new ArrayList<>());
+        //nitpick.put("CSA_unverified",new ArrayList<>());
+        nitpick.put("THM_unique",new ArrayList<>());
+        mleancop = new HashMap<>();
+        mleancop.put("ERR",new ArrayList<>());
+        mleancop.put("UNK",new ArrayList<>());
+        mleancop.put("THM",new ArrayList<>());
+        mleancop.put("CSA",new ArrayList<>());
 
         table = new ArrayList<>();
-        table.add("Semantics satSUM satTHM satCSA leoSUM leoTHM leoCSA nitSUM nitTHM nitCSA");
+        table.add("Semantics satSUM satTHM satCSA satCSA* leoSUM leoTHM leoCSA leoCSA* nitSUM nitTHM nitCSA nitCSA* U mleanSUM mleanTHM mleanCSA");
 
         for (Test test : this.tests){
             System.out.println("Evaluate: " + test.test_name + " " + test.system + " " + test.domains);
 
+            // ============================================================
+            // Maps for filling up Table entries. Reset after every Test
             HashMap<String,List<Problem>> csatallax = new HashMap<>();
             csatallax.put("ERR",new ArrayList<>());
             csatallax.put("UNK",new ArrayList<>());
             csatallax.put("THM",new ArrayList<>());
             csatallax.put("CSA",new ArrayList<>());
+            csatallax.put("CSA_verified",new ArrayList<>());
+            csatallax.put("CSA_constant_unique",new ArrayList<>());
+            //csatallax.put("CSA_unverified",new ArrayList<>());
+            csatallax.put("THM_unique",new ArrayList<>());
             HashMap<String,List<Problem>> cleo = new HashMap<>();
             cleo.put("ERR",new ArrayList<>());
             cleo.put("UNK",new ArrayList<>());
             cleo.put("THM",new ArrayList<>());
             cleo.put("CSA",new ArrayList<>());
+            cleo.put("CSA_verified",new ArrayList<>());
+            cleo.put("CSA_constant_unique",new ArrayList<>());
+            //cleo.put("CSA_unverified",new ArrayList<>());
+            cleo.put("THM_unique",new ArrayList<>());
             HashMap<String,List<Problem>> cnitpick = new HashMap<>();
             cnitpick.put("ERR",new ArrayList<>());
             cnitpick.put("UNK",new ArrayList<>());
             cnitpick.put("THM",new ArrayList<>());
             cnitpick.put("CSA",new ArrayList<>());
+            cnitpick.put("CSA_verified",new ArrayList<>());
+            cnitpick.put("CSA_constant_unique",new ArrayList<>());
+            //cnitpick.put("CSA_unverified",new ArrayList<>());
+            HashMap<String,List<Problem>> cmleancop = new HashMap<>();
+            cmleancop.put("ERR",new ArrayList<>());
+            cmleancop.put("UNK",new ArrayList<>());
+            cmleancop.put("THM",new ArrayList<>());
+            cmleancop.put("CSA",new ArrayList<>());
+            List<Problem> cunique_THM = new ArrayList<>();
+            List<Problem> cunique_CSA_constant = new ArrayList<>();
 
             for (Problem problem : test.getProblems()){
                 //System.out.println(problem.toString());
@@ -125,22 +150,210 @@ public class Results {
                 // put all problems int a list
                 totalProblems.add(problem);
 
+                // ===========================================================
                 // save result for every atp in a list for all tests together
+                // and for each test individually (prefix c)
                 List<Problem> l = satallax.get(problem.status_satallax);
+                l.add(problem);
+                l = csatallax.get(problem.status_satallax);
                 l.add(problem);
                 l = leo.get(problem.status_leo);
                 l.add(problem);
-                l = nitpick.get(problem.status_nitpick);
-                l.add(problem);
-
-                // save result for every atp in a list only for current test
-                // used for filling up table
-                l = csatallax.get(problem.status_satallax);
-                l.add(problem);
                 l = cleo.get(problem.status_leo);
+                l.add(problem);
+                l = nitpick.get(problem.status_nitpick);
                 l.add(problem);
                 l = cnitpick.get(problem.status_nitpick);
                 l.add(problem);
+
+                if (problem.status_qmltp == null) {
+                    if (!hasError(problem) && atpsAgree(problem)){
+                        if (getAgreedStatus(problem).equals("THM")) unique_unsupported_semantics.add(problem);
+                        if (getAgreedStatus(problem).equals("CSA") && problem.domains.equals("constant")) unique_unsupported_semantics.add(problem);
+                    }
+                }
+
+                if (problem.status_mleancop != null) {
+                    // save to mleancop map
+                    //if (!problem.containsEquality) {
+                    if (!(problem.status_mleancop.equals("CSA") && getAgreedStatus(problem).equals("THM"))) {
+                        l = mleancop.get(problem.status_mleancop);
+                        l.add(problem);
+                        l = cmleancop.get(problem.status_mleancop);
+                        l.add(problem);
+                    }
+                    //}
+                    // verified embedding CSA
+                    if (
+                            !hasError(problem) &&
+                            atpsAgree(problem) &&
+                            problem.status_satallax.equals("CSA") &&
+                            ( problem.status_mleancop.equals("CSA") || problem.domains.equals("constant") )
+                            //&&
+                            //!problem.containsEquality
+                            )
+                    {
+                        l = satallax.get("CSA_verified");
+                        l.add(problem);
+                        l = csatallax.get("CSA_verified");
+                        l.add(problem);
+                    }
+                    if (
+                            !hasError(problem) &&
+                            atpsAgree(problem) &&
+                            problem.status_leo.equals("CSA") &&
+                            ( problem.status_mleancop.equals("CSA") || problem.domains.equals("constant") )
+                            //!problem.containsEquality
+                            )
+                    {
+                        l = leo.get("CSA_verified");
+                        l.add(problem);
+                        l = cleo.get("CSA_verified");
+                        l.add(problem);
+                    }
+                    if (
+                            !hasError(problem) &&
+                            atpsAgree(problem) &&
+                            problem.status_nitpick.equals("CSA") &&
+                            ( problem.status_mleancop.equals("CSA") || problem.domains.equals("constant") )
+                            //!problem.containsEquality
+                            )
+                    {
+                        l = nitpick.get("CSA_verified");
+                        l.add(problem);
+                        l = cnitpick.get("CSA_verified");
+                        l.add(problem);
+                    }
+
+                    // 1.0 THM
+                    boolean unique = false;
+                    if (
+                            !hasError(problem) &&
+                            atpsAgree(problem) &&
+                            problem.status_satallax.equals("THM") &&
+                            ( !problem.status_mleancop.equals("THM") /*|| problem.containsEquality*/ )
+                            )
+                    {
+                        l = satallax.get("THM_unique");
+                        l.add(problem);
+                        l = csatallax.get("THM_unique");
+                        l.add(problem);
+                        unique = true;
+                    }
+                    if (
+                            !hasError(problem) &&
+                            atpsAgree(problem) &&
+                            problem.status_leo.equals("THM") &&
+                            ( !problem.status_mleancop.equals("THM") /* || problem.containsEquality*/ )
+                            )
+                    {
+                        l = leo.get("THM_unique");
+                        l.add(problem);
+                        l = cleo.get("THM_unique");
+                        l.add(problem);
+                        unique = true;
+                    }
+                    if (unique){
+                        unique_THM.add(problem);
+                        cunique_THM.add(problem);
+                        if (problem.status_qmltp != null){
+                            if (problem.status_qmltp.equals("UNK"))
+                                unique_concerning_qmltp_and_mleancop.add(problem);
+                        }
+                    }
+
+                    // 1.0 CSA
+                    unique = false;
+                    if (
+                            !hasError(problem) &&
+                            atpsAgree(problem) &&
+                            problem.status_satallax.equals("CSA") &&
+                            problem.domains.equals("constant") &&
+                            ( problem.status_mleancop.equals("UNK") /*|| problem.containsEquality*/ )
+                            )
+                    {
+                        l = satallax.get("CSA_constant_unique");
+                        l.add(problem);
+                        l = csatallax.get("CSA_constant_unique");
+                        l.add(problem);
+                        unique = true;
+                    }
+                    if (
+                            !hasError(problem) &&
+                            atpsAgree(problem) &&
+                            problem.status_leo.equals("CSA") &&
+                            problem.domains.equals("constant") &&
+                            ( problem.status_mleancop.equals("UNK") /*|| problem.containsEquality*/ )
+                            )
+                    {
+                        l = leo.get("CSA_constant_unique");
+                        l.add(problem);
+                        l = cleo.get("CSA_constant_unique");
+                        l.add(problem);
+                        unique = true;
+                    }
+                    if (
+                            !hasError(problem) &&
+                            atpsAgree(problem) &&
+                            problem.status_nitpick.equals("CSA") &&
+                            problem.domains.equals("constant") &&
+                            ( problem.status_mleancop.equals("UNK") /*|| problem.containsEquality*/ )
+                            )
+                    {
+                        l = nitpick.get("CSA_constant_unique");
+                        l.add(problem);
+                        l = cnitpick.get("CSA_constant_unique");
+                        l.add(problem);
+                        unique = true;
+                    }
+                    if (unique){
+                        unique_CSA_constant.add(problem);
+                        cunique_CSA_constant.add(problem);
+                        if (problem.status_qmltp != null){
+                            if (problem.status_qmltp.equals("UNK"))
+                                unique_concerning_qmltp_and_mleancop.add(problem);
+                        }
+                    }
+                } else {
+
+                    // 1.0 THM
+                    if (atpsAgree(problem) && getAgreedStatus(problem).equals("THM")) {
+                        unique_THM.add(problem);
+                        cunique_THM.add(problem);
+                        if (problem.status_qmltp != null){
+                            if (problem.status_qmltp.equals("UNK"))
+                                unique_concerning_qmltp_and_mleancop.add(problem);
+                        }
+                    }
+
+                    // 1.0 CSA
+                    if (atpsAgree(problem) && getAgreedStatus(problem).equals("CSA") && problem.domains.equals("constant")){
+                        unique_CSA_constant.add(problem);
+                        cunique_CSA_constant.add(problem);
+                        if (problem.status_qmltp != null){
+                            if (problem.status_qmltp.equals("UNK"))
+                                unique_concerning_qmltp_and_mleancop.add(problem);
+                        }
+                        if (problem.status_satallax.equals("CSA")){
+                            l = satallax.get("CSA_verified");
+                            l.add(problem);
+                            l = csatallax.get("CSA_verified");
+                            l.add(problem);
+                        }
+                        if (problem.status_leo.equals("CSA")){
+                            l = leo.get("CSA_verified");
+                            l.add(problem);
+                            l = cleo.get("CSA_verified");
+                            l.add(problem);
+                        }
+                        if (problem.status_nitpick.equals("CSA")){
+                            l = nitpick.get("CSA_verified");
+                            l.add(problem);
+                            l = cnitpick.get("CSA_verified");
+                            l.add(problem);
+                        }
+                    }
+                }
 
                 // compare qmltp status with atp status: atp status is not qmltp status
                 //
@@ -161,121 +374,153 @@ public class Results {
                     disagreementQmltpAtp.add(problem);
                 }
 
-                // 1.0 problems
-                // TODO
+                // compare qmltp status with atp status: atp status is THM and QMLTP status is CSA
+                if (
+                        problem.status_qmltp != null &&
+                        !hasError(problem) &&
+                        atpsAgree(problem) &&
+                        getAgreedStatus(problem).equals("THM") &&
+                        problem.status_qmltp.equals("CSA")
+                        ){
+                    disagreementQmltpCsaAtpThm.add(problem);
+                }
 
-                // atps disagree
+                // compare qmltp status with mleancop status: mleancop status is not qmltp status
+                //
+                // qmltp entry exists
+                // qmltp has a solution
+                // mleancop entry exists
+                // mleancop has a solution = solution is not UNK
+                // mleancop solution is NOT the same as qmltp solution
+                if (
+                        problem.status_qmltp != null &&
+                        !problem.status_qmltp.equals("UNK") &&
+                        problem.status_mleancop != null &&
+                        !problem.status_mleancop.equals("UNK") &&
+                        //!problem.containsEquality &&
+                        !problem.status_mleancop.equals(problem.status_qmltp)
+                        ){
+                    disagreementQmltpMleancop.add(problem);
+                }
+
+                // compare mleancop status with atp status: mleancop status is not agreed atp status
+                // compare qmltp status with mleancop status: mleancop status is not qmltp status
+                //
+                // mleancop entry exists
+                // mleancop has a solution = solution is not UNK
+                // atps have no error
+                // atps agree on solution
+                // atps have a solution = solution is not UNK
+                // atps solution is NOT the same as mleancop solution
+                if (
+                        problem.status_mleancop != null &&
+                        !problem.status_mleancop.equals("UNK") &&
+                        //!problem.containsEquality &&
+                        !hasError(problem) &&
+                        atpsAgree(problem) &&
+                        !getAgreedStatus(problem).equals("UNK") &&
+                        !getAgreedStatus(problem).equals(problem.status_mleancop)
+                        ){
+                    disagreementAtpMleancop.add(problem);
+                }
+
+                // atps agree on CSA and Mleancop has CSA in varying/cumulative semantics
+                if (
+                        problem.status_mleancop != null &&
+                        problem.status_mleancop.equals("CSA") &&
+                        //!problem.containsEquality &&
+                        ( problem.domains.equals("varying") || problem.domains.equals("cumulative") ) &&
+                        !hasError(problem) &&
+                        atpsAgree(problem) &&
+                        getAgreedStatus(problem).equals("CSA")
+                        ){
+                    atpCsaWhenMleancopCsaVaryCumul.add(problem);
+                }
+
+                // atps agree on CSA and Mleancop has THM in varying/cumulative semantics
+                if (
+                        problem.status_mleancop != null &&
+                        problem.status_mleancop.equals("THM") &&
+                        //!problem.containsEquality &&
+                        ( problem.domains.equals("varying") || problem.domains.equals("cumulative") ) &&
+                        !hasError(problem) &&
+                        atpsAgree(problem) &&
+                        getAgreedStatus(problem).equals("CSA")
+                        ){
+                    atpCsaWhenMleancopThmVaryCumul.add(problem);
+                }
+
+                // Mleancop has CSA on vary/cumul domain semantics
+                if (
+                        problem.status_mleancop != null &&
+                        problem.status_mleancop.equals("CSA") &&
+                        //!problem.containsEquality &&
+                        ( problem.domains.equals("varying") || problem.domains.equals("cumulative") )
+                        ){
+                    mleancopCsaVaryCumul.add(problem);
+                }
+
+                // atps disagree or have error
                 if (
                         !atpsAgree(problem)
                         ){
                     disagreementAtpAtp.add(problem);
                 }
 
-                /*
-                // GARBAGE
-                // qmltp entry exists
-                // this is the case for systems k,d,t,s4,s5 and domains const,cumul,vary and constants rigid and consequence ???
-                if (problem.status_qmltp != null){
 
-                    // no solution available in qmltp
-                    if (problem.status_qmltp.equals("UNK")){
-                        // atps agree on a solution
-                        String agreedStatus = getAgreedStatus(problem);
-                        if (atpsAgree(problem)){
-                            // atps have a solution
-                            if (!agreedStatus.equals("UNK")) {
-                                newProblemResultTotal.add(problem);
-                                if (agreedStatus.equals("THM")) newProblemResultTHM.add(problem);
-                                if (agreedStatus.equals("CSA")) newProblemResultCSA.add(problem);
-                            }
-                            // atps do not have a solution
-                            else totallyUnsolvedProblems.add(problem);
-                        }
-                        // atps do not agree on a solution
-                        else {
-                            disagreementAtpAtp.add(problem);
-                            totallyUnsolvedProblems.add(problem);
-                        }
-                    }
-                    // solution is available in qmltp
-                    else {
-                        // atps agree on a solution
-                        if (atpsAgree(problem)){
-                            String agreedStatus = getAgreedStatus(problem);
-                            // atps have no solution
-                            if (agreedStatus.equals("UNK")){
-                                // qmltp has no solution
-                                if (problem.status_qmltp.equals("UNK")) totallyUnsolvedProblems.add(problem);
-                                // qmltp has solution
-                                else unconfirmedProblems.add(problem);
-                            }
-                            // atps have solved problem
-                            else {
-                                // there is no solution in qmltp
-                                if (problem.status_qmltp.equals("UNK")){
-                                    newProblemResultTotal.add(problem);
-                                    if (agreedStatus.equals("THM")) newProblemResultTHM.add(problem);
-                                    if (agreedStatus.equals("CSA")) newProblemResultCSA.add(problem);
-                                }
-                                // there is a solution in qmltp
-                                else {
-                                    // qmltp solution and atp solution are equal
-                                    if (problem.status_qmltp.equals(agreedStatus)) confirmedProblems.add(problem);
-                                    // qmltp solution and atp solution disagree
-                                    else disagreementQmltpAtp.add(problem);
-                                }
-                            }
-
-                        }
-                        // atps do not agree on a solution
-                        else {
-                            disagreementAtpAtp.add(problem);
-                            unconfirmedProblems.add(problem);
-                        }
-                    }
-                }
-                // qmltp entry does not exist
-                else {
-                    newProblems.add(problem);
-                    // atps agree on problem
-                    if (atpsAgree(problem)){
-                        String agreedStatus = getAgreedStatus(problem);
-                        // atps have no solution
-                        if (agreedStatus.equals("UNK")) totallyUnsolvedProblems.add(problem);
-                        // atps have a solution
-                        else newProblemsSolved.add(problem);
-                    }
-                    // atps do not agree on problem
-                    else {
-                        totallyUnsolvedProblems.add(problem);
-                    }
-                }
-                */
             }
 
+            // create and add table entry for this test. columns are as follows
+            //
+            // Semantics
+            // satSUM satTHM satCSA satCSA*
+            // leoSUM leoTHM leoCSA leoCSA*
+            // nitSUM nitTHM nitCSA nitCSA*
+            // U
+            // mleanSUM mleanTHM mleanCSA
 
-            // create and add table entry for this test
             String delimiter = " ";
             StringBuilder entry = new StringBuilder();
+            // Semantics
             entry.append(test.test_name);
-            entry.append(delimiter);
-            entry.append(csatallax.get("THM").size() + csatallax.get("CSA").size());
-            entry.append(delimiter);
-            entry.append(csatallax.get("THM").size());
-            entry.append(delimiter);
-            entry.append(csatallax.get("CSA").size());
-            entry.append(delimiter);
-            entry.append(cleo.get("THM").size() + cleo.get("CSA").size());
+
+            entry.append(" leo: ");
+            // leoSUM leoTHM leoCSA leoCSA*
+            entry.append(cleo.get("THM").size() + cleo.get("CSA_verified").size());
             entry.append(delimiter);
             entry.append(cleo.get("THM").size());
             entry.append(delimiter);
-            entry.append(cleo.get("CSA").size());
+            entry.append(cleo.get("CSA_verified").size());
             entry.append(delimiter);
-            entry.append(cnitpick.get("THM").size() + cnitpick.get("CSA").size());
+            entry.append(cleo.get("CSA").size() - cleo.get("CSA_verified").size());
+            entry.append(" nit: ");
+            // nitSUM nitTHM nitCSA nitCSA*
+            entry.append(cnitpick.get("THM").size() + cnitpick.get("CSA_verified").size());
             entry.append(delimiter);
             entry.append(cnitpick.get("THM").size());
             entry.append(delimiter);
-            entry.append(cnitpick.get("CSA").size());
+            entry.append(cnitpick.get("CSA_verified").size());
+            entry.append(delimiter);
+            entry.append(cnitpick.get("CSA").size() - cnitpick.get("CSA_verified").size());
+            entry.append(" sat: ");
+            // satSUM satTHM satCSA satCSA*
+            entry.append(csatallax.get("THM").size() + csatallax.get("CSA_verified").size());
+            entry.append(delimiter);
+            entry.append(csatallax.get("THM").size());
+            entry.append(delimiter);
+            entry.append(csatallax.get("CSA_verified").size());
+            entry.append(delimiter);
+            entry.append(csatallax.get("CSA").size() - csatallax.get("CSA_verified").size());
+            entry.append(" U: ");
+            // U THM+CSA
+            entry.append(cunique_THM.size()+cunique_CSA_constant.size());
+            entry.append(" mle: ");
+            // mleanSUM mleanTHM mleanCSA
+            entry.append(cmleancop.get("THM").size() + cmleancop.get("CSA").size());
+            entry.append(delimiter);
+            entry.append(cmleancop.get("THM").size());
+            entry.append(delimiter);
+            entry.append(cmleancop.get("CSA").size());
             entry.append(delimiter);
             table.add(entry.toString());
         }
@@ -285,10 +530,11 @@ public class Results {
         System.out.println("Results:");
         this.outputToStdout();
         this.outputToFiles(outputPath);
+        System.out.println("FINISH");
     }
 
     private void outputToStdout(){
-        System.out.println("totalProblems:           " + totalProblems.size());
+        System.out.println("totalProblems:                     " + totalProblems.size());
         /*
         System.out.println("ConfirmedProblems:       " + confirmedProblems.size());
         System.out.println("unconfirmedProblems:     " + unconfirmedProblems.size());
@@ -296,34 +542,73 @@ public class Results {
         System.out.println("newProblemResultTHM:     " + newProblemResultTHM.size());
         System.out.println("newProblemResultCSA:     " + newProblemResultCSA.size());
         */
-        System.out.println("disagreementQmltpAtp:    " + disagreementQmltpAtp.size());
+        System.out.println("disagreementQmltpAtp:              " + disagreementQmltpAtp.size());
+        System.out.println("disagreementQmltpCsaAtpThm:        " + disagreementQmltpCsaAtpThm.size());
+        System.out.println("disagreementQmltpMleancop:         " + disagreementQmltpMleancop.size());
         /*
         System.out.println("newProblems:             " + newProblems.size());
         System.out.println("newProblemsSolved:       " + newProblemsSolved.size());
         System.out.println("totallyUnsolvedProblems: " + totallyUnsolvedProblems.size());
         */
-        System.out.println("disagreementAtpAtp:      " + disagreementAtpAtp.size());
+        System.out.println("disagreementAtpAtp:                " + disagreementAtpAtp.size());
+        System.out.println("disagreementAtpMleancop:           " + disagreementAtpMleancop.size());
+        System.out.println("mleancopCsaVaryCumul:              " + mleancopCsaVaryCumul.size());
+        System.out.println("atpCsaWhenMleancopCsaVaryCumul:    " + atpCsaWhenMleancopCsaVaryCumul.size());
+        System.out.println("atpCsaWhenMleancopThmVaryCumul:    " + atpCsaWhenMleancopThmVaryCumul.size());
+        System.out.println("problemsContainingEqualities %sem: " + problemsContainingEqualities.size());
         System.out.println();
-        System.out.println("ERR satallax             " + satallax.get("ERR").size());
-        System.out.println("UNK satallax             " + satallax.get("UNK").size());
-        System.out.println("THM satallax             " + satallax.get("THM").size());
-        System.out.println("CSA satallax             " + satallax.get("CSA").size());
-        System.out.println("ERR leo                  " + leo.get("ERR").size());
-        System.out.println("UNK leo                  " + leo.get("UNK").size());
-        System.out.println("THM leo                  " + leo.get("THM").size());
-        System.out.println("CSA leo                  " + leo.get("CSA").size());
-        System.out.println("ERR nitpick              " + nitpick.get("ERR").size());
-        System.out.println("UNK nitpick              " + nitpick.get("UNK").size());
-        System.out.println("THM nitpick              " + nitpick.get("THM").size());
-        System.out.println("CSA nitpick              " + nitpick.get("CSA").size());
+        System.out.println("ERR satallax               " + satallax.get("ERR").size());
+        System.out.println("UNK satallax               " + satallax.get("UNK").size());
+        System.out.println("THM satallax               " + satallax.get("THM").size());
+        System.out.println("CSA satallax               " + satallax.get("CSA").size());
+        System.out.println("CSA_verified satallax      " + satallax.get("CSA_verified").size());
+        System.out.println("THM_unique satallax        " + satallax.get("THM_unique").size());
+        System.out.println("ERR leo                    " + leo.get("ERR").size());
+        System.out.println("UNK leo                    " + leo.get("UNK").size());
+        System.out.println("THM leo                    " + leo.get("THM").size());
+        System.out.println("CSA leo                    " + leo.get("CSA").size());
+        System.out.println("CSA_verified leo           " + leo.get("CSA_verified").size());
+        System.out.println("THM_unique leo             " + leo.get("THM_unique").size());
+        System.out.println("ERR nitpick                " + nitpick.get("ERR").size());
+        System.out.println("UNK nitpick                " + nitpick.get("UNK").size());
+        System.out.println("THM nitpick                " + nitpick.get("THM").size());
+        System.out.println("CSA nitpick                " + nitpick.get("CSA").size());
+        System.out.println("CSA_verified nitpick       " + nitpick.get("CSA_verified").size());
+        System.out.println("THM_unique nitpick         " + nitpick.get("THM_unique").size());
+        System.out.println("ERR mleancop               " + mleancop.get("ERR").size());
+        System.out.println("UNK mleancop               " + mleancop.get("UNK").size());
+        System.out.println("THM mleancop               " + mleancop.get("THM").size());
+        System.out.println("CSA mleancop               " + mleancop.get("CSA").size());
         System.out.println();
-        table.forEach(System.out::println);
+        System.out.println("THM unique sum             " + unique_THM.size());
+        System.out.println("CSA constant unique sum    " + unique_CSA_constant.size());
+        System.out.println("unique_concerning_qmltp_and_mleancop    " + unique_concerning_qmltp_and_mleancop.size());
+        System.out.println("unique_unsupported_semantics            " + unique_unsupported_semantics.size());
+        System.out.println();
+        table.stream()
+                .sorted((e1,e2)->new CombinedComparator().compare(e1,e2))
+                .forEach(System.out::println);
     }
 
+    private String statusMleanCopNoNull(Problem p){
+        if (p == null) return "NUL";
+        return p.status_mleancop;
+    }
+
+    private String statusQmltpNoNull(Problem p){
+        if (p == null) return "NUL";
+        return p.status_qmltp;
+    }
+
+    private String combineProblem(Problem p){
+          return p.system + "," + p.domains + "," + p.constants + "," + p.consequence + "," + p.name + ","
+                + statusQmltpNoNull(p) + "," + getAgreedStatus(p) + "," + statusMleanCopNoNull(p);
+    }
     private void outputToFiles(String outputPath){
+        System.out.println(Paths.get(outputPath.toString(),"totalProblems"));
         try {
             Files.write(Paths.get(outputPath.toString(),"totalProblems"),this.totalProblems.stream()
-                    .map(p->p.system + "," + p.domains + "," + p.constants + "," + p.consequence + "," + p.name)
+                    .map(p->combineProblem(p))
                     .collect(Collectors.joining("\n")).getBytes());
         } catch (IOException e) {
             System.err.println("Could not write totalProblems file");
@@ -373,10 +658,26 @@ public class Results {
         */
         try {
             Files.write(Paths.get(outputPath.toString(),"disagreementQmltpAtp"),this.disagreementQmltpAtp.stream()
-                    .map(p->p.system + "," + p.domains + "," + p.constants + "," + p.consequence + "," + p.name)
+                    .map(p->combineProblem(p))
                     .collect(Collectors.joining("\n")).getBytes());
         } catch (IOException e) {
             System.err.println("Could not write disagreementQmltpAtp file");
+            e.printStackTrace();
+        }
+        try {
+            Files.write(Paths.get(outputPath.toString(),"disagreementQmltpMleancop"),this.disagreementQmltpMleancop.stream()
+                    .map(p->combineProblem(p))
+                    .collect(Collectors.joining("\n")).getBytes());
+        } catch (IOException e) {
+            System.err.println("Could not write disagreementQmltpMleancop file");
+            e.printStackTrace();
+        }
+        try {
+            Files.write(Paths.get(outputPath.toString(),"disagreementQmltpCsaAtpThm"),this.disagreementQmltpCsaAtpThm.stream()
+                    .map(p->combineProblem(p))
+                    .collect(Collectors.joining("\n")).getBytes());
+        } catch (IOException e) {
+            System.err.println("Could not write disagreementQmltpCsaAtpThm file");
             e.printStackTrace();
         }
         /*
@@ -405,19 +706,77 @@ public class Results {
             e.printStackTrace();
         }
         */
+
         try {
             Files.write(Paths.get(outputPath.toString(),"disagreementAtpAtp"),this.disagreementAtpAtp.stream()
-                    .map(p->p.system + "," + p.domains + "," + p.constants + "," + p.consequence + "," + p.name)
+                    .map(p->combineProblem(p))
                     .collect(Collectors.joining("\n")).getBytes());
         } catch (IOException e) {
             System.err.println("Could not write disagreementAtpAtp file");
+            e.printStackTrace();
+        }
+
+        try {
+            Files.write(Paths.get(outputPath.toString(),"disagreementAtpMleancop"),this.disagreementAtpMleancop.stream()
+                    .map(p->combineProblem(p))
+                    .collect(Collectors.joining("\n")).getBytes());
+        } catch (IOException e) {
+            System.err.println("Could not write disagreementAtpMleancop file");
+            e.printStackTrace();
+        }
+        try {
+            Files.write(Paths.get(outputPath.toString(),"mleancopCsaVaryCumul"),this.mleancopCsaVaryCumul.stream()
+                    .map(p->combineProblem(p))
+                    .collect(Collectors.joining("\n")).getBytes());
+        } catch (IOException e) {
+            System.err.println("Could not write mleancopCsaVaryCumul file");
+            e.printStackTrace();
+        }
+        try {
+            Files.write(Paths.get(outputPath.toString(),"atpCsaWhenMleancopCsaVaryCumul"),this.atpCsaWhenMleancopCsaVaryCumul.stream()
+                    .map(p->combineProblem(p))
+                    .collect(Collectors.joining("\n")).getBytes());
+        } catch (IOException e) {
+            System.err.println("Could not write atpCsaWhenMleancopCsaVaryCumul file");
+            e.printStackTrace();
+        }
+        try {
+            Files.write(Paths.get(outputPath.toString(),"atpCsaWhenMleancopThmVaryCumul"),this.atpCsaWhenMleancopThmVaryCumul.stream()
+                    .map(p->combineProblem(p))
+                    .collect(Collectors.joining("\n")).getBytes());
+        } catch (IOException e) {
+            System.err.println("Could not write atpCsaWhenMleancopThmVaryCumul file");
+            e.printStackTrace();
+        }
+        try {
+            Files.write(Paths.get(outputPath.toString(),"problemsContainingEqualities"),this.problemsContainingEqualities.stream()
+                    .map(p->p.getName())
+                    .collect(Collectors.joining("\n")).getBytes());
+        } catch (IOException e) {
+            System.err.println("Could not write problemsContainingEqualities file");
+            e.printStackTrace();
+        }
+        try {
+            Files.write(Paths.get(outputPath.toString(),"unique_concerning_qmltp_and_mleancop"),this.unique_concerning_qmltp_and_mleancop.stream()
+                    .map(p->combineProblem(p))
+                    .collect(Collectors.joining("\n")).getBytes());
+        } catch (IOException e) {
+            System.err.println("Could not write unique_concerning_qmltp_and_mleancop file");
+            e.printStackTrace();
+        }
+        try {
+            Files.write(Paths.get(outputPath.toString(),"unique_unsupported_semantics"),this.unique_unsupported_semantics.stream()
+                    .map(p->combineProblem(p))
+                    .collect(Collectors.joining("\n")).getBytes());
+        } catch (IOException e) {
+            System.err.println("Could not write unique_unsupported_semantics file");
             e.printStackTrace();
         }
         for (String status : satallax.keySet()){
             String filename = "satallax_" + status;
             try {
                 Files.write(Paths.get(outputPath.toString(), filename ),this.satallax.get(status).stream()
-                        .map(p->p.system + "," + p.domains + "," + p.constants + "," + p.consequence + "," + p.name)
+                        .map(p->combineProblem(p))
                         .collect(Collectors.joining("\n")).getBytes());
             } catch (IOException e) {
                 System.err.println("Could not write " + filename + " file");
@@ -428,7 +787,7 @@ public class Results {
             String filename = "leo_" + status;
             try {
                 Files.write(Paths.get(outputPath.toString(), filename ),this.leo.get(status).stream()
-                        .map(p->p.system + "," + p.domains + "," + p.constants + "," + p.consequence + "," + p.name)
+                        .map(p->combineProblem(p))
                         .collect(Collectors.joining("\n")).getBytes());
             } catch (IOException e) {
                 System.err.println("Could not write " + filename + " file");
@@ -439,7 +798,18 @@ public class Results {
             String filename = "nitpick_" + status;
             try {
                 Files.write(Paths.get(outputPath.toString(), filename ),this.nitpick.get(status).stream()
-                        .map(p->p.system + "," + p.domains + "," + p.constants + "," + p.consequence + "," + p.name)
+                        .map(p->combineProblem(p))
+                        .collect(Collectors.joining("\n")).getBytes());
+            } catch (IOException e) {
+                System.err.println("Could not write " + filename + " file");
+                e.printStackTrace();
+            }
+        }
+        for (String status : mleancop.keySet()){
+            String filename = "mleancop" + status;
+            try {
+                Files.write(Paths.get(outputPath.toString(), filename ),this.mleancop.get(status).stream()
+                        .map(p->combineProblem(p))
                         .collect(Collectors.joining("\n")).getBytes());
             } catch (IOException e) {
                 System.err.println("Could not write " + filename + " file");

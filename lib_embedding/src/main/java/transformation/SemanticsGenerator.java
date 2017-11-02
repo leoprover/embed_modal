@@ -22,14 +22,20 @@ public class SemanticsGenerator {
     public static String[] rigid_local;
     public static String[] rigid;
     public static String[] all_supported;
+    public static String[] all;
+
 
     static{
-        systems = new String[5];
+        systems = new String[9];
         systems[0] = "$modal_system_K";
         systems[1] = "$modal_system_D";
         systems[2] = "$modal_system_T";
         systems[3] = "$modal_system_S4";
         systems[4] = "$modal_system_S5";
+        systems[5] = "$modal_system_CD";
+        systems[6] = "$modal_system_BOXM";
+        systems[7] = "$modal_system_C4";
+        systems[8] = "$modal_system_C";
         domains = new String[4];
         domains[0] = "$constant";
         domains[1] = "$varying";
@@ -78,6 +84,13 @@ public class SemanticsGenerator {
                 for (int consequence = 0; consequence < consequences.length; consequence++)
                     rigid[system * domains.length * consequences.length + domain * consequences.length + consequence] = semanticsCube[system][domain][0][consequence];//
         }
+        all = new String[systems.length * domains.length * consequences.length * constants.length];
+        for (int system = 0; system < systems.length; system++){
+            for (int domain = 0; domain < domains.length; domain++)
+                for (int consequence = 0; consequence < consequences.length; consequence++)
+                    for (int constant = 0; constant < constants.length; constant++)
+                        all[system * domains.length * consequences.length * constants.length + domain * consequences.length * constants.length + constants.length * consequence + constant] = semanticsCube[system][domain][constant][consequence];//
+        }
         all_supported = rigid;
     }
 
@@ -90,8 +103,10 @@ public class SemanticsGenerator {
     }
 
     public static String thfName(String sentence){
+        if (sentence.equals("")) return "";
         int start = sentence.indexOf("(");
         int end = sentence.indexOf(",",start+1);
+        if (start < 0 || end < 0) return "";
         return sentence.substring(start+1,end).trim();
     }
 

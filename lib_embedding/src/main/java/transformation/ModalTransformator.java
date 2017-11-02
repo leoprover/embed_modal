@@ -3,6 +3,10 @@ package transformation;
 
 import exceptions.AnalysisException;
 import exceptions.TransformationException;
+import transformation.Definitions.AccessibilityRelation;
+import transformation.Definitions.Common;
+import transformation.Definitions.Connectives;
+import transformation.Definitions.Quantification;
 import util.tree.Node;
 
 import java.util.*;
@@ -14,17 +18,19 @@ public class ModalTransformator {
 
     private final Node originalRoot;
     private Node transformedRoot;
-    private ThfAnalyzer thfAnalyzer;
-    private SemanticsAnalyzer semanticsAnalyzer;
+    public ThfAnalyzer thfAnalyzer;
+    public SemanticsAnalyzer semanticsAnalyzer;
 
     private Set<String> typesExistsQuantifiers;
     private Set<String> typesForAllQuantifiers;
     private Set<String> typesForVaryingQuantifiers;
     private Map<String, Set<String>> declaredUserConstants; // Type -> Set of symbols
-    private Set<String> usedOperators;
+    private Set<String> usedConnectives;
+    private Set<String> usedModalities;
     private Set<String> usedSymbols;
+    private List<Node> userTypes; // $tType nodes (leafs)
 
-    // TPTP operators
+    // TPTP THF operators
     private static Map<String,String> operatorToEmbeddingName;
     static{
         operatorToEmbeddingName = new HashMap<>();
@@ -37,8 +43,6 @@ public class ModalTransformator {
         operatorToEmbeddingName.put("<=","mimpliesreversed");
         operatorToEmbeddingName.put("<=>","mequiv");
         operatorToEmbeddingName.put("<~>","mnequiv");
-        //operatorToEmbeddingName.put("=","meq");
-        //operatorToEmbeddingName.put("!=","mneq");
     }
 
     public ModalTransformator(Node root){
@@ -48,8 +52,10 @@ public class ModalTransformator {
         typesForAllQuantifiers = new HashSet<>();
         typesForVaryingQuantifiers = new HashSet<>();
         declaredUserConstants = new HashMap<>();
-        usedOperators = new HashSet<>();
+        usedConnectives = new HashSet<>();
+        usedModalities = new HashSet<>();
         usedSymbols = new HashSet<>();
+        userTypes = new ArrayList<>();
     }
 
     public TransformContext transform() throws TransformationException,AnalysisException {
@@ -61,7 +67,11 @@ public class ModalTransformator {
         return ctx;
     }
 
-    private TransformContext actualTransformation() throws TransformationException {
+    /***********************************************************************************
+     * Transformation
+     ***********************************************************************************/
+
+    private TransformContext actualTransformation() throws TransformationException, AnalysisException {
 
         // collect all symbols to avoid variable capture when defining new bound variabls
         this.originalRoot.getLeafsDfs().stream().forEach(n->this.usedSymbols.add(n.getLabel()));
@@ -73,15 +83,18 @@ public class ModalTransformator {
                 // Lift types
                 // $o only since we assume rigid constants
                 if (l.getLabel().equals("$o")) {
-                    l.setLabel(EmbeddingDefinitions.truth_type);
+                    l.setLabel(Common.truth_type);
                 }
+
+                // user types
+                if (l.getLabel().equals("$tType")) userTypes.add(l);
             }
             // if it is a type declaration (and not a definition) add labels (name and type) to the map of constants (for varying domains)
             Optional<Node> typeable = type_statement.dfsRule("thf_typeable_formula");
             if (typeable.isPresent()) {
                 String constant = typeable.get().getFirstLeaf().getLabel();
                 String type = type_statement.dfsRule("thf_top_level_type").get().getFirstChild().toStringLeafs();
-                String normalizedType = EmbeddingDefinitions.normalizeType(type);
+                String normalizedType = Common.normalizeType(type);
                 if (this.declaredUserConstants.containsKey(normalizedType)) {
                     this.declaredUserConstants.get(normalizedType).add(constant);
                 } else {
@@ -107,7 +120,7 @@ public class ModalTransformator {
                 // Lift types
                 // $o only since we assume rigid constants
                 if (l.getLabel().equals("$o")){
-                    l.setLabel(EmbeddingDefinitions.truth_type);
+                    l.setLabel(Common.truth_type);
 
                 // substitute nullary and unary operators
                 // $true $false $box $dia ~
@@ -148,7 +161,8 @@ public class ModalTransformator {
             String identifier = statement.getParent().getChild(2).toStringLeafs();
             SemanticsAnalyzer.ConsequenceType consequence = semanticsAnalyzer.axiomNameToConsequenceType.getOrDefault(
                     identifier,semanticsAnalyzer.axiomNameToConsequenceType.getOrDefault(
-                            SemanticsAnalyzer.consequenceDefault,SemanticsAnalyzer.ConsequenceType.GLOBAL));
+                            SemanticsAnalyzer.consequenceDefault,null));
+            if (consequence == null) throw new TransformationException("No explicit or default consequence semantics found for identifier " + identifier );
             if (consequence.equals(SemanticsAnalyzer.ConsequenceType.GLOBAL)) {
                 // insert valid operator
                 Node validLeft = new Node("t_validLeft", "( mvalid @ (");
@@ -171,14 +185,81 @@ public class ModalTransformator {
             parent.delChild(semanticalRoot);
         }
 
-        String modalDefinitions = getModalDefinitions();
+
+
+        String modalDefinitions = preProblemInsertions();
         //System.out.println(modalDefinitions.toString());
         //System.out.println(this.transformedRoot.toStringWithLinebreaksFormatted());
 
-        String auxiliaryDefinitions = getAuxiliaryDefinitions();
+        String auxiliaryDefinitions = postProblemInsertion();
 
-        return new TransformContext(modalDefinitions, auxiliaryDefinitions, this.transformedRoot, this.originalRoot, this.thfAnalyzer, this.semanticsAnalyzer);
+        // extract user types to be placed in front of problem
+        extractUserTypes();
+
+        return new TransformContext(modalDefinitions, auxiliaryDefinitions, this.userTypes, this.transformedRoot, this.originalRoot, this.thfAnalyzer, this.semanticsAnalyzer);
     }
+
+    /***********************************************************************************
+     * Embedding of nullary and unary operators: $true $false $box $dia ~
+     ***********************************************************************************/
+
+    private void replaceNullaryAndUnaryOperators(Node leaf) throws AnalysisException {
+        switch (leaf.getLabel()){
+            // embed true and false
+            case "$true":
+                leaf.setLabel("mtrue");
+                usedConnectives.add("mtrue");
+                break;
+            case "$false":
+                leaf.setLabel("mfalse");
+                usedConnectives.add("mfalse");
+                break;
+            case "~":
+                leaf.setLabel("mnot @");
+                usedConnectives.add("mnot");
+                break;
+            // embed simple modality
+            // box and dia already have @
+            case "$box":
+                embed_modality_box_or_dia(leaf);
+                break;
+            case "$dia":
+                embed_modality_box_or_dia(leaf);
+                break;
+            // embed integer indexed modalities
+            case "$box_int":
+                embed_modality_box_or_dia_int(leaf);
+                break;
+            case "$dia_int":
+                embed_modality_box_or_dia_int(leaf);
+                break;
+            default:
+                // do nothing
+        }
+
+    }
+
+    /***********************************************************************************
+     * Embedding of modalities: $box $dia $box_int $box_dia
+     ***********************************************************************************/
+    private void embed_modality_box_or_dia(Node boxOrDiaLeaf) throws AnalysisException {
+        String normalizedModalOperator = Connectives.getNormalizedModalOperator(boxOrDiaLeaf);
+        boxOrDiaLeaf.setLabel(normalizedModalOperator);
+        usedModalities.add(normalizedModalOperator);
+    }
+
+    private void embed_modality_box_or_dia_int(Node boxOrDiaIntLeaf) throws AnalysisException {
+        Node operatorTree = boxOrDiaIntLeaf.getNextTopBranchingNode(); // should be thf_apply_formula
+        String normalizedModalOperator = Connectives.getNormalizedModalOperator(operatorTree);
+        operatorTree.delAllChildren();
+        Node newOperator = new Node("t_box_dia_int" , normalizedModalOperator);
+        operatorTree.addChild(newOperator);
+        usedModalities.add(normalizedModalOperator);
+    }
+
+    /***********************************************************************************
+     * Embedding of quantified formulas: forall, exists, lambda
+     ***********************************************************************************/
 
     /*
      * @param n has rule thf_quantified_formula
@@ -241,23 +322,25 @@ public class ModalTransformator {
 
                 // add embedded quantifier functor and add quantifier for the type to
                 Node quant;
-                String normalizedType = EmbeddingDefinitions.normalizeType(type);
-                SemanticsAnalyzer.DomainType defaultDomainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(
-                        SemanticsAnalyzer.domainDefault, SemanticsAnalyzer.DomainType.CONSTANT);
-                SemanticsAnalyzer.DomainType domainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(normalizedType, defaultDomainType);
+                String normalizedType = Common.normalizeType(type);
+                //SemanticsAnalyzer.DomainType defaultDomainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(
+                //        SemanticsAnalyzer.domainDefault, SemanticsAnalyzer.DomainType.CONSTANT);
+                SemanticsAnalyzer.DomainType domainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(normalizedType,
+                        this.semanticsAnalyzer.domainToDomainType.getOrDefault(SemanticsAnalyzer.domainDefault,null));
+                if (domainType == null) throw new TransformationException("No explicit or default domain semantics found for domain " + type);
                 if (quantifier.equals("!")){
                     if (domainType == SemanticsAnalyzer.DomainType.CONSTANT)
-                        quant = new Node("t_quantifier",EmbeddingDefinitions.embedded_forall(type));
+                        quant = new Node("t_quantifier", Quantification.embedded_forall(type));
                     else {
-                        quant = new Node("t_quantifier", EmbeddingDefinitions.embedded_forall_varying(type));
+                        quant = new Node("t_quantifier", Quantification.embedded_forall_varying(type));
                         typesForVaryingQuantifiers.add(normalizedType);
                     }
                     typesForAllQuantifiers.add(normalizedType);
                 }else{
                     if (domainType == SemanticsAnalyzer.DomainType.CONSTANT)
-                        quant = new Node("t_quantifier",EmbeddingDefinitions.embedded_exists(type));
+                        quant = new Node("t_quantifier", Quantification.embedded_exists(type));
                     else {
-                        quant = new Node("t_quantifier",EmbeddingDefinitions.embedded_exists_varying(type));
+                        quant = new Node("t_quantifier", Quantification.embedded_exists_varying(type));
                         typesForVaryingQuantifiers.add(normalizedType);
                     }
                     typesExistsQuantifiers.add(normalizedType);
@@ -273,6 +356,9 @@ public class ModalTransformator {
 
     }
 
+    /***********************************************************************************
+     * Embedding of binary tuples: & |
+     ***********************************************************************************/
     /*
      * @param n has rule thf_binary_tuple
      */
@@ -318,85 +404,49 @@ public class ModalTransformator {
         branchNode.addChildAt(closingBracketB, 8);
         //System.out.println(branchNode);
 
-        usedOperators.add(opName);
+        usedConnectives.add(opName);
     }
+
+    /***********************************************************************************
+     * Embedding of binary pairs: <=>  =>  <=  <~>  ~|  ~& = !=
+     ***********************************************************************************/
 
     /*
      * @param n has rule thf_binary_pair
      */
     private void embed_thf_binary_pair(Node n){
+        // Connectives = | !=
         // exploit alpha beta eta equality for embedding equality
         if (n.getChild(1).getFirstChild().getLabel().equals("=") || n.getChild(1).getFirstChild().getLabel().equals("!=")){
             String w = this.getUnusedVariableName("W");
-            Node lambda = new Node("t_lambda","( ^ [ "+ w + " : " + EmbeddingDefinitions.w + " ] : (");
+            Node lambda = new Node("t_lambda","( ^ [ "+ w + " : " + Common.w + " ] : (");
             n.addChildAt(lambda,0);
             Node closingBrackets = new Node("t_brackets_closing","))");
             n.addChild(closingBrackets);
             return;
         }
+
+        // Connectives <=> | => | <= | <~> | ~| | ~&
         embed_thf_binary_tuple(n); // same method
-        // retrieve operator <=> | => | <= | <~> | ~| | ~& | = | !=
-
-        /*
-        String op = n.getChild(1).getFirstLeaf().getLabel();
-        String opName = operatorToEmbeddingName.get(op);
-
-        // insert operator
-        // A = B is converted to meq A = B
-        Node newOperator = new Node(opName,opName);
-        n.addChildAt(newOperator, 0);
-
-        // add an @ before the A and replace = leaf with @
-        // meq A = B is converted to meq @ A @ B
-        Node firstAt = new Node("apply","@");
-        n.addChildAt(firstAt,1);
-        Node secondAt = new Node("apply","@");
-        n.replaceChildAt(3,secondAt);
-
-
-        // add brackets around both A and B
-        Node openingBracketA = new Node("opening bracket", "(");
-        n.addChildAt(openingBracketA, 2);
-        Node closingBracketA = new Node("closing bracket", ")");
-        n.addChildAt(closingBracketA, 4);
-        Node openingBracketB = new Node("opening bracket", "(");
-        n.addChildAt(openingBracketB, 6);
-        Node closingBracketB = new Node("closing bracket", ")");
-        n.addChildAt(closingBracketB, 8);
-        */
-
     }
 
-    private void replaceNullaryAndUnaryOperators(Node leaf){
-        switch (leaf.getLabel()){
-            // embed true and false
-            case "$true":
-                leaf.setLabel("mtrue");
-                usedOperators.add("mtrue");
-                break;
-            case "$false":
-                leaf.setLabel("mfalse");
-                usedOperators.add("mfalse");
-                break;
-            // embed simple modality
-            // box and dia already have @
-            case "$box":
-                leaf.setLabel("mbox");
-                usedOperators.add("mbox");
-                break;
-            case "$dia":
-                leaf.setLabel("mdia");
-                usedOperators.add("mdia");
-                break;
-            case "~":
-                leaf.setLabel("mnot @");
-                usedOperators.add("mnot");
-                break;
-            default:
-                // do nothing
+    /***********************************************************************************
+     * Sorting user types ($tType)
+     ***********************************************************************************/
+
+    private void extractUserTypes(){
+        List<Node> newUserTypes = new ArrayList<>();
+        for (Node leaf : this.userTypes){
+            Node userTypeNode = leaf.getParentOfRule("tPTP_input");
+            newUserTypes.add(userTypeNode);
+            userTypeNode.getParent().delChild(userTypeNode);
         }
-
+        userTypes = newUserTypes;
     }
+
+    /***********************************************************************************
+     * Auxiliary functions
+     ***********************************************************************************/
 
     private String getUnusedVariableName(String prefix){
         int i = 0;
@@ -409,153 +459,188 @@ public class ModalTransformator {
         return ret;
     }
 
-    private String getModalDefinitions() throws TransformationException{
+    /***********************************************************************************
+     * Modal declarations, definitions and axioms
+     ***********************************************************************************/
+
+    private String preProblemInsertions() throws TransformationException{
         StringBuilder def = new StringBuilder();
 
         // declare world_type_declaration type
         def.append("% declare type for possible worlds\n");
-        def.append(EmbeddingDefinitions.world_type);
+        def.append(Common.world_type_declaration);
         def.append("\n\n");
 
         // introduce accessibility relations
-        // Only one modality
         def.append("% declare accessibility relations\n");
-        def.append(EmbeddingDefinitions.declareRelation("r"));
-        def.append("\n\n");
-
-        // introduce used accessibility relation properties
-        // has to be reimplemented for multiple modalities
-        if (semanticsAnalyzer.modalityToAxiomList.get(SemanticsAnalyzer.modalitiesDefault) == null){
-            throw new TransformationException("No default value for modalities found.");
-        }
-        def.append("% define accessibility relation properties\n");
-        for(SemanticsAnalyzer.AccessibilityRelationProperty p :  semanticsAnalyzer.modalityToAxiomList.get(SemanticsAnalyzer.modalitiesDefault)){
-            if (p != SemanticsAnalyzer.AccessibilityRelationProperty.K) {
-                def.append(EmbeddingDefinitions.getAccessibilityRelationPropertyDefinitionByAccessibilityRelationProperty(p));
-                def.append("\n");
-            }
-        }
-        def.append("\n");
-
-        // introduce properties on the accessibility relations
-        // Only one modality, has to be reimplemented for multiple modalities
-        def.append("% assign properties to accessibility relations\n");
-        if (semanticsAnalyzer.modalityToAxiomList.get(SemanticsAnalyzer.modalitiesDefault) == null){
-            throw new TransformationException("No default value for modalities found.");
-        }
-        for(SemanticsAnalyzer.AccessibilityRelationProperty p : semanticsAnalyzer.modalityToAxiomList.get(SemanticsAnalyzer.modalitiesDefault)){
-            if (p != SemanticsAnalyzer.AccessibilityRelationProperty.K) {
-                def.append(EmbeddingDefinitions.applyPropertyToRelation(p, "rel_r"));
-                def.append("\n");
-            }
-        }
-        def.append("\n");
-
-        // introduce mvalid for global consequence
-        def.append("% define valid operator\n");
-        def.append(EmbeddingDefinitions.mvalid);
-        def.append("\n\n");
-
-        // introduce current world constant and actuality operator for local consequence
-        def.append("% define current-world constant and actuality operator\n");
-        def.append(EmbeddingDefinitions.mcurrentworld);
-        def.append("\n");
-        def.append(EmbeddingDefinitions.mactual);
-        def.append("\n\n");
-
-        // introduce used operators which are not valid operator nor quantifiers
-        def.append("% define nullary, unary and binary operators which are not quantifiers or valid operator\n");
-        for (String o : usedOperators){
-            def.append(EmbeddingDefinitions.modalSymbolDefinitions.get(o));
+        for (String normalizedModalityName : usedModalities){
+            String normalizedRelationName = AccessibilityRelation.getNormalizedRelationName(normalizedModalityName);
+            def.append(AccessibilityRelation.getRelationDeclaration(normalizedRelationName));
             def.append("\n");
         }
         def.append("\n");
+
+        // define accessibility relation properties
+        boolean propertyDefined = false;
+        Set<SemanticsAnalyzer.AccessibilityRelationProperty> allProperties = new HashSet<>();
+        for (Set<SemanticsAnalyzer.AccessibilityRelationProperty> set : semanticsAnalyzer.modalityToAxiomList.values()){
+            allProperties.addAll(set);
+        }
+        for(SemanticsAnalyzer.AccessibilityRelationProperty p :  allProperties){
+            if (p != SemanticsAnalyzer.AccessibilityRelationProperty.K) {
+                if (!propertyDefined) def.append("% define accessibility relation properties\n");
+                propertyDefined = true;
+                def.append(AccessibilityRelation.getAccessibilityRelationPropertyDefinitionByAccessibilityRelationProperty(p));
+                def.append("\n");
+            }
+        }
+        if (propertyDefined) def.append("\n");
+        // introduce properties on the accessibility relations
+        if (propertyDefined) def.append("% assign properties to accessibility relations\n");
+        for (String normalizedModalOperatorName : usedModalities) {
+            //System.out.println(normalizedModalOperatorName);
+            //System.out.println(semanticsAnalyzer.modalityToAxiomList.get(normalizedModalOperatorName));
+            String normalizedRelationName = AccessibilityRelation.getNormalizedRelationName(normalizedModalOperatorName);
+            Set<SemanticsAnalyzer.AccessibilityRelationProperty> properties = this.semanticsAnalyzer.modalityToAxiomList.getOrDefault(normalizedModalOperatorName,
+                    this.semanticsAnalyzer.modalityToAxiomList.getOrDefault(SemanticsAnalyzer.modalitiesDefault,null));
+            if (properties == null) throw new TransformationException("No explicit or default domain semantics found for modal operator " + normalizedModalOperatorName);
+            for (SemanticsAnalyzer.AccessibilityRelationProperty p : properties ) {
+                if (p != SemanticsAnalyzer.AccessibilityRelationProperty.K) {
+                    def.append(AccessibilityRelation.applyPropertyToRelation(p, normalizedRelationName));
+                    def.append("\n");
+                }
+            }
+        }
+        if (propertyDefined) def.append("\n");
+
+        // introduce mvalid for global consequence
+        if (this.semanticsAnalyzer.axiomNameToConsequenceType.values().contains(SemanticsAnalyzer.ConsequenceType.GLOBAL)) {
+            def.append("% define valid operator\n");
+            def.append(Common.mvalid);
+            def.append("\n\n");
+        }
+
+        // introduce current world constant and actuality operator for local consequence
+        if (this.semanticsAnalyzer.axiomNameToConsequenceType.values().contains(SemanticsAnalyzer.ConsequenceType.LOCAL)) {
+            def.append("% define current-world constant and actuality operator\n");
+            def.append(Quantification.mcurrentworld);
+            def.append("\n");
+            def.append(Common.mactual);
+            def.append("\n\n");
+        }
+
+        // introduce used operators which are not valid operator nor quantifiers
+        if (!(usedConnectives.isEmpty() && usedModalities.isEmpty())) {
+            def.append("% define nullary, unary and binary connectives which are no quantifiers\n");
+            for (String o : usedConnectives) {
+                def.append(Connectives.modalSymbolDefinitions.get(o));
+                def.append("\n");
+            }
+            for (String normalizedModalOperatorName : usedModalities) {
+                def.append(Connectives.getModalOperatorDefinition(normalizedModalOperatorName));
+                def.append("\n");
+            }
+            def.append("\n");
+        }
 
         // introduce quantifiers
         //typesForAllQuantifiers.add("$o>$o");
         //typesExistsQuantifiers.add("plushie>$o");
         //typesForAllQuantifiers.add("plushie>$o");
         if (!typesForVaryingQuantifiers.isEmpty()) {
-            def.append("\n% define exists-in-world predicates for quantified types and non-emptiness axioms\n");
+            def.append("% define exists-in-world predicates for quantified types and non-emptiness axioms\n");
             for (String q: typesExistsQuantifiers) { // for each type that a  quantor is used, introduce
                 // an according eiw predicate
-                def.append(EmbeddingDefinitions.eiw_th0(q));
+                def.append(Quantification.eiw_th0(q));
                 def.append("\n");
             }
             for (String q: typesForAllQuantifiers) { // for each type that a  quantor is used, introduce
                 // an according eiw predicate
                 if (!typesExistsQuantifiers.contains(q)) {
-                    def.append(EmbeddingDefinitions.eiw_th0(q));
+                    def.append(Quantification.eiw_th0(q));
                     def.append("\n");
                 }
             }
-            def.append("\n% define domain restrictions\n");
+            boolean domainRestrictionsAdded = false;
             for (String q: typesForVaryingQuantifiers) { // insert domain restriction (cumulative etc) if necessary
-                SemanticsAnalyzer.DomainType defaultDomainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(
-                        SemanticsAnalyzer.domainDefault, SemanticsAnalyzer.DomainType.CONSTANT);
-                SemanticsAnalyzer.DomainType domainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(q, defaultDomainType);
+                //SemanticsAnalyzer.DomainType defaultDomainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(
+                //        SemanticsAnalyzer.domainDefault, SemanticsAnalyzer.DomainType.CONSTANT);
+                SemanticsAnalyzer.DomainType domainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(q,
+                        this.semanticsAnalyzer.domainToDomainType.getOrDefault(SemanticsAnalyzer.domainDefault,null));
+                if (domainType == null) throw new TransformationException("No explicit or default domain semantics found for domain " + q);
                 if (domainType == SemanticsAnalyzer.DomainType.CUMULATIVE) {
-                    def.append(EmbeddingDefinitions.cumulative_eiw_th0(q));
+                    if (!domainRestrictionsAdded) def.append("\n% define domain restrictions\n");
+                    domainRestrictionsAdded = true;
+                    def.append(Quantification.cumulative_eiw_th0(q));
                     def.append("\n");
                 } else if (domainType == SemanticsAnalyzer.DomainType.DECREASING) {
-                    def.append(EmbeddingDefinitions.decreasing_eiw_th0(q));
+                    if (!domainRestrictionsAdded) def.append("\n% define domain restrictions\n");
+                    domainRestrictionsAdded = true;
+                    def.append(Quantification.decreasing_eiw_th0(q));
                     def.append("\n");
                 } // else nothing, since either constant or unrestricted varying
             }
-
         }
 
-        def.append("\n% define exists quantifiers\n");
-        for (String q : typesExistsQuantifiers){
-            SemanticsAnalyzer.DomainType defaultDomainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(
-                    SemanticsAnalyzer.domainDefault, SemanticsAnalyzer.DomainType.CONSTANT);
-            SemanticsAnalyzer.DomainType domainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(q, defaultDomainType);
-            if (domainType == SemanticsAnalyzer.DomainType.CONSTANT)
-                def.append(EmbeddingDefinitions.mexists_const_th0(q));
-            else
-                def.append(EmbeddingDefinitions.mexists_varying_th0(q));
-            def.append("\n");
+        if (!typesExistsQuantifiers.isEmpty()) {
+            def.append("\n% define exists quantifiers\n");
+            for (String q : typesExistsQuantifiers) {
+                //SemanticsAnalyzer.DomainType defaultDomainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(
+                //        SemanticsAnalyzer.domainDefault, SemanticsAnalyzer.DomainType.CONSTANT);
+                SemanticsAnalyzer.DomainType domainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(q,
+                        this.semanticsAnalyzer.domainToDomainType.getOrDefault(SemanticsAnalyzer.domainDefault,null));
+                if (domainType == null) throw new TransformationException("No explicit or default domain semantics found for domain " + q);
+                if (domainType == SemanticsAnalyzer.DomainType.CONSTANT)
+                    def.append(Quantification.mexists_const_th0(q));
+                else
+                    def.append(Quantification.mexists_varying_th0(q));
+                def.append("\n");
+            }
         }
-        def.append("\n% define for all quantifiers\n");
-        for (String q: typesForAllQuantifiers){
-            SemanticsAnalyzer.DomainType defaultDomainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(
-                    SemanticsAnalyzer.domainDefault, SemanticsAnalyzer.DomainType.CONSTANT);
-            SemanticsAnalyzer.DomainType domainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(q, defaultDomainType);
-            if (domainType == SemanticsAnalyzer.DomainType.CONSTANT)
-                def.append(EmbeddingDefinitions.mforall_const_th0(q));
-            else
-                def.append(EmbeddingDefinitions.mforall_varying_th0(q));
-            def.append("\n");
+        if (!typesForAllQuantifiers.isEmpty()) {
+            def.append("\n% define for all quantifiers\n");
+            for (String q : typesForAllQuantifiers) {
+                //SemanticsAnalyzer.DomainType defaultDomainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(
+                //        SemanticsAnalyzer.domainDefault, SemanticsAnalyzer.DomainType.CONSTANT);
+                SemanticsAnalyzer.DomainType domainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(q,
+                        this.semanticsAnalyzer.domainToDomainType.getOrDefault(SemanticsAnalyzer.domainDefault,null));
+                if (domainType == null) throw new TransformationException("No explicit or default domain semantics found for domain " + q);
+                if (domainType == SemanticsAnalyzer.DomainType.CONSTANT)
+                    def.append(Quantification.mforall_const_th0(q));
+                else
+                    def.append(Quantification.mforall_varying_th0(q));
+                def.append("\n");
+            }
         }
 
         return def.toString();
     }
 
-    private String getAuxiliaryDefinitions() throws TransformationException {
+    private String postProblemInsertion() throws TransformationException {
         StringBuilder def = new StringBuilder();
-        def.append("% define exists-in-world assertion for user-defined constants\n");
         for (String q: this.declaredUserConstants.keySet()) {
             if (!q.equals("$tType")) {
                 if (this.typesForVaryingQuantifiers.contains(q)) {
                     // an eiw-predicate of type q already exists, we can just postulate an axiom
                     // that these constants exist at all worlds
                     for (String constant : declaredUserConstants.get(q)) {
-                        def.append(EmbeddingDefinitions.constant_eiw_th0(constant, q));
+                        def.append(Quantification.constant_eiw_th0(constant, q));
                         def.append("\n");
                     }
                 } else {
                     // define eiw_predicate of that type first
-                    def.append(EmbeddingDefinitions.eiw_th0(q));
+                    def.append(Quantification.eiw_th0(q));
                     def.append("\n");
                     // now postulate as anbove
                     for (String constant : declaredUserConstants.get(q)) {
-                        def.append(EmbeddingDefinitions.constant_eiw_th0(constant, q));
+                        def.append(Quantification.constant_eiw_th0(constant, q));
                         def.append("\n");
                     }
                 }
             }
 
         }
-        return def.toString();
+        if (def.toString().length() == 0) return "";
+        return "% define exists-in-world assertion for user-defined constants\n" + def.toString();
     }
 }

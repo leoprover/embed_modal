@@ -1,0 +1,10 @@
+d,varying,rigid,local,SYM056+1.p,CSA,THM,CSA
+k,constant,rigid,local,SYM052+1.p,CSA,THM,null
+s4,constant,rigid,local,SYM052+1.p,CSA,THM,CSA
+s4,varying,rigid,local,SYM056+1.p,CSA,THM,CSA
+t,constant,rigid,local,SYM052+1.p,CSA,THM,CSA
+d,constant,rigid,local,SYM052+1.p,CSA,THM,CSA
+t,varying,rigid,local,SYM056+1.p,CSA,THM,CSA
+s5,constant,rigid,local,SYM052+1.p,CSA,THM,CSA
+s5,cumulative,rigid,local,SYM052+1.p,CSA,THM,CSA
+s5,varying,rigid,local,SYM056+1.p,CSA,THM,CSA

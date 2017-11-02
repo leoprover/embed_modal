@@ -1,18 +1,25 @@
 package main;
 
+import exceptions.ParseException;
+import fofParser.QmfAstGen;
+import parser.ParseContext;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class CompareQmltp {
 
+    public static Map<String,Boolean> containsEqualityMap = new HashMap<>();
+    public static Map<String,ParseContext> problemMap = new HashMap<>();
+
+
     public static void main(String[] args) {
 
-        if (args.length != 3){
+        if (args.length != 4){
             System.err.println("Unmatched argument size\nThree arguments needed: \n" +
                     "/path/to/qmltp/Problems/directory\n" +
                     "/path/to/test/results\n" +
@@ -22,8 +29,9 @@ public class CompareQmltp {
         }
 
         String qmltp = args[0];
-        String test_results = args[1];
-        String output = args[2];
+        String test_results_multi = args[1];
+        String test_results_multi_native = args[2];
+        String output = args[3];
 
         if (!Files.isDirectory(Paths.get(qmltp))){
             System.err.println("Unmatched argument size\nThree arguments needed: \n" +
@@ -35,13 +43,23 @@ public class CompareQmltp {
             System.exit(1);
         }
 
-        if (!Files.isDirectory(Paths.get(test_results))){
+        if (!Files.isDirectory(Paths.get(test_results_multi))){
             System.err.println("Unmatched argument size\nThree arguments needed: \n" +
                     "/path/to/qmltp/Problems/directory\n" +
                     "/path/to/test/results\n" +
                     "/path/to/output\n"
             );
-            System.err.println(test_results + " is not a valid directory");
+            System.err.println(test_results_multi + " is not a valid directory");
+            System.exit(1);
+        }
+
+        if (!Files.isDirectory(Paths.get(test_results_multi_native))){
+            System.err.println("Unmatched argument size\nThree arguments needed: \n" +
+                    "/path/to/qmltp/Problems/directory\n" +
+                    "/path/to/test/results\n" +
+                    "/path/to/output\n"
+            );
+            System.err.println(test_results_multi + " is not a valid directory");
             System.exit(1);
         }
 
@@ -56,10 +74,14 @@ public class CompareQmltp {
         }
 
         Results results = new Results();
-        try(Stream<Path> paths = Files.walk(Paths.get(test_results))) {
+        try(Stream<Path> paths = Files.walk(Paths.get(test_results_multi))) {
             paths.filter(Files::isRegularFile).forEach(f -> {
                 try {
-                    readResults(f,qmltp,results);
+                    Path f2 = Paths.get(test_results_multi_native,f.getFileName().toString()); // mleancop
+                    List<Path> result_files = new ArrayList<>();
+                    result_files.add(f);
+                    result_files.add(f2);
+                    readResults(result_files,qmltp,results);
                 } catch (IOException e) {
                     e.printStackTrace();
                     System.exit(1);
@@ -73,31 +95,66 @@ public class CompareQmltp {
         results.evaluate(output);
     }
 
-    private static void readResults(Path f, String qmltp_directory, Results results) throws IOException {
-        System.out.println("### Processing " + f.toString());
+    private static void readResults(List<Path> result_files, String qmltp_directory, Results results) throws IOException {
+        if (result_files.isEmpty()){
+            System.err.println("No results");
+            System.exit(1);
+        }
+        Path f0 = result_files.get(0);
+        Path f1 = result_files.get(1);
+        System.out.println("### Processing " + f0.toString());
         Test test = new Test();
-        List<String> result_content = Files.readAllLines(f);
-        String system = getSystemFromTestFilename(f.getFileName().toString());
-        String domain = getDomainFromTestFilename(f.getFileName().toString());
-        String constants = getConstantsFromTestFilename(f.getFileName().toString());
-        String consequence = getConsequenceFromTestFilename(f.getFileName().toString());
-        test.test_name = f.getFileName().toString();
+        String system = getSystemFromTestFilename(f0.getFileName().toString());
+        String domain = getDomainFromTestFilename(f0.getFileName().toString());
+        String constants = getConstantsFromTestFilename(f0.getFileName().toString());
+        String consequence = getConsequenceFromTestFilename(f0.getFileName().toString());
+        test.test_name = f0.getFileName().toString();
         test.system = system;
         test.domains = domain;
         test.constants = constants;
         test.consequence = consequence;
         int processing = 0;
-        for (String res : result_content){
+        List<String> content_multitester = Files.readAllLines(f0);
+        List<String> content_multinative = null;
+        if (Files.exists(f1)) {
+            System.out.println("FILENAME exists");
+            System.out.println(f1);
+            content_multinative = Files.readAllLines(f1);
+        } else {
+            System.out.println("FILENAME exists");
+            System.out.println(f1);
+        }
+        for (int i = 0; i < content_multitester.size(); i++){
+            String result_multitester = content_multitester.get(i);
             processing++;
-            String[] split = res.split(",");
+            String[] split = result_multitester.split(",");
             System.out.println("Processing " + processing + " ::: " + split[0]);
             String category = split[0].substring(0,3);
             String problem_name = split[0];
             Path problem_filename = Paths.get(qmltp_directory,category,problem_name);
             String problem = new String(Files.readAllBytes(problem_filename));
 
+            if (!containsEqualityMap.containsKey(problem_name)) {
+                ParseContext ctx = null;
+                try {
+                    ctx = QmfAstGen.parse(problem, "tPTP_file", problem_name);
+                    problemMap.put(problem_name,ctx);
+                    if (ctx.getRoot().dfsRule("defined_infix_formula").isPresent() || ctx.getRoot().dfsRule("fol_infix_unary").isPresent()) {
+                        containsEqualityMap.put(problem_name,true);
+                    } else {
+                        containsEqualityMap.put(problem_name,false);
+                    }
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                    System.err.println("ParseException " + e.getMessage());
+                }
+            }
+
             Problem p = new Problem();
+            p.containsEquality = containsEqualityMap.get(problem_name);
+            p.ctx = problemMap.get(problem_name);
             p.name = problem_name;
+            p.problem = problem;
             p.system = system;
             p.domains = domain;
             p.constants = constants;
@@ -111,6 +168,14 @@ public class CompareQmltp {
             p.time_leo = Double.valueOf(split[4]);
             p.status_nitpick = split[5];
             p.time_nitpick = Double.valueOf(split[6]);
+
+            if (content_multinative != null) {
+                String result_multinative = content_multinative.get(i);
+                String[] split2 = result_multinative.split(",");
+                p.status_mleancop = split2[1];
+                p.time_mleancop = Double.valueOf(split2[2]);
+            }
+
             test.addProblem(p);
         }
         results.addTest(test);

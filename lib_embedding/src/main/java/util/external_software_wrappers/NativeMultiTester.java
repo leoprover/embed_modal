@@ -56,6 +56,7 @@ public class NativeMultiTester {
                         System.out.println(name + ": mleancop: " + mleancop.getAbbrevStatus());
 
                         // save progress
+                        info = info + "," + qmlProblem.mleancop.getAbbrevStatus() + "," + qmlProblem.mleancop.duration + "\n";
                         try {
                             if (Files.exists(progress)) Files.write(progress,info.getBytes(), StandardOpenOption.APPEND);
                             else Files.write(progress,info.getBytes());
@@ -63,11 +64,12 @@ public class NativeMultiTester {
                             System.err.println("Could not write progress file " + progress.toString());
                             e.printStackTrace();
                         }
-
-                        // kill all atp processes on machine older than 82 seconds
-                        ProcessKiller.killAllOlderThan(71,"swipl");
-                        ProcessKiller.killAllOlderThan(71,"mleancop");
-
+                        System.out.println("::: progress saved");
+                        // kill all atp processes on machine older than x+1 seconds
+                        ProcessKiller.killAllOlderThan((int)timoutPerProblem+1,"mleancop");
+                        System.out.println("::: killed all mleancop");
+                        ProcessKiller.killAllOlderThan((int)timoutPerProblem+1,"swipl");
+                        System.out.println("::: killed all swipl");
                     });
         }
 
@@ -84,6 +86,18 @@ public class NativeMultiTester {
             System.err.println("Could not write all file");
             e.printStackTrace();
         }
+
+        System.out.println("sleeping now");
+        try {
+            Thread.sleep((timoutPerProblem+10)*1000);
+        } catch (InterruptedException e) {
+            System.out.println("sleep interrupted");
+            e.printStackTrace();
+        }
+        ProcessKiller.killAllOlderThan((int)timoutPerProblem+1,"mleancop");
+        System.out.println("::: killed all mleancop");
+        ProcessKiller.killAllOlderThan((int)timoutPerProblem+1,"swipl");
+        System.out.println("::: killed all swipl");
 
         // here should come the same stuff as in Problem tester satallax
     }

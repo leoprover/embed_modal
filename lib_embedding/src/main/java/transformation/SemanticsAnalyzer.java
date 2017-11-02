@@ -2,10 +2,10 @@ package transformation;
 
 
 import exceptions.AnalysisException;
+import transformation.Definitions.Connectives;
 import util.tree.Node;
 
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 /*
@@ -13,7 +13,8 @@ import java.util.logging.Logger;
  *  - rigid/flexible constants, default and individual constants
  *  - constant/varying/cumulative/decreasing domains, default and individual domains
  *  - local/global consequenceTypes of axioms, default and individual axioms
- *  - one modality by default value
+ *  - one modality by default or specific value
+ *  - multiple modalities by default or specific value
  */
 
 public class SemanticsAnalyzer {
@@ -23,27 +24,30 @@ public class SemanticsAnalyzer {
     public enum ConsequenceType{GLOBAL, LOCAL}
     public enum ConstantType{RIGID, FLEXIBLE}
     public enum DomainType{CONSTANT, VARYING, CUMULATIVE, DECREASING}
-    public enum AccessibilityRelationProperty{K,T,B,D,FOUR,FIVE}
+    public enum AccessibilityRelationProperty{K,T,B,D,FOUR,FIVE,CD,BOXM,C4,C}
 
-    protected Map<String, ConstantType> constantToConstantType;
-    protected Map<String, ConsequenceType> axiomNameToConsequenceType;
-    protected Map<String, DomainType> domainToDomainType;
-    protected Map<String, Set<AccessibilityRelationProperty>> modalityToAxiomList;
+    public Map<String, ConstantType> constantToConstantType;
+    public Map<String, ConsequenceType> axiomNameToConsequenceType;
+    public Map<String, DomainType> domainToDomainType;
+    public Map<String, Set<AccessibilityRelationProperty>> modalityToAxiomList;
 
-    protected static String constantDefault = "$default";
-    protected static String consequenceDefault = "$default";
-    protected static String domainDefault = "$default";
-    protected static String modalitiesDefault = "$default";
+    public static String constantDefault = "$default";
+    public static String consequenceDefault = "$default";
+    public static String domainDefault = "$default";
+    public static String modalitiesDefault = "$default";
 
     static Map<String,AccessibilityRelationProperty> modal_axioms;
-    private static Map<String,Set<AccessibilityRelationProperty>> modal_systems;
-    private static Map<String,ConsequenceType> consequenceTypes;
-    private static Map<String,ConstantType> constantTypes;
-    private static Map<String,DomainType> domainTypes;
-    private static Set<String> thfListSymbols;
-    private static Predicate<Node> isAxiom;
-    private static Predicate<Node> isSystem;
-    private static Predicate<Node> isThfListSymbol;
+    public static Map<String,Set<AccessibilityRelationProperty>> modal_systems;
+    public static Map<String,ConsequenceType> consequenceTypes;
+    public static Map<String,ConstantType> constantTypes;
+    public static Map<String,DomainType> domainTypes;
+
+    /*
+    public static Set<String> thfListSymbols;
+    public static Predicate<Node> isAxiom;
+    public static Predicate<Node> isSystem;
+    public static Predicate<Node> isThfListSymbol;
+    */
 
     static{
         /*
@@ -67,6 +71,10 @@ public class SemanticsAnalyzer {
         modal_axioms.put("$modal_axiom_D",AccessibilityRelationProperty.D);
         modal_axioms.put("$modal_axiom_4",AccessibilityRelationProperty.FOUR);
         modal_axioms.put("$modal_axiom_5",AccessibilityRelationProperty.FIVE);
+        modal_axioms.put("$modal_axiom_CD",AccessibilityRelationProperty.CD);
+        modal_axioms.put("$modal_axiom_BOXM",AccessibilityRelationProperty.BOXM);
+        modal_axioms.put("$modal_axiom_C4",AccessibilityRelationProperty.C4);
+        modal_axioms.put("$modal_axiom_C",AccessibilityRelationProperty.C);
         modal_systems = new HashMap<>();
         modal_systems.put("$modal_system_K", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K)));
         modal_systems.put("$modal_system_KB", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.B)));
@@ -75,6 +83,7 @@ public class SemanticsAnalyzer {
         modal_systems.put("$modal_system_S4", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.T, AccessibilityRelationProperty.FOUR)));
         modal_systems.put("$modal_system_S5", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.T, AccessibilityRelationProperty.FIVE)));
 
+        /*
         thfListSymbols = new HashSet<>();
         thfListSymbols.add(",");
         thfListSymbols.add("[");
@@ -83,6 +92,7 @@ public class SemanticsAnalyzer {
         isAxiom = x->modal_axioms.containsKey(x);
         isSystem = x->modal_systems.containsKey(x);
         isThfListSymbol = x->thfListSymbols.contains(x);
+        */
     }
 
     private Node root;
@@ -258,40 +268,42 @@ public class SemanticsAnalyzer {
         }
     }
 
-    /*
-     * supports only one modality by default value
-     */
-    private void analyzeModalities(Node node){
+    private void analyzeModalities(Node node) throws AnalysisException {
         log.finest("Analyzing modalities in " + node);
         //System.out.println(node);
 
         // only default value which is an axiom or a system or a list of axioms
         if (!node.dfsRule("logic_defn_rule").isPresent()){
+            log.finest("Only default value available.");
             Set<AccessibilityRelationProperty> propertyList = resolveModalityEntry(node.toStringLeafs());
-            System.out.println(propertyList.toString());
-            log.finest("Found default value " + accessibilityRelationPropertyListToString(propertyList) + " for modalities only");
-            System.out.println("Found default value " + accessibilityRelationPropertyListToString(propertyList) + " for modalities only");
+            log.finest("Found default value " + accessibilityRelationPropertyListToString(propertyList) + " for modalities only.");
             this.modalityToAxiomList.put(modalitiesDefault,propertyList);
         }
 
-        // at least one modality declaration which is a list with rules for specific modalities and
+        // at least one modality declaration which is a list with rules for specific modalities (system or name) and
         // probably a default value which is an axiom or a system or a list of axioms
-        // TODO
         else{
-            log.warning("Modalities are default value + others. This is not supported yet");
+            log.finest("Multiple values available. Searching for default value.");
             // find all logical modalSymbolDefinitions
-            List<Node> thf_logic_defns = node.dfsRuleAll("logic_defn");
+            Optional<Node> logic_defn_element = node.dfsRule("logic_defn_element");
+            // we are in a subtree of a default value
+            if (logic_defn_element.isPresent() && !logic_defn_element.get().dfsRule("logic_defn_rule").isPresent()){
+                Node default_node = node.dfsRule("thf_formula_list").get().getFirstChild();
+                Set<AccessibilityRelationProperty> propertyList = resolveModalityEntry(default_node.toStringLeafs());
+                log.finest("Found default value " + accessibilityRelationPropertyListToString(propertyList) + " for modalities.");
+                this.modalityToAxiomList.put(modalitiesDefault,propertyList);
+            } else {
+                log.finest("Default value was not found. Searching for specific values.");
+            }
+
+            List<Node> thf_logic_defns = node.dfsRuleAll("logic_defn_rule");
             for (Node d : thf_logic_defns){
-                Optional<Node> logic_defn_rule = d.dfsRule("logic_defn_rule");
-
-                // rule means specific modality
-                if (logic_defn_rule.isPresent()){
-
-                }
-                // otherwise it is default value
-                else{
-
-                }
+                Node operator = d.getFirstChild();
+                Node properties = d.getLastChild();
+                String normalizedEscapedModalOperator = Connectives.getNormalizedModalOperator(operator);
+                Set<AccessibilityRelationProperty> propertyList = resolveModalityEntry(properties.toStringLeafs());
+                log.finest("Found specific value " + accessibilityRelationPropertyListToString(propertyList) + " for modalitiy " + operator.toStringLeafs());
+                this.modalityToAxiomList.put(normalizedEscapedModalOperator,propertyList);
             }
         }
 
@@ -300,7 +312,7 @@ public class SemanticsAnalyzer {
     private void putConstant(String name, String value){
         ConstantType t = constantTypes.getOrDefault(value,null);
         if (t == null){
-            log.finest("Value " + value + " is not a valid value for constants.");
+            log.warning("Value " + value + " is not a valid value for constant semantics.");
             return;
         }
         constantToConstantType.put(name, t);
@@ -309,7 +321,7 @@ public class SemanticsAnalyzer {
     private void putDomain(String name, String value){
         DomainType t = domainTypes.getOrDefault(value,null);
         if (t == null){
-            log.finest("Value " + value + " is not a valid value for constants.");
+            log.warning("Value " + value + " is not a valid value for domain semantics.");
             return;
         }
         domainToDomainType.put(name, t);
@@ -318,7 +330,7 @@ public class SemanticsAnalyzer {
     private void putConsequence(String name, String value){
         ConsequenceType t = consequenceTypes.getOrDefault(value,null);
         if (t == null){
-            log.finest("Value " + value + " is not a valid value for constants.");
+            log.warning("Value " + value + " is not a valid value for consequence semantics.");
             return;
         }
         axiomNameToConsequenceType.put(name, t);
@@ -330,11 +342,10 @@ public class SemanticsAnalyzer {
 
     private static Set<AccessibilityRelationProperty> resolveModalityEntry(String entry){
         Set<AccessibilityRelationProperty> axioms = new HashSet<>();
-        log.finest("Resolving modality entry " + entry);
-        System.out.println("Resolving modality entry " + entry);
+        log.finest("Trying to resolve modality entry " + entry);
 
         // $modal_axiom_4
-        log.finest("Trying resolving to single modal axiom.");
+        log.finest("Trying to resolve to single modal axiom.");
         AccessibilityRelationProperty p = modal_axioms.getOrDefault(entry,null);
         if (!(p == null)){
             log.finest("Modality entry was the valid axiom "+ p.name());
@@ -345,7 +356,7 @@ public class SemanticsAnalyzer {
         }
 
         // $modal_system_S4
-        log.finest("Fail.Trying resolving to modal system.");
+        log.finest("Fail. Trying to resolve to modal system.");
         axioms = modal_systems.getOrDefault(entry, null);
         if (!(axioms == null)){
             log.finest("Modality entry was the valid system " + entry + " corresponding to " + accessibilityRelationPropertyListToString(axioms));
@@ -353,7 +364,7 @@ public class SemanticsAnalyzer {
         }
 
         // [$modal_system_S4]
-        log.finest("Fail.Trying resolving to modal system as unary list.");
+        log.finest("Fail. Trying to resolve to modal system as unary list.");
         axioms = modal_systems.getOrDefault(entry.replaceAll("\\[|\\]|,","").trim(), null);
         if (!(axioms == null)){
             log.finest("Modality entry was the valid system " + entry + " corresponding to " + accessibilityRelationPropertyListToString(axioms));
@@ -362,7 +373,7 @@ public class SemanticsAnalyzer {
 
         // [$modal_axiom_4]
         // [$modal_axiom_4,$modal_axiom_5]
-        log.finest("Fail.Trying resolving to modal axiom list.");
+        log.finest("Fail. Trying to resolve to modal axiom list.");
         String[] axiomList = entry.replaceAll("\\[","").replaceAll("\\]","").split(",");
         axioms = new HashSet<>();
         for (String a : axiomList){
@@ -371,14 +382,14 @@ public class SemanticsAnalyzer {
                 log.finest("Found axiom " + p.name());
                 axioms.add(p);
             } else {
-                log.finest("This is not a valid axiom: " + p);
+                log.warning("This is not a valid axiom or system: " + p);
             }
         }
         if (!axioms.isEmpty()){
             return axioms;
         }
 
-        log.finest("Fail.No valid modality property found.");
+        log.warning("Fail. No valid modality property found.");
         return new HashSet<>();
     }
 

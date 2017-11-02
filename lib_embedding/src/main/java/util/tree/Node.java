@@ -100,6 +100,15 @@ public class Node {
         return this.parent;
     }
 
+    public Node getParentOfRule(String rule) {
+        Node current = this;
+        while (current.hasParent()){
+            current = current.getParent();
+            if (current.getRule().equals(rule)) return current;
+        }
+        return null;
+    }
+
     public boolean hasChildren() {
         return !this.children.isEmpty();
     }
