@@ -274,7 +274,7 @@ public class Wrappers {
         } catch (IOException e) {
             throw new IOException("Could not read file " + inPath + " ::: " + e.getMessage());
         }
-        if (problem.contains("$modal")) log.warning("Problem may already contain semantical definitions.");
+        if (semantics != null && problem.contains("$modal")) log.warning("Problem may already contain semantical definitions.");
 
         // add optional semantics
         if (semantics == null) semantics = "";
