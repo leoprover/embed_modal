@@ -2,6 +2,7 @@ package transformation;
 
 
 import exceptions.AnalysisException;
+import transformation.Definitions.AccessibilityRelation;
 import transformation.Definitions.Connectives;
 import util.tree.Node;
 
@@ -29,7 +30,7 @@ public class SemanticsAnalyzer {
     public Map<String, ConstantType> constantToConstantType;
     public Map<String, ConsequenceType> axiomNameToConsequenceType;
     public Map<String, DomainType> domainToDomainType;
-    public Map<String, Set<AccessibilityRelationProperty>> modalityToAxiomList;
+    public Map<String, Set<AccessibilityRelationProperty>> modalityToAxiomList; // only suffix
 
     public static String constantDefault = "$default";
     public static String consequenceDefault = "$default";
@@ -300,10 +301,10 @@ public class SemanticsAnalyzer {
             for (Node d : thf_logic_defns){
                 Node operator = d.getFirstChild();
                 Node properties = d.getLastChild();
-                String normalizedEscapedModalOperator = Connectives.getNormalizedModalOperator(operator);
+                String normalizedAccessibilityRelationSuffix = AccessibilityRelation.getNormalizedRelationSuffix(operator);
                 Set<AccessibilityRelationProperty> propertyList = resolveModalityEntry(properties.toStringLeafs());
                 log.finest("Found specific value " + accessibilityRelationPropertyListToString(propertyList) + " for modalitiy " + operator.toStringLeafs());
-                this.modalityToAxiomList.put(normalizedEscapedModalOperator,propertyList);
+                this.modalityToAxiomList.put(normalizedAccessibilityRelationSuffix,propertyList);
             }
         }
 

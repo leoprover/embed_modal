@@ -104,11 +104,13 @@ public class Connectives {
     public static final String box_int_prefix = box_prefix + "_int";
     public static final String dia_int_prefix = dia_prefix + "_int";
 
-    public static String getModalOperatorDefinition(String normalizedModalOperator){
+    public static String getModalOperatorDefinition(String normalizedModalOperator, String normalizedAccessibilityRelation){
+        String quantifier = "!";
+        if (normalizedModalOperator.contains("dia")) quantifier = "?";
         return "" +
                 "thf( " + normalizedModalOperator + "_type , type , ( " + normalizedModalOperator + ": (" + w + ">$o)>" + w + ">$o) ).\n" +
                 "thf( " + normalizedModalOperator + "_def , definition , ( " + normalizedModalOperator + " = (" +
-                "^ [A:" + w + ">$o,W:" + w + "] : ! [V:" + w + "] : ( (" + AccessibilityRelation.getNormalizedRelationName(normalizedModalOperator) + "@W@V) => (A@V) )" +
+                "^ [A:" + w + ">$o,W:" + w + "] : " + quantifier + " [V:" + w + "] : ( (" + normalizedAccessibilityRelation + "@W@V) => (A@V) )" +
                 "))).";
     }
 
@@ -118,8 +120,8 @@ public class Connectives {
      */
     public static String getNormalizedModalOperator(Node n) throws AnalysisException {
         // TODO assert this is a valid operator
-        String op = n.toStringLeafs();
         Node firstLeaf = n.getFirstLeaf();
+        String normalizedRelationSuffix = AccessibilityRelation.getNormalizedRelationSuffix(n);
 
         // $box
         if (firstLeaf.getLabel().equals("$box")){
@@ -131,26 +133,14 @@ public class Connectives {
         }
         // $box_int @ <int>
         if (firstLeaf.getLabel().equals("$box_int")){
-            Optional<Node> unsigned_integer = n.getLastChild().dfsRule("unsigned_integer");
-            if (unsigned_integer.isPresent()){
-                return box_int_prefix + "_" + unsigned_integer.get().getFirstLeaf().getLabel();
-            } else {
-                throw new AnalysisException("$box_int was not applied to an unsigned_integer: " + n.toString());
-            }
+            return box_int_prefix + "_" + normalizedRelationSuffix;
         }
         // $dia_int @ <int>
         if (firstLeaf.getLabel().equals("$dia_int")){
-            Optional<Node> unsigned_integer = n.getLastChild().dfsRule("unsigned_integer");
-            if (unsigned_integer.isPresent()){
-                return dia_int_prefix + "_" + unsigned_integer.get().getFirstLeaf().getLabel();
-            } else {
-                throw new AnalysisException("$box_int was not applied to an unsigned_integer: " + n.toString());
-            }
+            return dia_int_prefix + "_" + normalizedRelationSuffix;
         }
 
-
-
-        throw new AnalysisException("Invalid modal operator: " + n.toString());
+        throw new AnalysisException("Connectives: Invalid modal operator: " + n.toString());
 
     }
 }

@@ -6,6 +6,7 @@ import util.tree.Node;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class AccessibilityRelation {
     private static final String w = Common.w;
@@ -102,25 +103,65 @@ public class AccessibilityRelation {
         return accessibilityRelationPropertyDefinitions.get(p);
     }
 
-    public static String getNormalizedRelationName(String normalizedModalOperator){
+    /*
+    public static String getNormalizedRelation(String normalizedModalOperator){
+
         return accessibility_relation_prefix + "_" + normalizedModalOperator;
     }
+    */
 
     /*
      * modalOperator has to be the tree which contains all parts of the modal operator
      * e.g. for $box @ 1 it contains both $box and 1
      */
-    public static String getNormalizedRelationName(Node modalOperator) throws AnalysisException {
-        return accessibility_relation_prefix + "_" + Connectives.getNormalizedModalOperator(modalOperator);
+
+    public static String getNormalizedRelation(String normalizedRelationSuffix) {
+        if (normalizedRelationSuffix.equals("")) return accessibility_relation_prefix; // default relation
+        return accessibility_relation_prefix + "_" + normalizedRelationSuffix;
     }
 
-    public static String getRelationDeclaration(String normalizedRelationName){
-        return "thf( " + normalizedRelationName + "_type , type , ( " + normalizedRelationName + ":" + w + ">" + w + ">$o) ).";
+    public static String getNormalizedRelationSuffix(Node modalOperator) throws AnalysisException {
+        // TODO assert this is a valid operator
+        String op = modalOperator.toStringLeafs();
+        Node firstLeaf = modalOperator.getFirstLeaf();
+
+        // $box
+        if (firstLeaf.getLabel().equals("$box")){
+            return "";
+        }
+        // $dia
+        if (firstLeaf.getLabel().equals("$dia")){
+            return "";
+        }
+        // $box_int @ <int>
+        if (firstLeaf.getLabel().equals("$box_int")){
+            Optional<Node> unsigned_integer = modalOperator.getLastChild().dfsRule("unsigned_integer");
+            if (unsigned_integer.isPresent()){
+                return unsigned_integer.get().getFirstLeaf().getLabel();
+            } else {
+                throw new AnalysisException("$box_int was not applied to an unsigned_integer: " + modalOperator.toString());
+            }
+        }
+        // $dia_int @ <int>
+        if (firstLeaf.getLabel().equals("$dia_int")){
+            Optional<Node> unsigned_integer = modalOperator.getLastChild().dfsRule("unsigned_integer");
+            if (unsigned_integer.isPresent()){
+                return unsigned_integer.get().getFirstLeaf().getLabel();
+            } else {
+                throw new AnalysisException("$box_int was not applied to an unsigned_integer: " + modalOperator.toString());
+            }
+        }
+        System.out.println("INV: " + modalOperator);
+        throw new AnalysisException("AccessibilityRelations: Invalid modal operator: " + modalOperator.toString());
     }
 
-    public static String applyPropertyToRelation(AccessibilityRelationProperty p, String normalizedRelationName){
-        return "thf( " + normalizedRelationName + "_" + accessibilityRelationPropertyNames.get(p) + " , axiom , ( " +
-                accessibilityRelationPropertyNames.get(p) + " @ " + normalizedRelationName + " ) ).";
+    public static String getRelationDeclaration(String normalizedRelation){
+        return "thf( " + normalizedRelation + "_type , type , ( " + normalizedRelation + ":" + w + ">" + w + ">$o) ).";
+    }
+
+    public static String applyPropertyToRelation(AccessibilityRelationProperty p, String normalizedRelationSuffix){
+        return "thf( " + getNormalizedRelation(normalizedRelationSuffix) + "_" + accessibilityRelationPropertyNames.get(p) + " , axiom , ( " +
+                accessibilityRelationPropertyNames.get(p) + " @ " + getNormalizedRelation(normalizedRelationSuffix) + " ) ).";
     }
 
 

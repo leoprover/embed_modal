@@ -27,6 +27,7 @@ public class ModalTransformator {
     private Map<String, Set<String>> declaredUserConstants; // Type -> Set of symbols
     private Set<String> usedConnectives;
     private Set<String> usedModalities;
+    private HashMap<String,String> usedModalConnectivesToUsedModalities; // contains suffixes
     private Set<String> usedSymbols;
     private List<Node> userTypes; // $tType nodes (leafs)
 
@@ -54,6 +55,7 @@ public class ModalTransformator {
         declaredUserConstants = new HashMap<>();
         usedConnectives = new HashSet<>();
         usedModalities = new HashSet<>();
+        usedModalConnectivesToUsedModalities = new HashMap<>();
         usedSymbols = new HashSet<>();
         userTypes = new ArrayList<>();
     }
@@ -244,6 +246,8 @@ public class ModalTransformator {
      ***********************************************************************************/
     private void embed_modality_box_or_dia(Node boxOrDiaLeaf) throws AnalysisException {
         String normalizedModalOperator = Connectives.getNormalizedModalOperator(boxOrDiaLeaf);
+        String normalizedAccessibilityRelationSuffix = AccessibilityRelation.getNormalizedRelationSuffix(boxOrDiaLeaf);
+        usedModalConnectivesToUsedModalities.put(normalizedModalOperator,normalizedAccessibilityRelationSuffix);
         boxOrDiaLeaf.setLabel(normalizedModalOperator);
         usedModalities.add(normalizedModalOperator);
     }
@@ -251,10 +255,12 @@ public class ModalTransformator {
     private void embed_modality_box_or_dia_int(Node boxOrDiaIntLeaf) throws AnalysisException {
         Node operatorTree = boxOrDiaIntLeaf.getNextTopBranchingNode(); // should be thf_apply_formula
         String normalizedModalOperator = Connectives.getNormalizedModalOperator(operatorTree);
+        usedModalities.add(normalizedModalOperator);
+        String normalizedAccessibilityRelationSuffix = AccessibilityRelation.getNormalizedRelationSuffix(boxOrDiaIntLeaf);
+        usedModalConnectivesToUsedModalities.put(normalizedModalOperator,normalizedAccessibilityRelationSuffix);
         operatorTree.delAllChildren();
         Node newOperator = new Node("t_box_dia_int" , normalizedModalOperator);
         operatorTree.addChild(newOperator);
-        usedModalities.add(normalizedModalOperator);
     }
 
     /***********************************************************************************
@@ -473,9 +479,8 @@ public class ModalTransformator {
 
         // introduce accessibility relations
         def.append("% declare accessibility relations\n");
-        for (String normalizedModalityName : usedModalities){
-            String normalizedRelationName = AccessibilityRelation.getNormalizedRelationName(normalizedModalityName);
-            def.append(AccessibilityRelation.getRelationDeclaration(normalizedRelationName));
+        for (String normalizedAccessibilityRelationSuffix : new HashSet<>(usedModalConnectivesToUsedModalities.values())){
+            def.append(AccessibilityRelation.getRelationDeclaration(AccessibilityRelation.getNormalizedRelation(normalizedAccessibilityRelationSuffix)));
             def.append("\n");
         }
         def.append("\n");
@@ -497,16 +502,14 @@ public class ModalTransformator {
         if (propertyDefined) def.append("\n");
         // introduce properties on the accessibility relations
         if (propertyDefined) def.append("% assign properties to accessibility relations\n");
-        for (String normalizedModalOperatorName : usedModalities) {
-            //System.out.println(normalizedModalOperatorName);
-            //System.out.println(semanticsAnalyzer.modalityToAxiomList.get(normalizedModalOperatorName));
-            String normalizedRelationName = AccessibilityRelation.getNormalizedRelationName(normalizedModalOperatorName);
-            Set<SemanticsAnalyzer.AccessibilityRelationProperty> properties = this.semanticsAnalyzer.modalityToAxiomList.getOrDefault(normalizedModalOperatorName,
+        for (String normalizedRelationSuffix : new HashSet<>(usedModalConnectivesToUsedModalities.values())) {
+            //System.out.println(normalizedRelationSuffix);
+            Set<SemanticsAnalyzer.AccessibilityRelationProperty> properties = this.semanticsAnalyzer.modalityToAxiomList.getOrDefault(normalizedRelationSuffix,
                     this.semanticsAnalyzer.modalityToAxiomList.getOrDefault(SemanticsAnalyzer.modalitiesDefault,null));
-            if (properties == null) throw new TransformationException("No explicit or default domain semantics found for modal operator " + normalizedModalOperatorName);
+            if (properties == null) throw new TransformationException("No explicit or default domain semantics found for accessiblity relation " + normalizedRelationSuffix);
             for (SemanticsAnalyzer.AccessibilityRelationProperty p : properties ) {
                 if (p != SemanticsAnalyzer.AccessibilityRelationProperty.K) {
-                    def.append(AccessibilityRelation.applyPropertyToRelation(p, normalizedRelationName));
+                    def.append(AccessibilityRelation.applyPropertyToRelation(p, normalizedRelationSuffix));
                     def.append("\n");
                 }
             }
@@ -536,8 +539,9 @@ public class ModalTransformator {
                 def.append(Connectives.modalSymbolDefinitions.get(o));
                 def.append("\n");
             }
-            for (String normalizedModalOperatorName : usedModalities) {
-                def.append(Connectives.getModalOperatorDefinition(normalizedModalOperatorName));
+            for (String normalizedModalOperator : usedModalities) {
+                String normalizedAccessiblityRelation = AccessibilityRelation.getNormalizedRelation(usedModalConnectivesToUsedModalities.get(normalizedModalOperator));
+                def.append(Connectives.getModalOperatorDefinition(normalizedModalOperator, normalizedAccessiblityRelation));
                 def.append("\n");
             }
             def.append("\n");
