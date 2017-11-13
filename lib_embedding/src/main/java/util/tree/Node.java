@@ -1,6 +1,5 @@
 package util.tree;
 
-import com.google.common.collect.Lists;
 import util.EscapeUtils;
 
 import java.util.*;
@@ -221,7 +220,7 @@ public class Node {
             if (current_node.children.isEmpty()){
                 leafs.add(current_node);
             }
-            for (Node child : Lists.reverse(current_node.getChildren())) {
+            for (Node child : reverseList(current_node.getChildren())) {
                 nodes_to_visit.push(child);
             }
         }
@@ -314,7 +313,7 @@ public class Node {
             if (current_node.getLabel().equals(label)){
                 return Optional.of(current_node);
             }
-            for (Node child : Lists.reverse(current_node.children)) {
+            for (Node child : reverseList(current_node.children)) {
                 nodes_to_visit.add(child);
             }
         }
@@ -336,7 +335,7 @@ public class Node {
             if (current_node.getRule().equals(rule)){
                 return Optional.of(current_node);
             }
-            for (Node child : Lists.reverse(current_node.children)) {
+            for (Node child : reverseList(current_node.children)) {
                 nodes_to_visit.add(child);
             }
         }
@@ -359,7 +358,7 @@ public class Node {
             if (current_node.getLabel().equals(label)){
                 all.add(current_node);
             }
-            for (Node child : Lists.reverse(current_node.children)) {
+            for (Node child : reverseList(current_node.children)) {
                 nodes_to_visit.add(child);
             }
         }
@@ -382,7 +381,7 @@ public class Node {
             if (current_node.getRule().equals(rule)){
                 all.add(current_node);
             }
-            for (Node child : Lists.reverse(current_node.children)) {
+            for (Node child : reverseList(current_node.children)) {
                 nodes_to_visit.add(child);
             }
         }
@@ -406,7 +405,7 @@ public class Node {
                 all.add(current_node);
             }
             else {
-                for (Node child : Lists.reverse(current_node.children)) {
+                for (Node child : reverseList(current_node.children)) {
                     nodes_to_visit.add(child);
                 }
             }
@@ -431,7 +430,7 @@ public class Node {
                 all.add(current_node);
             }
             else {
-                for (Node child : Lists.reverse(current_node.children)) {
+                for (Node child : reverseList(current_node.children)) {
                     nodes_to_visit.add(child);
                 }
             }
@@ -716,6 +715,15 @@ public class Node {
             output.add("\n");
         }
         return String.join("", output).trim();
+    }
+
+    private <E> List<E> reverseList(List<E> list) {
+        List<E> result = new ArrayList<>(list.size());
+        
+        for (int idx = list.size()-1; idx >= 0; idx--) {
+            result.add(list.get(idx));
+        }
+       return result;
     }
 
 
