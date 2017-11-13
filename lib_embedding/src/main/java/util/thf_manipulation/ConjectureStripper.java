@@ -1,7 +1,8 @@
 package util.thf_manipulation;
 
 import exceptions.ParseException;
-import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CodePointCharStream;
 import parser.ParseContext;
 import parser.ThfAstGen;
 import util.tree.Node;
@@ -22,7 +23,7 @@ public class ConjectureStripper {
     }
 
     public static Node getProblemWithoutConjecture(String problem) throws ParseException {
-        ANTLRInputStream inputStream = new ANTLRInputStream(problem);
+        CodePointCharStream inputStream = CharStreams.fromString(problem);
         ParseContext parseContext = ThfAstGen.parse(inputStream, "tPTP_file", "");
         Node root = parseContext.getRoot();
         root.dfsRuleAllToplevel("thf_annotated").forEach(n->{

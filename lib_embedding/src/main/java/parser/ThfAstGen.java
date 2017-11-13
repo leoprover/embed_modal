@@ -13,12 +13,12 @@ public class ThfAstGen {
 
     /**
      * parse ANTLRInputStream containing thf and return ast
-     * @param inputStream ANTLRInputStream object
+     * @param inputStream CodePointCharStream object
      * @param rule start parsing at this rule
      * @return ast
      * @throws ParseException if there is no such rule
      */
-    public static ParseContext parse(ANTLRInputStream inputStream, String rule, String name) throws ParseException {
+    public static ParseContext parse(CodePointCharStream inputStream, String rule, String name) throws ParseException {
 
         parser.HmfLexer lexer = new parser.HmfLexer(inputStream);
         lexer.removeErrorListeners(); // only for production
@@ -74,7 +74,8 @@ public class ThfAstGen {
      * @throws ParseException if there is no such rule
      */
     public static ParseContext parse(String inputString, String rule, String name) throws ParseException {
-         return ThfAstGen.parse(new ANTLRInputStream(inputString), rule, name);
+        CodePointCharStream inputStream = CharStreams.fromString(inputString);
+        return ThfAstGen.parse(inputStream, rule, name);
     }
 
 }

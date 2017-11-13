@@ -1,7 +1,6 @@
 import exceptions.AnalysisException;
 import exceptions.ParseException;
 import exceptions.TransformationException;
-import org.antlr.v4.runtime.ANTLRInputStream;
 import org.junit.Test;
 import parser.ThfAstGen;
 import transformation.Definitions.Connectives;

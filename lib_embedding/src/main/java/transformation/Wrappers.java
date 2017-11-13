@@ -4,7 +4,8 @@ package transformation;
 import exceptions.AnalysisException;
 import exceptions.TransformationException;
 import javafx.util.Pair;
-import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CodePointCharStream;
 import parser.ParseContext;
 import parser.ThfAstGen;
 import util.tree.Node;
@@ -281,7 +282,7 @@ public class Wrappers {
 
         // parse input
         String rule = "tPTP_file";
-        ANTLRInputStream inputStream = new ANTLRInputStream(problem);
+        CodePointCharStream inputStream = CharStreams.fromString(problem);
         ParseContext parseContext = ThfAstGen.parse(inputStream, rule, inPath.getFileName().toString());
         Node root = parseContext.getRoot();
 
