@@ -155,8 +155,8 @@ public class Quantification {
         sb.append("r"); // sb.append(relation);
         sb.append(" , axiom , (");
         sb.append("! [W:" + w + ",V:" + w + ",C:" + type + "]: ( (");
-        sb.append("rel_");
-        sb.append("r"); // sb.append(relation);
+        sb.append(AccessibilityRelation.accessibility_relation_prefix);
+        // sb.append(relation_postfix);
         sb.append(" @ W @ V) => ((eiw_");
         sb.append(escapedType);
         sb.append(" @ C @ W) => (eiw_");
@@ -184,8 +184,8 @@ public class Quantification {
         sb.append("r"); // sb.append(relation);
         sb.append(" , axiom , (");
         sb.append("! [W:" + w + ",V:" + w + ",C:" + type + "]: ( (");
-        sb.append("rel_");
-        sb.append("r"); // sb.append(relation);
+        sb.append(AccessibilityRelation.accessibility_relation_prefix);
+        // sb.append(relation_postfix);
         sb.append(" @ W @ V) => ((eiw_");
         sb.append(escapedType);
         sb.append(" @ C @ V) => (eiw_");
