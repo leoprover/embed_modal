@@ -1,5 +1,7 @@
 package transformation;
 
+import java.util.Arrays;
+
 public class SemanticsGenerator {
 
     public static final String standard_s5 = "thf(simple_s5,logic, ( $modal :=\n" +
@@ -100,6 +102,46 @@ public class SemanticsGenerator {
         ret = ret.replaceAll("[\\$]","_");
         ret = ret.substring(14).toLowerCase();
         return ret;
+    }
+
+    public static String semanticsToTPTPSpecification(int system, int domain, int constant, int consequence) {
+        return semanticsCube[system][domain][constant][consequence];
+    }
+
+    public static int systemToInt(String system) {
+        return Arrays.asList(systems).indexOf(system);
+    }
+
+    public static int systemCommonNameToInt(String system) {
+        String system0 = "$modal_system_" + system;
+        return systemToInt(system0);
+    }
+
+    public static int domainToInt(String domain) {
+        return Arrays.asList(domains).indexOf(domain);
+    }
+
+    public static int domainCommonNameToInt(String domain) {
+        String domain0 = "$" + domain;
+        return domainToInt(domain0);
+    }
+
+    public static int consequenceToInt(String consequence) {
+        return Arrays.asList(consequences).indexOf(consequence);
+    }
+
+    public static int consequenceCommonNameToInt(String consequence) {
+        String consequence0 = "$" + consequence;
+        return consequenceToInt(consequence0);
+    }
+
+    public static int rigidityToInt(String rigidity) {
+        return Arrays.asList(constants).indexOf(rigidity);
+    }
+
+    public static int rigidityCommonNameToInt(String rigidity) {
+        String rigidity0 = "$" + rigidity;
+        return rigidityToInt(rigidity0);
     }
 
     public static String thfName(String sentence){
