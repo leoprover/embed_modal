@@ -131,7 +131,7 @@ public class EmbedModal {
             try {
                 // setup log file
                 if (line.hasOption("log")){
-                    Path logDirectory = Paths.get(line.getOptionValue("log")).getParent();
+                    Path logDirectory = Paths.get(line.getOptionValue("log")).toAbsolutePath().getParent();
                     if (Files.exists(logDirectory)){
                         if (!Files.isDirectory(logDirectory)){
                             log.warning("log file directory path exists but is not a valid directory: " + logDirectory.toString());
@@ -200,12 +200,12 @@ public class EmbedModal {
 
         // modal logic embedding
         if (cl.getOptionValue("f").equals("modal")) {
-            Path inPath = Paths.get(cl.getOptionValue("i"));
+            Path inPath = Paths.get(cl.getOptionValue("i")).toAbsolutePath();
 
             // input is directory
             if (Files.isDirectory(inPath)){
                 log.info("Input is directory " + inPath.toString());
-                Path outPath = Paths.get(cl.getOptionValue("o"));
+                Path outPath = Paths.get(cl.getOptionValue("o")).toAbsolutePath();
                 if (Files.exists(outPath)){
                     if (!Files.isDirectory(outPath)){
                         log.severe("Outpath already exists and is not a valid directory: " + outPath.toString());
@@ -253,11 +253,11 @@ public class EmbedModal {
             // input is file
             }else{
                 log.info("Input is file " + inPath.toString());
-                Path outPath = Paths.get(cl.getOptionValue("o"));
+                Path outPath = Paths.get(cl.getOptionValue("o")).toAbsolutePath();
                 Path inDot = null;
-                if (cl.hasOption("dotin")) inDot = Paths.get(cl.getOptionValue("dotin"));
+                if (cl.hasOption("dotin")) inDot = Paths.get(cl.getOptionValue("dotin")).toAbsolutePath();
                 Path outDot = null;
-                if (cl.hasOption("dotout")) outDot = Paths.get(cl.getOptionValue("dotout"));
+                if (cl.hasOption("dotout")) outDot = Paths.get(cl.getOptionValue("dotout")).toAbsolutePath();
                 String dot = null;
                 if (cl.hasOption("dotbin")) dot = cl.getOptionValue("dotbin");
                 String semantics = null;
