@@ -47,7 +47,7 @@ public class Connectives {
 
     public static final String mnand = "" +
             "thf( mnand_type,type , ( mnand: (" + w + ">$o)>(" + w + ">$o)>" + w + ">$o) ).\n" +
-            "thf( mnand , definition , ( mn1and = (" +
+            "thf( mnand , definition , ( mnand = (" +
             "^ [A:" + w + ">$o,B:" + w + ">$o,W:" + w + "] : ( (A@W) ~& (B@W) )" +
             "))).";
 

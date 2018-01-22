@@ -43,6 +43,25 @@ public class Results {
     public HashMap<String,List<Problem>> nitpick;
     public HashMap<String,List<Problem>> mleancop;
 
+    public int leo_and_sat_thm = 0;
+    public int leo_and_sat_thm_t_const = 0;
+    public int leo_and_sat_thm_d_const = 0;
+    public int leo_and_sat_thm_s4_const = 0;
+    public int leo_and_sat_thm_s5_const = 0;
+    public int leo_and_sat_thm_t_vary = 0;
+    public int leo_and_sat_thm_d_vary = 0;
+    public int leo_and_sat_thm_s4_vary = 0;
+    public int leo_and_sat_thm_s5_vary = 0;
+    public int mlean_thm = 0;
+    public int mlean_thm_t_const = 0;
+    public int mlean_thm_d_const = 0;
+    public int mlean_thm_s4_const = 0;
+    public int mlean_thm_s5_const = 0;
+    public int mlean_thm_t_vary = 0;
+    public int mlean_thm_d_vary = 0;
+    public int mlean_thm_s4_vary = 0;
+    public int mlean_thm_s5_vary = 0;
+
     // table
     public List<String> table;
 
@@ -147,6 +166,32 @@ public class Results {
             for (Problem problem : test.getProblems()){
                 //System.out.println(problem.toString());
 
+                // mleancop vs sat+leo
+                if (problem.consequence.equals("local") && !problem.system.equals("k") && !problem.domains.equals("decreasing") && !problem.constants.equals("flexible")){
+                    if (problem.status_mleancop.contains("THM")){
+                        mlean_thm+=1;
+                        if (problem.system.equals("d") && problem.domains.equals("constant")) mlean_thm_d_const +=1;
+                        if (problem.system.equals("t")&& problem.domains.equals("constant")) mlean_thm_t_const +=1;
+                        if (problem.system.equals("s4")&& problem.domains.equals("constant")) mlean_thm_s4_const +=1;
+                        if (problem.system.equals("s5")&& problem.domains.equals("constant")) mlean_thm_s5_const +=1;
+                        if (problem.system.equals("d") && problem.domains.equals("varying")) mlean_thm_d_vary +=1;
+                        if (problem.system.equals("t")&& problem.domains.equals("varying")) mlean_thm_t_vary +=1;
+                        if (problem.system.equals("s4")&& problem.domains.equals("varying")) mlean_thm_s4_vary +=1;
+                        if (problem.system.equals("s5")&& problem.domains.equals("varying")) mlean_thm_s5_vary +=1;
+                    }
+                    if (problem.status_leo.contains("THM") || problem.status_satallax.contains("THM")) {
+                        leo_and_sat_thm+=1;
+                        if (problem.system.equals("d") && problem.domains.equals("constant")) leo_and_sat_thm_d_const +=1;
+                        if (problem.system.equals("t")&& problem.domains.equals("constant")) leo_and_sat_thm_t_const +=1;
+                        if (problem.system.equals("s4")&& problem.domains.equals("constant")) leo_and_sat_thm_s4_const +=1;
+                        if (problem.system.equals("s5")&& problem.domains.equals("constant")) leo_and_sat_thm_s5_const +=1;
+                        if (problem.system.equals("d") && problem.domains.equals("varying")) leo_and_sat_thm_d_vary +=1;
+                        if (problem.system.equals("t")&& problem.domains.equals("varying")) leo_and_sat_thm_t_vary +=1;
+                        if (problem.system.equals("s4")&& problem.domains.equals("varying")) leo_and_sat_thm_s4_vary +=1;
+                        if (problem.system.equals("s5")&& problem.domains.equals("varying")) leo_and_sat_thm_s5_vary +=1;
+
+                    }
+                }
                 // put all problems int a list
                 totalProblems.add(problem);
 
@@ -168,6 +213,7 @@ public class Results {
 
                 if (problem.status_qmltp == null) {
                     if (!hasError(problem) && atpsAgree(problem)){
+                        System.out.println(problem);
                         if (getAgreedStatus(problem).equals("THM")) unique_unsupported_semantics.add(problem);
                         if (getAgreedStatus(problem).equals("CSA") && problem.domains.equals("constant")) unique_unsupported_semantics.add(problem);
                     }
@@ -816,6 +862,30 @@ public class Results {
                 e.printStackTrace();
             }
         }
+
+        System.out.println();
+        System.out.println("mlean_thm_total: " + mlean_thm);
+        System.out.println("leo_and_sat_thm_total: " + leo_and_sat_thm);
+        System.out.println();
+        System.out.println("mlean_thm_d_const: " + mlean_thm_d_const);
+        System.out.println("mlean_thm_t_const: " + mlean_thm_t_const);
+        System.out.println("mlean_thm_s4_const: " + mlean_thm_s4_const);
+        System.out.println("mlean_thm_s5_const: " + mlean_thm_s5_const);
+        System.out.println();
+        System.out.println("mlean_thm_d_vary: " + mlean_thm_d_vary);
+        System.out.println("mlean_thm_t_vary: " + mlean_thm_t_vary);
+        System.out.println("mlean_thm_s4_vary: " + mlean_thm_s4_vary);
+        System.out.println("mlean_thm_s5_vary: " + mlean_thm_s5_vary);
+        System.out.println();
+        System.out.println("leo_and_sat_thm_d_const: " +leo_and_sat_thm_d_const);
+        System.out.println("leo_and_sat_thm_t_const: " +leo_and_sat_thm_t_const);
+        System.out.println("leo_and_sat_thm_s4_const: " +leo_and_sat_thm_s4_const);
+        System.out.println("leo_and_sat_thm_s5_const: " +leo_and_sat_thm_s5_const);
+        System.out.println();
+        System.out.println("leo_and_sat_thm_d_vary: " +leo_and_sat_thm_d_vary);
+        System.out.println("leo_and_sat_thm_t_vary: " +leo_and_sat_thm_t_vary);
+        System.out.println("leo_and_sat_thm_s4_vary: " +leo_and_sat_thm_s4_vary);
+        System.out.println("leo_and_sat_thm_s5_vary: " +leo_and_sat_thm_s5_vary);
     }
 
     private boolean hasError(Problem p){

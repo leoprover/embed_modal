@@ -58,4 +58,5 @@ thf ( law3 , axiom , ( $box @ ( ~ ( ( ( class @ first ) & ( class @ second ) ) )
 thf ( law4 , axiom , ( $box @ ( ~ ( ( ( price @ ninetyfive ) & ( price @ seventy ) ) ) ) ) ) .
 thf ( belief1 , axiom , ( $box @ ( ( dest @ paris ) ) ) ) .
 thf ( belief2 , axiom , ( $box @ ( ( class @ second ) ) ) ) .
-thf ( con , conjecture , ( $box @ ( ( price @ seventy ) ) ) ) .
+thf ( con , conjecture , ( $box @ ( ( price @ seventy ) ) ) ).
+thf ( con , conjecture , ( $dia @ ( ( price @ seventy ) ) ) ) .
