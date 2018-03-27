@@ -155,7 +155,7 @@ public class EmbedModal {
         catch( ParseException | CliException e){
             HelpFormatter formatter = new HelpFormatter();
             formatter.printHelp( "embedlogic", options );
-            if (args.length == 1 && args[0].equals("-h") || args[0].equals("--help")){
+            if (args.length == 1 && (args[0].equals("-h") || args[0].equals("--help"))){
                 System.exit(0);
             }
             System.err.println("Invalid arguments. Reason: " + e.getMessage());
