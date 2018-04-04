@@ -2,6 +2,7 @@ package transformation;
 
 
 import exceptions.AnalysisException;
+import exceptions.ParseException;
 import exceptions.TransformationException;
 import javafx.util.Pair;
 import org.antlr.v4.runtime.CharStreams;
@@ -93,7 +94,7 @@ public class Wrappers {
                                     parseErrors.add(f.toString());
                                     problemsParseErrors.getAndIncrement();
                                 }
-                            } catch (Exception e) {
+                            } catch (IOException | ParseException | AnalysisException | TransformationException e) {
                                 String error = "Could not convert " + f.toString() + " ::: " + e.toString() + " ::: " + e.getMessage();
                                 log.warning(error);
                                 otherErrors.add(new Pair<String, String>(f.toString(), error));
@@ -186,7 +187,7 @@ public class Wrappers {
                                 parseErrors.add(f.toString());
                                 problemsParseErrors.getAndIncrement();
                             }
-                        } catch (Exception e) {
+                        } catch (TransformationException | ParseException | IOException | AnalysisException e) {
                             String error = "Could not convert " + f.toString() + " ::: " + e.toString() + " ::: " + e.getMessage();
                             log.warning(error);
                             otherErrors.add(new Pair<String, String>(f.toString(),error));
@@ -331,14 +332,9 @@ public class Wrappers {
      * semantics can be null ( semantics is already in the problem file )
      */
     public static boolean convertModal(Path inPath, Path outPath, Path inDot, Path outDot, String dotBin, String semantics) throws IOException, exceptions.ParseException, AnalysisException, TransformationException {
-        try {
-            String newProblem = convertModalToString(inPath, inDot, outDot, dotBin, semantics);
-            Files.write(outPath,newProblem.getBytes());
-            log.info("Transformed problem was written to " + outPath.toString());
-            return true;
-        } catch(Exception e) {
-            log.severe(e.toString());
-            return false;
-        }
+        String newProblem = convertModalToString(inPath, inDot, outDot, dotBin, semantics);
+        Files.write(outPath,newProblem.getBytes());
+        log.info("Transformed problem was written to " + outPath.toString());
+        return true;
     }
 }
