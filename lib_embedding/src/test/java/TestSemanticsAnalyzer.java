@@ -48,9 +48,6 @@ public class TestSemanticsAnalyzer {
             assertEquals(val_expected,val_actual);
         }
         assertEquals(t.domainToDomainType.keySet().size(),sa.domainToDomainType.keySet().size());
-        System.out.println("===================================");
-        t.domainToDomainType.forEach((k,v)->System.out.println("exp: " + k + ":" + v));
-        sa.domainToDomainType.forEach((k,v)->System.out.println("act: " + k + ":" + v));
         for (String key : t.domainToDomainType.keySet()){
             SemanticsAnalyzer.DomainType val_expected = t.domainToDomainType.get(key);
             SemanticsAnalyzer.DomainType val_actual = sa.domainToDomainType.get(key);

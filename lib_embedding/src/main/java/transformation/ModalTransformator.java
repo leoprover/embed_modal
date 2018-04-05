@@ -80,6 +80,20 @@ public class ModalTransformator {
         return consequence;
     }
 
+    /*
+     * Might only be called after embedding modalities since usedModalities is created during this process
+     */
+    private boolean problemIsMonomodal(){
+        return usedModalities.size() == 1;
+    }
+
+    /*
+     * requires that the problem is actually monomodal and exactly one modality is actually used
+     */
+    private boolean theMonomodalProblemIsS5U() throws TransformationException{
+        return normalizedRelationSuffixcontainsS5U(getNormalizedRelationSuffixFromNormalizedModalOperator(usedModalities.stream().findAny().get()));
+    }
+
     private TransformContext actualTransformation() throws TransformationException, AnalysisException {
 
         // collect all symbols to avoid variable capture when defining new bound variabls
@@ -111,9 +125,7 @@ public class ModalTransformator {
                     newSet.add(constant);
                     this.declaredUserConstants.put(normalizedType, newSet);
                 }
-
             }
-
         }
 
         // transform definitions and axioms,... by lifting types and substituting operators
@@ -159,11 +171,15 @@ public class ModalTransformator {
                 embed_thf_binary_tuple(thf_binary_tuple);
             }
 
+
+        }
+
+        for (Node statement : all){
             // substitute quantifications (! ?)
+            // has to happen after embedding modalities since S5U needs a list of all modalities
             for (Node thf_quantified_formula : statement.dfsRuleAll("thf_quantified_formula")){
                 embed_thf_quantified_formula(thf_quantified_formula);
             }
-
         }
 
         // add valid / actual to all statements which are not definitions or type declarations
@@ -331,18 +347,42 @@ public class ModalTransformator {
                 Node quant;
                 String normalizedType = Common.normalizeType(type);
                 SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(normalizedType);
+
+                // forall quantifier
                 if (quantifier.equals("!")){
+
+                    // constant domain case
                     if (domainType == SemanticsAnalyzer.DomainType.CONSTANT)
                         quant = new Node("t_quantifier", Quantification.embedded_forall(normalizedType));
-                    else {
+
+                    // cumulative/decreasing S5U case for exactly one modality
+                    else if (problemIsMonomodal() && // there is EXACTLY one modality actually in use
+                            theMonomodalProblemIsS5U() && // the modality is S5U
+                            (domainType == SemanticsAnalyzer.DomainType.CUMULATIVE || domainType == SemanticsAnalyzer.DomainType.DECREASING)){ // domains are either cumulative or decreasing
+                    quant = new Node("t_quantifier", Quantification.embedded_forall(normalizedType));
+
+                    // varying case and cumulative/decreasing case for non S5U
+                    } else {
                         quant = new Node("t_quantifier", Quantification.embedded_forall_varying(normalizedType));
                         typesForVaryingQuantifiers.add(normalizedType);
                     }
                     typesForAllQuantifiers.add(normalizedType);
+
+                // exists quantifier
                 }else{
+
+                    // constant domain case
                     if (domainType == SemanticsAnalyzer.DomainType.CONSTANT)
                         quant = new Node("t_quantifier", Quantification.embedded_exists(normalizedType));
-                    else {
+
+                    // cumulative/decreasing S5U case for exactly one modality
+                    else if (problemIsMonomodal() && // there is EXACTLY one modality actually in use
+                            normalizedRelationSuffixcontainsS5U(getNormalizedRelationSuffixFromNormalizedModalOperator(usedModalities.stream().findAny().get())) && // the modality is S5U
+                            (domainType == SemanticsAnalyzer.DomainType.CUMULATIVE || domainType == SemanticsAnalyzer.DomainType.DECREASING)){ // domains are either cumulative or decreasing
+                        quant = new Node("t_quantifier", Quantification.embedded_exists(normalizedType));
+
+                    // varying case and cumulative/decreasing case for non S5U
+                    } else {
                         quant = new Node("t_quantifier", Quantification.embedded_exists_varying(normalizedType));
                         typesForVaryingQuantifiers.add(normalizedType);
                     }
@@ -522,7 +562,7 @@ public class ModalTransformator {
             allProperties.addAll(set);
         }
         for(SemanticsAnalyzer.AccessibilityRelationProperty p :  allProperties){
-            if (p != SemanticsAnalyzer.AccessibilityRelationProperty.K && p != SemanticsAnalyzer.AccessibilityRelationProperty.S5U) {
+            if (p != SemanticsAnalyzer.AccessibilityRelationProperty.K && p != SemanticsAnalyzer.AccessibilityRelationProperty.S5U) { // K and S5U do not have accessibility relation properties
                 if (!propertyDefined) def.append("% define accessibility relation properties\n");
                 propertyDefined = true;
                 def.append(AccessibilityRelation.getAccessibilityRelationPropertyDefinitionByAccessibilityRelationProperty(p));
@@ -536,7 +576,7 @@ public class ModalTransformator {
             String normalizedRelation = getNormalizedRelationFromNormalizedModalOperator(normalizedModalOperator);
             String normalizedRelationSuffix = getNormalizedRelationSuffixFromNormalizedModalOperator(normalizedModalOperator);
             for (SemanticsAnalyzer.AccessibilityRelationProperty p : getPropertiesFromNormalizedRelationSuffix(normalizedRelationSuffix) ) {
-                if (p != SemanticsAnalyzer.AccessibilityRelationProperty.K && p != SemanticsAnalyzer.AccessibilityRelationProperty.S5U) {
+                if (p != SemanticsAnalyzer.AccessibilityRelationProperty.K && p != SemanticsAnalyzer.AccessibilityRelationProperty.S5U) { // K and S5U do not have accessibility relation properties
                     def.append(AccessibilityRelation.applyPropertyToRelation(p, normalizedRelation));
                     def.append("\n");
                 }
@@ -581,9 +621,6 @@ public class ModalTransformator {
         }
 
         // introduce quantifiers
-        //typesForAllQuantifiers.add("$o>$o");
-        //typesExistsQuantifiers.add("plushie>$o");
-        //typesForAllQuantifiers.add("plushie>$o");
         if (!typesForVaryingQuantifiers.isEmpty()) {
             def.append("% define exists-in-world predicates for quantified types and non-emptiness axioms\n");
             for (String normalizedType : typesForVaryingQuantifiers){
@@ -608,13 +645,17 @@ public class ModalTransformator {
             StringBuilder domRestr = new StringBuilder();
             for (String normalizedType: typesForVaryingQuantifiers) { // insert domain restriction (cumulative etc) if necessary
                 SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(normalizedType);
-                if (domainType == SemanticsAnalyzer.DomainType.CUMULATIVE) {
-                    domRestr.append(Quantification.cumulative_eiw_th0(normalizedType));
-                    domRestr.append("\n");
-                } else if (domainType == SemanticsAnalyzer.DomainType.DECREASING) {
-                    domRestr.append(Quantification.decreasing_eiw_th0(normalizedType));
-                    domRestr.append("\n");
-                } // else nothing, since either constant or unrestricted varying
+                if (problemIsMonomodal() && theMonomodalProblemIsS5U()){
+                    // do not impose restrictions
+                } else {
+                    if (domainType == SemanticsAnalyzer.DomainType.CUMULATIVE) {
+                        domRestr.append(Quantification.cumulative_eiw_th0(normalizedType));
+                        domRestr.append("\n");
+                    } else if (domainType == SemanticsAnalyzer.DomainType.DECREASING) {
+                        domRestr.append(Quantification.decreasing_eiw_th0(normalizedType));
+                        domRestr.append("\n");
+                    } // else nothing, since either constant or unrestricted varying
+                }
             }
             if (domRestr.length() != 0){
                 def.append("\n% define domain restrictions\n");
@@ -626,10 +667,23 @@ public class ModalTransformator {
             def.append("\n% define exists quantifiers\n");
             for (String normalizedType : typesExistsQuantifiers) {
                 SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(normalizedType);
-                if (domainType == SemanticsAnalyzer.DomainType.CONSTANT)
+
+                // constant domain case
+                if (domainType == SemanticsAnalyzer.DomainType.CONSTANT) {
                     def.append(Quantification.mexists_const_th0(normalizedType));
-                else
+                }
+
+                // cumulative/decreasing S5U case for exactly one modality
+                else if (problemIsMonomodal() && // there is EXACTLY one modality actually in use
+                        theMonomodalProblemIsS5U() && // the modality is S5U
+                        (domainType == SemanticsAnalyzer.DomainType.CUMULATIVE || domainType == SemanticsAnalyzer.DomainType.DECREASING)) { // domains are either cumulative or decreasing
+                    def.append(Quantification.mexists_const_th0(normalizedType));
+                }
+
+                // varying case and cumulative/decreasing case for non S5U
+                else {
                     def.append(Quantification.mexists_varying_th0(normalizedType));
+                }
                 def.append("\n");
             }
         }
@@ -638,10 +692,23 @@ public class ModalTransformator {
             def.append("\n% define for all quantifiers\n");
             for (String normalizedType : typesForAllQuantifiers) {
                 SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(normalizedType);
-                if (domainType == SemanticsAnalyzer.DomainType.CONSTANT)
+
+                // constant domain case
+                if (domainType == SemanticsAnalyzer.DomainType.CONSTANT) {
                     def.append(Quantification.mforall_const_th0(normalizedType));
-                else
+                }
+
+                // cumulative/decreasing S5U case for exactly one modality
+                else if (problemIsMonomodal() && // there is EXACTLY one modality actually in use
+                        theMonomodalProblemIsS5U() && // the modality is S5U
+                        (domainType == SemanticsAnalyzer.DomainType.CUMULATIVE || domainType == SemanticsAnalyzer.DomainType.DECREASING)) { // domains are either cumulative or decreasing
+                    def.append(Quantification.mforall_const_th0(normalizedType));
+                }
+
+                // varying case and cumulative/decreasing case for non S5U
+                else {
                     def.append(Quantification.mforall_varying_th0(normalizedType));
+                }
                 def.append("\n");
             }
         }
