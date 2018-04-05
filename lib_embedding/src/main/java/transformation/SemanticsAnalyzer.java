@@ -3,6 +3,7 @@ package transformation;
 
 import exceptions.AnalysisException;
 import transformation.Definitions.AccessibilityRelation;
+import transformation.Definitions.Common;
 import transformation.Definitions.Connectives;
 import util.tree.Node;
 
@@ -25,7 +26,7 @@ public class SemanticsAnalyzer {
     public enum ConsequenceType{GLOBAL, LOCAL}
     public enum ConstantType{RIGID, FLEXIBLE}
     public enum DomainType{CONSTANT, VARYING, CUMULATIVE, DECREASING}
-    public enum AccessibilityRelationProperty{K,T,B,D,FOUR,FIVE,CD,BOXM,C4,C}
+    public enum AccessibilityRelationProperty{K,T,B,D,FOUR,FIVE,CD,BOXM,C4,C,S5U} // S5U is a special token for the S5U Embedding
 
     public Map<String, ConstantType> constantToConstantType;
     public Map<String, ConsequenceType> axiomNameToConsequenceType;
@@ -34,7 +35,7 @@ public class SemanticsAnalyzer {
 
     public static String constantDefault = "$default";
     public static String consequenceDefault = "$default";
-    public static String domainDefault = "$default";
+    public static String domainDefault = Common.normalizeType("$default");
     public static String modalitiesDefault = "$default";
 
     static Map<String,AccessibilityRelationProperty> modal_axioms;
@@ -83,6 +84,7 @@ public class SemanticsAnalyzer {
         modal_systems.put("$modal_system_D", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.D)));
         modal_systems.put("$modal_system_S4", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.T, AccessibilityRelationProperty.FOUR)));
         modal_systems.put("$modal_system_S5", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.T, AccessibilityRelationProperty.FIVE)));
+        modal_systems.put("$modal_system_S5U", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.S5U)));
 
         /*
         thfListSymbols = new HashSet<>();
@@ -325,7 +327,7 @@ public class SemanticsAnalyzer {
             log.warning("Value " + value + " is not a valid value for domain semantics.");
             return;
         }
-        domainToDomainType.put(name, t);
+        domainToDomainType.put(Common.normalizeType(name), t);
     }
 
     private void putConsequence(String name, String value){

@@ -159,9 +159,9 @@ public class AccessibilityRelation {
         return "thf( " + normalizedRelation + "_type , type , ( " + normalizedRelation + ":" + w + ">" + w + ">$o) ).";
     }
 
-    public static String applyPropertyToRelation(AccessibilityRelationProperty p, String normalizedRelationSuffix){
-        return "thf( " + getNormalizedRelation(normalizedRelationSuffix) + "_" + accessibilityRelationPropertyNames.get(p) + " , axiom , ( " +
-                accessibilityRelationPropertyNames.get(p) + " @ " + getNormalizedRelation(normalizedRelationSuffix) + " ) ).";
+    public static String applyPropertyToRelation(AccessibilityRelationProperty p, String normalizedRelation){
+        return "thf( " + normalizedRelation + "_" + accessibilityRelationPropertyNames.get(p) + " , axiom , ( " +
+                accessibilityRelationPropertyNames.get(p) + " @ " + normalizedRelation + " ) ).";
     }
 
 

@@ -119,6 +119,21 @@ public class Connectives {
                 "))).";
     }
 
+    public static String getModalOperatorDefinitionS5U(String normalizedModalOperator){
+        if (normalizedModalOperator.contains("dia")){
+            return "" +
+                    "thf( " + normalizedModalOperator + "_type , type , ( " + normalizedModalOperator + ": (" + w + ">$o)>" + w + ">$o) ).\n" +
+                    "thf( " + normalizedModalOperator + "_def , definition , ( " + normalizedModalOperator + " = (" +
+                    "^ [A:" + w + ">$o,W:" + w + "] : ? [V:" + w + "] : ( A @ V )" +
+                    "))).";
+        }
+        return "" +
+                "thf( " + normalizedModalOperator + "_type , type , ( " + normalizedModalOperator + ": (" + w + ">$o)>" + w + ">$o) ).\n" +
+                "thf( " + normalizedModalOperator + "_def , definition , ( " + normalizedModalOperator + " = (" +
+                "^ [A:" + w + ">$o,W:" + w + "] : ! [V:" + w + "] : ( A @ V )" +
+                "))).";
+    }
+
     /*
      * modalOperator has to be the tree which contains all parts of the modal operator
      * e.g. for $box @ 1 it contains both $box and 1

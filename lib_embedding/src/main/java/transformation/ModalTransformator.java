@@ -27,7 +27,7 @@ public class ModalTransformator {
     private Map<String, Set<String>> declaredUserConstants; // Type -> Set of symbols
     private Set<String> usedConnectives;
     private Set<String> usedModalities;
-    private HashMap<String,String> usedModalConnectivesToUsedModalities; // contains suffixes
+    private HashMap<String,String> usedModalConnectivesToUsedModalities; // contains suffixes, not the names of the relations. To get the names use the value of this map and put it into AccessibilityRelation.getNormalizedRelation(...)
     private Set<String> usedSymbols;
     private List<Node> userTypes; // $tType nodes (leafs)
 
@@ -65,18 +65,25 @@ public class ModalTransformator {
         this.thfAnalyzer.analyze();
         this.semanticsAnalyzer = new SemanticsAnalyzer(this.originalRoot, this.thfAnalyzer.semanticsNodes);
         this.semanticsAnalyzer.analyzeModalSemantics();
-        TransformContext ctx = this.actualTransformation();
-        return ctx;
+        return this.actualTransformation();
     }
 
     /***********************************************************************************
      * Transformation
      ***********************************************************************************/
 
+    private SemanticsAnalyzer.ConsequenceType getConsequenceFromAxiomIdentifier(String identifier) throws TransformationException{
+        SemanticsAnalyzer.ConsequenceType consequence = semanticsAnalyzer.axiomNameToConsequenceType.getOrDefault(
+                identifier,semanticsAnalyzer.axiomNameToConsequenceType.getOrDefault(
+                        SemanticsAnalyzer.consequenceDefault,null));
+        if (consequence == null) throw new TransformationException("No explicit or default consequence semantics found for identifier " + identifier );
+        return consequence;
+    }
+
     private TransformContext actualTransformation() throws TransformationException, AnalysisException {
 
         // collect all symbols to avoid variable capture when defining new bound variabls
-        this.originalRoot.getLeafsDfs().stream().forEach(n->this.usedSymbols.add(n.getLabel()));
+        this.originalRoot.getLeafsDfs().forEach(n->this.usedSymbols.add(n.getLabel()));
 
         // transform role type
         for (Node type_statement : thfAnalyzer.typeRoleToNode.values()){
@@ -84,12 +91,12 @@ public class ModalTransformator {
 
                 // Lift types
                 // $o only since we assume rigid constants
-                if (l.getLabel().equals("$o")) {
+                if (Common.normalizeType(l.getLabel()).equals(Common.normalizeType("$o"))) {
                     l.setLabel(Common.truth_type);
                 }
 
                 // user types
-                if (l.getLabel().equals("$tType")) userTypes.add(l);
+                if (Common.normalizeType(l.getLabel()).equals(Common.normalizeType("$tType"))) userTypes.add(l);
             }
             // if it is a type declaration (and not a definition) add labels (name and type) to the map of constants (for varying domains)
             Optional<Node> typeable = type_statement.dfsRule("thf_typeable_formula");
@@ -121,7 +128,7 @@ public class ModalTransformator {
 
                 // Lift types
                 // $o only since we assume rigid constants
-                if (l.getLabel().equals("$o")){
+                if (Common.normalizeType(l.getLabel()).equals(Common.normalizeType("$o"))){
                     l.setLabel(Common.truth_type);
 
                 // substitute nullary and unary operators
@@ -137,6 +144,8 @@ public class ModalTransformator {
                 if (thfAnalyzer.definitionNodes.contains(statement) &&
                         thf_binary_pair.getChild(1).getFirstChild().getLabel().equals("=") &&
                         statement.dfsRule("thf_binary_pair").get().equals(thf_binary_pair)){
+                    // do nothing
+                    // TODO is this right?
                 } else {
                     embed_thf_binary_pair(thf_binary_pair);
                 }
@@ -150,7 +159,6 @@ public class ModalTransformator {
                 embed_thf_binary_tuple(thf_binary_tuple);
             }
 
-
             // substitute quantifications (! ?)
             for (Node thf_quantified_formula : statement.dfsRuleAll("thf_quantified_formula")){
                 embed_thf_quantified_formula(thf_quantified_formula);
@@ -161,10 +169,7 @@ public class ModalTransformator {
         // add valid / actual to all statements which are not definitions or type declarations
         for (Node statement : thfAnalyzer.statementNodes){
             String identifier = statement.getParent().getChild(2).toStringLeafs();
-            SemanticsAnalyzer.ConsequenceType consequence = semanticsAnalyzer.axiomNameToConsequenceType.getOrDefault(
-                    identifier,semanticsAnalyzer.axiomNameToConsequenceType.getOrDefault(
-                            SemanticsAnalyzer.consequenceDefault,null));
-            if (consequence == null) throw new TransformationException("No explicit or default consequence semantics found for identifier " + identifier );
+            SemanticsAnalyzer.ConsequenceType consequence = getConsequenceFromAxiomIdentifier(identifier);
             if (consequence.equals(SemanticsAnalyzer.ConsequenceType.GLOBAL)) {
                 // insert valid operator
                 Node validLeft = new Node("t_validLeft", "( mvalid @ (");
@@ -187,15 +192,11 @@ public class ModalTransformator {
             parent.delChild(semanticalRoot);
         }
 
-
-
+        // get embedding definitions for prepending and appending, appending those with reference to constants within the problem
         String modalDefinitions = preProblemInsertions();
-        //System.out.println(modalDefinitions.toString());
-        //System.out.println(this.transformedRoot.toStringWithLinebreaksFormatted());
-
         String auxiliaryDefinitions = postProblemInsertion();
 
-        // extract user types to be placed in front of problem
+        // extract user types (sorts with $tType) to be placed in front of problem
         extractUserTypes();
 
         return new TransformContext(modalDefinitions, auxiliaryDefinitions, this.userTypes, this.transformedRoot, this.originalRoot, this.thfAnalyzer, this.semanticsAnalyzer);
@@ -329,24 +330,20 @@ public class ModalTransformator {
                 // add embedded quantifier functor and add quantifier for the type to
                 Node quant;
                 String normalizedType = Common.normalizeType(type);
-                //SemanticsAnalyzer.DomainType defaultDomainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(
-                //        SemanticsAnalyzer.domainDefault, SemanticsAnalyzer.DomainType.CONSTANT);
-                SemanticsAnalyzer.DomainType domainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(normalizedType,
-                        this.semanticsAnalyzer.domainToDomainType.getOrDefault(SemanticsAnalyzer.domainDefault,null));
-                if (domainType == null) throw new TransformationException("No explicit or default domain semantics found for domain " + type);
+                SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(normalizedType);
                 if (quantifier.equals("!")){
                     if (domainType == SemanticsAnalyzer.DomainType.CONSTANT)
-                        quant = new Node("t_quantifier", Quantification.embedded_forall(type));
+                        quant = new Node("t_quantifier", Quantification.embedded_forall(normalizedType));
                     else {
-                        quant = new Node("t_quantifier", Quantification.embedded_forall_varying(type));
+                        quant = new Node("t_quantifier", Quantification.embedded_forall_varying(normalizedType));
                         typesForVaryingQuantifiers.add(normalizedType);
                     }
                     typesForAllQuantifiers.add(normalizedType);
                 }else{
                     if (domainType == SemanticsAnalyzer.DomainType.CONSTANT)
-                        quant = new Node("t_quantifier", Quantification.embedded_exists(type));
+                        quant = new Node("t_quantifier", Quantification.embedded_exists(normalizedType));
                     else {
-                        quant = new Node("t_quantifier", Quantification.embedded_exists_varying(type));
+                        quant = new Node("t_quantifier", Quantification.embedded_exists_varying(normalizedType));
                         typesForVaryingQuantifiers.add(normalizedType);
                     }
                     typesExistsQuantifiers.add(normalizedType);
@@ -469,6 +466,32 @@ public class ModalTransformator {
      * Modal declarations, definitions and axioms
      ***********************************************************************************/
 
+    private Set<SemanticsAnalyzer.AccessibilityRelationProperty> getPropertiesFromNormalizedRelationSuffix(String normalizedRelationSuffix) throws TransformationException {
+        Set<SemanticsAnalyzer.AccessibilityRelationProperty> properties = this.semanticsAnalyzer.modalityToAxiomList.getOrDefault(normalizedRelationSuffix,
+                this.semanticsAnalyzer.modalityToAxiomList.getOrDefault(SemanticsAnalyzer.modalitiesDefault,null));
+        if (properties == null) throw new TransformationException("No explicit or default domain semantics found for accessiblity relation " + normalizedRelationSuffix);
+        return properties;
+    }
+
+    private boolean normalizedRelationSuffixcontainsS5U(String normalizedRelationSuffix)throws TransformationException{
+        return getPropertiesFromNormalizedRelationSuffix(normalizedRelationSuffix).contains(SemanticsAnalyzer.AccessibilityRelationProperty.S5U);
+    }
+
+    private String getNormalizedRelationFromNormalizedModalOperator(String normalizedModalOperator){
+        return AccessibilityRelation.getNormalizedRelation(getNormalizedRelationSuffixFromNormalizedModalOperator(normalizedModalOperator));
+    }
+
+    private String getNormalizedRelationSuffixFromNormalizedModalOperator(String normalizedModalOperator){
+        return usedModalConnectivesToUsedModalities.get(normalizedModalOperator);
+    }
+
+    private SemanticsAnalyzer.DomainType getDomainTypeFromNormalizedType(String normalizedType) throws TransformationException{
+        SemanticsAnalyzer.DomainType domainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(normalizedType,
+                this.semanticsAnalyzer.domainToDomainType.getOrDefault(SemanticsAnalyzer.domainDefault,null));
+        if (domainType == null) throw new TransformationException("No explicit or default domain semantics found for domain " + normalizedType);
+        return domainType;
+    }
+
     private String preProblemInsertions() throws TransformationException{
         StringBuilder def = new StringBuilder();
 
@@ -478,12 +501,19 @@ public class ModalTransformator {
         def.append("\n\n");
 
         // introduce accessibility relations
-        def.append("% declare accessibility relations\n");
-        for (String normalizedAccessibilityRelationSuffix : new HashSet<>(usedModalConnectivesToUsedModalities.values())){
-            def.append(AccessibilityRelation.getRelationDeclaration(AccessibilityRelation.getNormalizedRelation(normalizedAccessibilityRelationSuffix)));
+        StringBuilder relationSb = new StringBuilder();
+        for (String normalizedModalOperator : usedModalities) {
+            String normalizedRelation = getNormalizedRelationFromNormalizedModalOperator(normalizedModalOperator);
+            String normalizedRelationSuffix = getNormalizedRelationSuffixFromNormalizedModalOperator(normalizedModalOperator);
+            if (normalizedRelationSuffixcontainsS5U(normalizedRelationSuffix)) continue; // S5U does not have an accessibility relation
+            relationSb.append(AccessibilityRelation.getRelationDeclaration(normalizedRelation));
+            relationSb.append("\n");
+        }
+        if (relationSb.length() != 0){
+            def.append("% declare accessibility relations\n");
+            def.append(relationSb);
             def.append("\n");
         }
-        def.append("\n");
 
         // define accessibility relation properties
         boolean propertyDefined = false;
@@ -492,7 +522,7 @@ public class ModalTransformator {
             allProperties.addAll(set);
         }
         for(SemanticsAnalyzer.AccessibilityRelationProperty p :  allProperties){
-            if (p != SemanticsAnalyzer.AccessibilityRelationProperty.K) {
+            if (p != SemanticsAnalyzer.AccessibilityRelationProperty.K && p != SemanticsAnalyzer.AccessibilityRelationProperty.S5U) {
                 if (!propertyDefined) def.append("% define accessibility relation properties\n");
                 propertyDefined = true;
                 def.append(AccessibilityRelation.getAccessibilityRelationPropertyDefinitionByAccessibilityRelationProperty(p));
@@ -502,14 +532,12 @@ public class ModalTransformator {
         if (propertyDefined) def.append("\n");
         // introduce properties on the accessibility relations
         if (propertyDefined) def.append("% assign properties to accessibility relations\n");
-        for (String normalizedRelationSuffix : new HashSet<>(usedModalConnectivesToUsedModalities.values())) {
-            //System.out.println(normalizedRelationSuffix);
-            Set<SemanticsAnalyzer.AccessibilityRelationProperty> properties = this.semanticsAnalyzer.modalityToAxiomList.getOrDefault(normalizedRelationSuffix,
-                    this.semanticsAnalyzer.modalityToAxiomList.getOrDefault(SemanticsAnalyzer.modalitiesDefault,null));
-            if (properties == null) throw new TransformationException("No explicit or default domain semantics found for accessiblity relation " + normalizedRelationSuffix);
-            for (SemanticsAnalyzer.AccessibilityRelationProperty p : properties ) {
-                if (p != SemanticsAnalyzer.AccessibilityRelationProperty.K) {
-                    def.append(AccessibilityRelation.applyPropertyToRelation(p, normalizedRelationSuffix));
+        for (String normalizedModalOperator : usedModalities) {
+            String normalizedRelation = getNormalizedRelationFromNormalizedModalOperator(normalizedModalOperator);
+            String normalizedRelationSuffix = getNormalizedRelationSuffixFromNormalizedModalOperator(normalizedModalOperator);
+            for (SemanticsAnalyzer.AccessibilityRelationProperty p : getPropertiesFromNormalizedRelationSuffix(normalizedRelationSuffix) ) {
+                if (p != SemanticsAnalyzer.AccessibilityRelationProperty.K && p != SemanticsAnalyzer.AccessibilityRelationProperty.S5U) {
+                    def.append(AccessibilityRelation.applyPropertyToRelation(p, normalizedRelation));
                     def.append("\n");
                 }
             }
@@ -540,8 +568,13 @@ public class ModalTransformator {
                 def.append("\n");
             }
             for (String normalizedModalOperator : usedModalities) {
-                String normalizedAccessiblityRelation = AccessibilityRelation.getNormalizedRelation(usedModalConnectivesToUsedModalities.get(normalizedModalOperator));
-                def.append(Connectives.getModalOperatorDefinition(normalizedModalOperator, normalizedAccessiblityRelation));
+                String normalizedRelation = getNormalizedRelationFromNormalizedModalOperator(normalizedModalOperator);
+                String normalizedRelationSuffix = getNormalizedRelationSuffixFromNormalizedModalOperator(normalizedModalOperator);
+                if (normalizedRelationSuffixcontainsS5U(normalizedRelationSuffix)) {
+                    def.append(Connectives.getModalOperatorDefinitionS5U(normalizedModalOperator));
+                } else {
+                    def.append(Connectives.getModalOperatorDefinition(normalizedModalOperator, normalizedRelation));
+                }
                 def.append("\n");
             }
             def.append("\n");
@@ -553,66 +586,62 @@ public class ModalTransformator {
         //typesForAllQuantifiers.add("plushie>$o");
         if (!typesForVaryingQuantifiers.isEmpty()) {
             def.append("% define exists-in-world predicates for quantified types and non-emptiness axioms\n");
+            for (String normalizedType : typesForVaryingQuantifiers){
+                def.append(Quantification.eiw_and_nonempty_th0(normalizedType));
+                def.append("\n");
+            }
+            /*
+            // the above should be right because only varying quantifiers need eiw and nonempty
             for (String q: typesExistsQuantifiers) { // for each type that a  quantor is used, introduce
                 // an according eiw predicate
-                def.append(Quantification.eiw_th0(q));
+                def.append(Quantification.eiw_and_nonempty_th0(q));
                 def.append("\n");
             }
             for (String q: typesForAllQuantifiers) { // for each type that a  quantor is used, introduce
                 // an according eiw predicate
                 if (!typesExistsQuantifiers.contains(q)) {
-                    def.append(Quantification.eiw_th0(q));
+                    def.append(Quantification.eiw_and_nonempty_th0(q));
                     def.append("\n");
                 }
             }
-            boolean domainRestrictionsAdded = false;
-            for (String q: typesForVaryingQuantifiers) { // insert domain restriction (cumulative etc) if necessary
-                //SemanticsAnalyzer.DomainType defaultDomainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(
-                //        SemanticsAnalyzer.domainDefault, SemanticsAnalyzer.DomainType.CONSTANT);
-                SemanticsAnalyzer.DomainType domainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(q,
-                        this.semanticsAnalyzer.domainToDomainType.getOrDefault(SemanticsAnalyzer.domainDefault,null));
-                if (domainType == null) throw new TransformationException("No explicit or default domain semantics found for domain " + q);
+            */
+            StringBuilder domRestr = new StringBuilder();
+            for (String normalizedType: typesForVaryingQuantifiers) { // insert domain restriction (cumulative etc) if necessary
+                SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(normalizedType);
                 if (domainType == SemanticsAnalyzer.DomainType.CUMULATIVE) {
-                    if (!domainRestrictionsAdded) def.append("\n% define domain restrictions\n");
-                    domainRestrictionsAdded = true;
-                    def.append(Quantification.cumulative_eiw_th0(q));
-                    def.append("\n");
+                    domRestr.append(Quantification.cumulative_eiw_th0(normalizedType));
+                    domRestr.append("\n");
                 } else if (domainType == SemanticsAnalyzer.DomainType.DECREASING) {
-                    if (!domainRestrictionsAdded) def.append("\n% define domain restrictions\n");
-                    domainRestrictionsAdded = true;
-                    def.append(Quantification.decreasing_eiw_th0(q));
-                    def.append("\n");
+                    domRestr.append(Quantification.decreasing_eiw_th0(normalizedType));
+                    domRestr.append("\n");
                 } // else nothing, since either constant or unrestricted varying
+            }
+            if (domRestr.length() != 0){
+                def.append("\n% define domain restrictions\n");
+                def.append(domRestr);
             }
         }
 
         if (!typesExistsQuantifiers.isEmpty()) {
             def.append("\n% define exists quantifiers\n");
-            for (String q : typesExistsQuantifiers) {
-                //SemanticsAnalyzer.DomainType defaultDomainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(
-                //        SemanticsAnalyzer.domainDefault, SemanticsAnalyzer.DomainType.CONSTANT);
-                SemanticsAnalyzer.DomainType domainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(q,
-                        this.semanticsAnalyzer.domainToDomainType.getOrDefault(SemanticsAnalyzer.domainDefault,null));
-                if (domainType == null) throw new TransformationException("No explicit or default domain semantics found for domain " + q);
+            for (String normalizedType : typesExistsQuantifiers) {
+                SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(normalizedType);
                 if (domainType == SemanticsAnalyzer.DomainType.CONSTANT)
-                    def.append(Quantification.mexists_const_th0(q));
+                    def.append(Quantification.mexists_const_th0(normalizedType));
                 else
-                    def.append(Quantification.mexists_varying_th0(q));
+                    def.append(Quantification.mexists_varying_th0(normalizedType));
                 def.append("\n");
             }
         }
+
         if (!typesForAllQuantifiers.isEmpty()) {
             def.append("\n% define for all quantifiers\n");
-            for (String q : typesForAllQuantifiers) {
-                //SemanticsAnalyzer.DomainType defaultDomainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(
-                //        SemanticsAnalyzer.domainDefault, SemanticsAnalyzer.DomainType.CONSTANT);
-                SemanticsAnalyzer.DomainType domainType = this.semanticsAnalyzer.domainToDomainType.getOrDefault(q,
-                        this.semanticsAnalyzer.domainToDomainType.getOrDefault(SemanticsAnalyzer.domainDefault,null));
-                if (domainType == null) throw new TransformationException("No explicit or default domain semantics found for domain " + q);
+            for (String normalizedType : typesForAllQuantifiers) {
+                SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(normalizedType);
                 if (domainType == SemanticsAnalyzer.DomainType.CONSTANT)
-                    def.append(Quantification.mforall_const_th0(q));
+                    def.append(Quantification.mforall_const_th0(normalizedType));
                 else
-                    def.append(Quantification.mforall_varying_th0(q));
+                    def.append(Quantification.mforall_varying_th0(normalizedType));
                 def.append("\n");
             }
         }
@@ -620,24 +649,24 @@ public class ModalTransformator {
         return def.toString();
     }
 
-    private String postProblemInsertion() throws TransformationException {
+    private String postProblemInsertion() {
         StringBuilder def = new StringBuilder();
-        for (String q: this.declaredUserConstants.keySet()) {
-            if (!q.equals("$tType")) {
-                if (this.typesForVaryingQuantifiers.contains(q)) {
+        for (String normalizedType: this.declaredUserConstants.keySet()) {
+            if (!normalizedType.equals(Common.normalizeType("$tType"))) {
+                if (this.typesForVaryingQuantifiers.contains(normalizedType)) {
                     // an eiw-predicate of type q already exists, we can just postulate an axiom
                     // that these constants exist at all worlds
-                    for (String constant : declaredUserConstants.get(q)) {
-                        def.append(Quantification.constant_eiw_th0(constant, q));
+                    for (String constant : declaredUserConstants.get(normalizedType)) {
+                        def.append(Quantification.constant_eiw_th0(constant, normalizedType));
                         def.append("\n");
                     }
                 } else {
                     // define eiw_predicate of that type first
-                    def.append(Quantification.eiw_th0(q));
+                    def.append(Quantification.eiw_and_nonempty_th0(normalizedType));
                     def.append("\n");
                     // now postulate as anbove
-                    for (String constant : declaredUserConstants.get(q)) {
-                        def.append(Quantification.constant_eiw_th0(constant, q));
+                    for (String constant : declaredUserConstants.get(normalizedType)) {
+                        def.append(Quantification.constant_eiw_th0(constant, normalizedType));
                         def.append("\n");
                     }
                 }

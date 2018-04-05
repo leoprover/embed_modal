@@ -3,8 +3,7 @@ import exceptions.ParseException;
 import exceptions.TransformationException;
 import org.junit.Test;
 import parser.ThfAstGen;
-import transformation.Definitions.AccessibilityRelation;
-import transformation.Definitions.Connectives;
+import transformation.Definitions.Common;
 import transformation.ModalTransformator;
 import transformation.SemanticsAnalyzer;
 import util.tree.Node;
@@ -15,54 +14,60 @@ import static org.junit.Assert.*;
 
 public class TestSemanticsAnalyzer {
 
-
-    public static List<SemanticsTest> semantics;
+    public static SemanticsTest test1;
+    public static SemanticsTest test2;
 
     @Test
-    public void testSemantics() throws ParseException, AnalysisException, TransformationException {
-        for (SemanticsTest t : TestSemanticsAnalyzer.semantics){
-            Node n = ThfAstGen.parse(t.input, "tPTP_file", t.name).getRoot();
-            ModalTransformator modalTransformator = new ModalTransformator(n);
-            modalTransformator.transform();
-            SemanticsAnalyzer sa = modalTransformator.semanticsAnalyzer;
+    public void semanticsTest1() throws ParseException, TransformationException, AnalysisException {
+        testSemanticsSimple(test1);
+    }
 
-            assertEquals(t.constantToConstantType.keySet().size(),sa.constantToConstantType.keySet().size());
-            for (String key : t.constantToConstantType.keySet()){
-                SemanticsAnalyzer.ConstantType val_expected = t.constantToConstantType.get(key);
-                SemanticsAnalyzer.ConstantType val_actual = sa.constantToConstantType.get(key);
-                assertNotNull(val_actual);
-                assertEquals(val_expected,val_actual);
-            }
-            assertEquals(t.axiomNameToConsequenceType.keySet().size(),sa.axiomNameToConsequenceType.keySet().size());
-            for (String key : t.axiomNameToConsequenceType.keySet()){
-                SemanticsAnalyzer.ConsequenceType val_expected = t.axiomNameToConsequenceType.get(key);
-                SemanticsAnalyzer.ConsequenceType val_actual = sa.axiomNameToConsequenceType.get(key);
-                assertNotNull(val_actual);
-                assertEquals(val_expected,val_actual);
-            }
-            assertEquals(t.domainToDomainType.keySet().size(),sa.domainToDomainType.keySet().size());
-            for (String key : t.domainToDomainType.keySet()){
-                SemanticsAnalyzer.DomainType val_expected = t.domainToDomainType.get(key);
-                SemanticsAnalyzer.DomainType val_actual = sa.domainToDomainType.get(key);
-                assertNotNull(val_actual);
-                assertEquals(val_expected,val_actual);
-            }
-            assertEquals(t.modalityToAxiomList.keySet().size(),sa.modalityToAxiomList.keySet().size());
-            for (String key : t.modalityToAxiomList.keySet()){
-                Set<SemanticsAnalyzer.AccessibilityRelationProperty> val_expected = t.modalityToAxiomList.get(key);
-                Set<SemanticsAnalyzer.AccessibilityRelationProperty> val_actual = sa.modalityToAxiomList.get(key);
-                assertNotNull(val_actual);
-                assertTrue(val_expected.containsAll(val_actual));
-                assertTrue(val_actual.containsAll(val_expected));
-            }
+    @Test
+    public void semanticsTest2() throws ParseException, TransformationException, AnalysisException {
+        testSemanticsSimple(test2);
+    }
+
+    public void testSemanticsSimple(SemanticsTest t) throws ParseException, AnalysisException, TransformationException {
+        Node n = ThfAstGen.parse(t.input, "tPTP_file", t.name).getRoot();
+        ModalTransformator modalTransformator = new ModalTransformator(n);
+        modalTransformator.transform();
+        SemanticsAnalyzer sa = modalTransformator.semanticsAnalyzer;
+
+        assertEquals(t.constantToConstantType.keySet().size(),sa.constantToConstantType.keySet().size());
+        for (String key : t.constantToConstantType.keySet()){
+            SemanticsAnalyzer.ConstantType val_expected = t.constantToConstantType.get(key);
+            SemanticsAnalyzer.ConstantType val_actual = sa.constantToConstantType.get(key);
+            assertNotNull(val_actual);
+            assertEquals(val_expected,val_actual);
+        }
+        assertEquals(t.axiomNameToConsequenceType.keySet().size(),sa.axiomNameToConsequenceType.keySet().size());
+        for (String key : t.axiomNameToConsequenceType.keySet()){
+            SemanticsAnalyzer.ConsequenceType val_expected = t.axiomNameToConsequenceType.get(key);
+            SemanticsAnalyzer.ConsequenceType val_actual = sa.axiomNameToConsequenceType.get(key);
+            assertNotNull(val_actual);
+            assertEquals(val_expected,val_actual);
+        }
+        assertEquals(t.domainToDomainType.keySet().size(),sa.domainToDomainType.keySet().size());
+        System.out.println("===================================");
+        t.domainToDomainType.forEach((k,v)->System.out.println("exp: " + k + ":" + v));
+        sa.domainToDomainType.forEach((k,v)->System.out.println("act: " + k + ":" + v));
+        for (String key : t.domainToDomainType.keySet()){
+            SemanticsAnalyzer.DomainType val_expected = t.domainToDomainType.get(key);
+            SemanticsAnalyzer.DomainType val_actual = sa.domainToDomainType.get(key);
+            assertNotNull(val_actual);
+            assertEquals(val_expected,val_actual);
+        }
+        assertEquals(t.modalityToAxiomList.keySet().size(),sa.modalityToAxiomList.keySet().size());
+        for (String key : t.modalityToAxiomList.keySet()){
+            Set<SemanticsAnalyzer.AccessibilityRelationProperty> val_expected = t.modalityToAxiomList.get(key);
+            Set<SemanticsAnalyzer.AccessibilityRelationProperty> val_actual = sa.modalityToAxiomList.get(key);
+            assertNotNull(val_actual);
+            assertTrue(val_expected.containsAll(val_actual));
+            assertTrue(val_actual.containsAll(val_expected));
         }
     }
 
     static{
-
-
-        semantics = new ArrayList<>();
-        SemanticsTest test;
         String input;
         Map<String, SemanticsAnalyzer.ConstantType> constantToConstantType;
         Map<String, SemanticsAnalyzer.ConsequenceType> axiomNameToConsequenceType;
@@ -70,7 +75,7 @@ public class TestSemanticsAnalyzer {
         Map<String, Set<SemanticsAnalyzer.AccessibilityRelationProperty>> modalityToAxiomList;
         Set<SemanticsAnalyzer.AccessibilityRelationProperty> relationProperties;
 
-        test = new SemanticsTest();
+        test1 = new SemanticsTest();
         input = "thf( 1 , logic , ( $modal := [" +
                 "$constants := $rigid ,"+
                 "$quantification := $constant ," +
@@ -91,15 +96,14 @@ public class TestSemanticsAnalyzer {
         relationProperties.add(SemanticsAnalyzer.AccessibilityRelationProperty.T);
         relationProperties.add(SemanticsAnalyzer.AccessibilityRelationProperty.FOUR);
         modalityToAxiomList.put("3", relationProperties);
-        test.name = "default + box_int";
-        test.input = input;
-        test.constantToConstantType = constantToConstantType;
-        test.axiomNameToConsequenceType = axiomNameToConsequenceType;
-        test.domainToDomainType = domainToDomainType;
-        test.modalityToAxiomList = modalityToAxiomList;
-        semantics.add(test);
+        test1.name = "default + box_int";
+        test1.input = input;
+        test1.constantToConstantType = constantToConstantType;
+        test1.axiomNameToConsequenceType = axiomNameToConsequenceType;
+        test1.domainToDomainType = domainToDomainType;
+        test1.modalityToAxiomList = modalityToAxiomList;
 
-        test = new SemanticsTest();
+        test2 = new SemanticsTest();
         input = "  thf( 2 , logic , ( $modal := [\n" +
                 "      $constants := [ $rigid , myconstant := $flexible ] ,\n" +
                 "      $quantification := [ $constant , human := $varying ] ,\n" +
@@ -114,16 +118,14 @@ public class TestSemanticsAnalyzer {
         axiomNameToConsequenceType.put(SemanticsAnalyzer.consequenceDefault, SemanticsAnalyzer.ConsequenceType.GLOBAL);
         axiomNameToConsequenceType.put("myaxiom", SemanticsAnalyzer.ConsequenceType.LOCAL);
         domainToDomainType.put(SemanticsAnalyzer.domainDefault, SemanticsAnalyzer.DomainType.CONSTANT);
-        domainToDomainType.put("human", SemanticsAnalyzer.DomainType.VARYING);
+        domainToDomainType.put(Common.normalizeType("human"), SemanticsAnalyzer.DomainType.VARYING);
         modalityToAxiomList.put(SemanticsAnalyzer.modalitiesDefault,SemanticsAnalyzer.modal_systems.get("$modal_system_S5"));
         modalityToAxiomList.put("1",SemanticsAnalyzer.modal_systems.get("$modal_system_T"));
-        test.name = "more involved";
-        test.input = input;
-        test.constantToConstantType = constantToConstantType;
-        test.axiomNameToConsequenceType = axiomNameToConsequenceType;
-        test.domainToDomainType = domainToDomainType;
-        test.modalityToAxiomList = modalityToAxiomList;
-        semantics.add(test);
-
+        test2.name = "more involved";
+        test2.input = input;
+        test2.constantToConstantType = constantToConstantType;
+        test2.axiomNameToConsequenceType = axiomNameToConsequenceType;
+        test2.domainToDomainType = domainToDomainType;
+        test2.modalityToAxiomList = modalityToAxiomList;
     }
 }
