@@ -10,13 +10,13 @@ import org.antlr.v4.runtime.CodePointCharStream;
 import parser.ParseContext;
 import parser.ThfAstGen;
 import util.tree.Node;
+import transformation.ModalTransformator.TransformationParameter;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -253,11 +253,15 @@ public class Wrappers {
         }
     }
 
-    public static String convertModalToString(Path inPath) throws IOException, exceptions.ParseException, AnalysisException, TransformationException {
-        return convertModalToString(inPath, null, null, null, null);
+    public static String convertModalToString(Path inPath, TransformationParameter... params) throws IOException, exceptions.ParseException, AnalysisException, TransformationException {
+        return convertModalToString(inPath, null, null, null, null, params);
     }
 
-    public static String convertModalToString(Path inPath, Path inDot, Path outDot, String dotBin, String semantics) throws IOException, exceptions.ParseException, AnalysisException, TransformationException {
+    public static String convertModalToString(Path inPath, Path inDot,
+                                              Path outDot, String dotBin,
+                                              String semantics,
+                                              TransformationParameter... params)
+            throws IOException, exceptions.ParseException, AnalysisException, TransformationException {
         String semName = "";
         if (semantics != null) {
             semName = SemanticsGenerator.thfName(semantics);
@@ -301,13 +305,18 @@ public class Wrappers {
 
         // check for parse error
         if (parseContext.hasParseError()){
-            throw new exceptions.ParseException("Parse Error " + parseContext.getParseError() + " in file " + inPath.toString());
+            throw new ParseException("Parse Error " + parseContext.getParseError() + " in file " + inPath.toString());
         }
 
+        // pack parameters in immutable set for easier handling
+        Set<TransformationParameter> paramSet = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(params)));
+        if ((paramSet.contains(TransformationParameter.SEMANTICAL) && paramSet.contains(TransformationParameter.SYNTACTICAL))) {
+            throw new TransformationException("Cannot use SEMANTICAL and SYNTACTICAL parameters at the same time.");
+        }
         // embed
         TransformContext transformContext = null;
         ModalTransformator transformator = new ModalTransformator(root);
-        transformContext = transformator.transform();
+        transformContext = transformator.transform(paramSet);
         log.info("Transformed problem.");
 
         // create output dot

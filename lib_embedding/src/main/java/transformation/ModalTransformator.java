@@ -3,6 +3,7 @@ package transformation;
 
 import exceptions.AnalysisException;
 import exceptions.TransformationException;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import transformation.Definitions.AccessibilityRelation;
 import transformation.Definitions.Common;
 import transformation.Definitions.Connectives;
@@ -14,6 +15,7 @@ import java.util.logging.Logger;
 
 public class ModalTransformator {
 
+    public enum TransformationParameter{SEMANTICAL, SYNTACTICAL} // More probably to come, default is semantical
     private static final Logger log = Logger.getLogger( "default" );
 
     private final Node originalRoot;
@@ -61,11 +63,15 @@ public class ModalTransformator {
     }
 
     public TransformContext transform() throws TransformationException,AnalysisException {
+        return transform(Collections.EMPTY_SET);
+    }
+    public TransformContext transform(Set<TransformationParameter> params) throws TransformationException,AnalysisException {
+        assert (!(params.contains(TransformationParameter.SEMANTICAL) && params.contains(TransformationParameter.SYNTACTICAL)));
         this.thfAnalyzer = new ThfAnalyzer(this.originalRoot);
         this.thfAnalyzer.analyze();
         this.semanticsAnalyzer = new SemanticsAnalyzer(this.originalRoot, this.thfAnalyzer.semanticsNodes);
         this.semanticsAnalyzer.analyzeModalSemantics();
-        return this.actualTransformation();
+        return this.actualTransformation(params);
     }
 
     /***********************************************************************************
@@ -94,7 +100,7 @@ public class ModalTransformator {
         return normalizedRelationSuffixcontainsS5U(getNormalizedRelationSuffixFromNormalizedModalOperator(usedModalities.stream().findAny().get()));
     }
 
-    private TransformContext actualTransformation() throws TransformationException, AnalysisException {
+    private TransformContext actualTransformation(Set<TransformationParameter> params) throws TransformationException, AnalysisException {
 
         // collect all symbols to avoid variable capture when defining new bound variabls
         this.originalRoot.getLeafsDfs().forEach(n->this.usedSymbols.add(n.getLabel()));
@@ -209,7 +215,7 @@ public class ModalTransformator {
         }
 
         // get embedding definitions for prepending and appending, appending those with reference to constants within the problem
-        String modalDefinitions = preProblemInsertions();
+        String modalDefinitions = preProblemInsertions(params);
         String auxiliaryDefinitions = postProblemInsertion();
 
         // extract user types (sorts with $tType) to be placed in front of problem
@@ -532,7 +538,7 @@ public class ModalTransformator {
         return domainType;
     }
 
-    private String preProblemInsertions() throws TransformationException{
+    private String preProblemInsertions(Set<TransformationParameter> params) throws TransformationException{
         StringBuilder def = new StringBuilder();
 
         // declare world_type_declaration type
@@ -561,27 +567,34 @@ public class ModalTransformator {
         for (Set<SemanticsAnalyzer.AccessibilityRelationProperty> set : semanticsAnalyzer.modalityToAxiomList.values()){
             allProperties.addAll(set);
         }
-        for(SemanticsAnalyzer.AccessibilityRelationProperty p :  allProperties){
-            if (p != SemanticsAnalyzer.AccessibilityRelationProperty.K && p != SemanticsAnalyzer.AccessibilityRelationProperty.S5U) { // K and S5U do not have accessibility relation properties
-                if (!propertyDefined) def.append("% define accessibility relation properties\n");
-                propertyDefined = true;
-                def.append(AccessibilityRelation.getAccessibilityRelationPropertyDefinitionByAccessibilityRelationProperty(p));
-                def.append("\n");
-            }
-        }
-        if (propertyDefined) def.append("\n");
-        // introduce properties on the accessibility relations
-        if (propertyDefined) def.append("% assign properties to accessibility relations\n");
-        for (String normalizedModalOperator : usedModalities) {
-            String normalizedRelation = getNormalizedRelationFromNormalizedModalOperator(normalizedModalOperator);
-            String normalizedRelationSuffix = getNormalizedRelationSuffixFromNormalizedModalOperator(normalizedModalOperator);
-            for (SemanticsAnalyzer.AccessibilityRelationProperty p : getPropertiesFromNormalizedRelationSuffix(normalizedRelationSuffix) ) {
+
+        // Only define relation properties if we use a semantical embedding. If a syntactical
+        // embedding is used, the respective properties are formulated as axioms on the box/dia operators
+        // further below.
+        if (!params.contains(TransformationParameter.SYNTACTICAL)) {
+            for(SemanticsAnalyzer.AccessibilityRelationProperty p :  allProperties){
                 if (p != SemanticsAnalyzer.AccessibilityRelationProperty.K && p != SemanticsAnalyzer.AccessibilityRelationProperty.S5U) { // K and S5U do not have accessibility relation properties
-                    def.append(AccessibilityRelation.applyPropertyToRelation(p, normalizedRelation));
+                    if (!propertyDefined) def.append("% define accessibility relation properties\n");
+                    propertyDefined = true;
+                    def.append(AccessibilityRelation.getAccessibilityRelationPropertyDefinitionByAccessibilityRelationProperty(p));
                     def.append("\n");
                 }
             }
+            if (propertyDefined) def.append("\n");
+            // introduce properties on the accessibility relations
+            if (propertyDefined) def.append("% assign properties to accessibility relations\n");
+            for (String normalizedModalOperator : usedModalities) {
+                String normalizedRelation = getNormalizedRelationFromNormalizedModalOperator(normalizedModalOperator);
+                String normalizedRelationSuffix = getNormalizedRelationSuffixFromNormalizedModalOperator(normalizedModalOperator);
+                for (SemanticsAnalyzer.AccessibilityRelationProperty p : getPropertiesFromNormalizedRelationSuffix(normalizedRelationSuffix) ) {
+                    if (p != SemanticsAnalyzer.AccessibilityRelationProperty.K && p != SemanticsAnalyzer.AccessibilityRelationProperty.S5U) { // K and S5U do not have accessibility relation properties
+                        def.append(AccessibilityRelation.applyPropertyToRelation(p, normalizedRelation));
+                        def.append("\n");
+                    }
+                }
+            }
         }
+
         if (propertyDefined) def.append("\n");
 
         // introduce mvalid for global consequence
@@ -618,6 +631,28 @@ public class ModalTransformator {
                 def.append("\n");
             }
             def.append("\n");
+        }
+
+        // if using a syntactic embedding, postulate axioms on the operators now
+        if (params.contains(TransformationParameter.SYNTACTICAL) && !usedModalities.isEmpty()) {
+            def.append("% define nullary, unary and binary connectives which are no quantifiers\n");
+            for (String normalizedModalOperator : usedModalities) {
+                String normalizedRelation = getNormalizedRelationFromNormalizedModalOperator(normalizedModalOperator);
+                String normalizedRelationSuffix = getNormalizedRelationSuffixFromNormalizedModalOperator(normalizedModalOperator);
+                // TODO: Include syntactic axioms for each modality
+                // IMPORTANT: Some axioms require using $dia and $box as e.g. in modal axioms scheme (D)
+                //  (D)  $box A => $dia A
+                // so we need to have a definition of $box and $dia in the problem
+                // *regardless if such a modality was used in the problem*.
+                // A potential simple solution would be to generally include $dia (resp. $box)
+                // to the problem if one of them was used. Since they are only definitions, they
+                // will not increase the search-space if not needed.
+
+                // def.append( syntacticAxiomForOperator(...) )
+                def.append("\n");
+            }
+            def.append("\n");
+            throw new NotImplementedException();
         }
 
         // introduce quantifiers
