@@ -534,6 +534,10 @@ public class ModalTransformator {
         return AccessibilityRelation.getNormalizedRelation(getNormalizedRelationSuffixFromNormalizedModalOperator(normalizedModalOperator));
     }
 
+    private HashSet<String> getAllRelationSuffixes(){
+        return new HashSet<>(usedModalConnectivesToUsedModalities.values());
+    }
+
     private String getNormalizedRelationSuffixFromNormalizedModalOperator(String normalizedModalOperator){
         String ret =  usedModalConnectivesToUsedModalities.get(normalizedModalOperator);
         if (ret == null){
@@ -559,9 +563,8 @@ public class ModalTransformator {
 
         // introduce accessibility relations
         StringBuilder relationSb = new StringBuilder();
-        for (String normalizedModalOperator : usedModalities) {
-            String normalizedRelation = getNormalizedRelationFromNormalizedModalOperator(normalizedModalOperator);
-            String normalizedRelationSuffix = getNormalizedRelationSuffixFromNormalizedModalOperator(normalizedModalOperator);
+        for (String normalizedRelationSuffix : getAllRelationSuffixes()) {
+            String normalizedRelation = AccessibilityRelation.getNormalizedRelation(normalizedRelationSuffix);
             if (normalizedRelationSuffixcontainsS5U(normalizedRelationSuffix)) continue; // S5U does not have an accessibility relation
             relationSb.append(AccessibilityRelation.getRelationDeclaration(normalizedRelation));
             relationSb.append("\n");
@@ -594,9 +597,8 @@ public class ModalTransformator {
             if (propertyDefined) def.append("\n");
             // introduce properties on the accessibility relations
             if (propertyDefined) def.append("% assign properties to accessibility relations\n");
-            for (String normalizedModalOperator : usedModalities) {
-                String normalizedRelation = getNormalizedRelationFromNormalizedModalOperator(normalizedModalOperator);
-                String normalizedRelationSuffix = getNormalizedRelationSuffixFromNormalizedModalOperator(normalizedModalOperator);
+            for (String normalizedRelationSuffix : getAllRelationSuffixes()) {
+                String normalizedRelation = AccessibilityRelation.getNormalizedRelation(normalizedRelationSuffix);
                 for (SemanticsAnalyzer.AccessibilityRelationProperty p : getPropertiesFromNormalizedRelationSuffix(normalizedRelationSuffix) ) {
                     if (p != SemanticsAnalyzer.AccessibilityRelationProperty.K && p != SemanticsAnalyzer.AccessibilityRelationProperty.S5U) { // K and S5U do not have accessibility relation properties
                         def.append(AccessibilityRelation.applyPropertyToRelation(p, normalizedRelation));
