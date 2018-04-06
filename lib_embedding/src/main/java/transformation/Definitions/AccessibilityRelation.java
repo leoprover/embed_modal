@@ -159,6 +159,7 @@ public class AccessibilityRelation {
         return "thf( " + normalizedRelation + "_type , type , ( " + normalizedRelation + ":" + w + ">" + w + ">$o) ).";
     }
 
+    // for the semantical embedding of accessibility relation properties
     public static String applyPropertyToRelation(AccessibilityRelationProperty p, String normalizedRelation){
         return "thf( " + normalizedRelation + "_" + accessibilityRelationPropertyNames.get(p) + " , axiom , ( " +
                 accessibilityRelationPropertyNames.get(p) + " @ " + normalizedRelation + " ) ).";

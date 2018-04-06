@@ -1,4 +1,5 @@
 import exceptions.AnalysisException;
+import exceptions.ImplementationError;
 import exceptions.ParseException;
 import exceptions.TransformationException;
 import org.junit.Test;
@@ -18,16 +19,16 @@ public class TestSemanticsAnalyzer {
     public static SemanticsTest test2;
 
     @Test
-    public void semanticsTest1() throws ParseException, TransformationException, AnalysisException {
+    public void semanticsTest1() throws ParseException, TransformationException, AnalysisException, ImplementationError {
         testSemanticsSimple(test1);
     }
 
     @Test
-    public void semanticsTest2() throws ParseException, TransformationException, AnalysisException {
+    public void semanticsTest2() throws ParseException, TransformationException, AnalysisException, ImplementationError {
         testSemanticsSimple(test2);
     }
 
-    public void testSemanticsSimple(SemanticsTest t) throws ParseException, AnalysisException, TransformationException {
+    public void testSemanticsSimple(SemanticsTest t) throws ParseException, AnalysisException, TransformationException, ImplementationError {
         Node n = ThfAstGen.parse(t.input, "tPTP_file", t.name).getRoot();
         ModalTransformator modalTransformator = new ModalTransformator(n);
         modalTransformator.transform();

@@ -1,6 +1,5 @@
 package transformation;
 
-
 import exceptions.AnalysisException;
 import exceptions.ParseException;
 import exceptions.TransformationException;
@@ -142,7 +141,7 @@ public class Wrappers {
      * @param oPath output directory
      * One directory structure for all semantics
      */
-    public static void convertModalMultipleSemanticsTraverseDirectory(Path inPath, String oPath, boolean dotin, boolean dotout, String dotBin, String[] semantics){
+    public static void convertModalMultipleSemanticsTraverseDirectory(Path inPath, String oPath, boolean dotin, boolean dotout, String dotBin, String[] semantics) {
         if (Files.isDirectory(inPath)){
             log.info("Input is a directory " + inPath.toString());
             log.info("Creating subdirectories.");
@@ -233,7 +232,7 @@ public class Wrappers {
      * The problem must not include semantics since multiple semantics declaration results in undefined behavior
      * experimental output
      */
-    public static boolean convertModalMultipleSemantics(Path inPath, Path outPath, Path inDot, Path outDot, String dotBin, String[] semantics) throws IOException, exceptions.ParseException, AnalysisException, TransformationException {
+    public static boolean convertModalMultipleSemantics(Path inPath, Path outPath, Path inDot, Path outDot, String dotBin, String[] semantics) throws IOException, ParseException, AnalysisException, TransformationException {
         if (semantics == null) return convertModal(inPath,outPath,inDot,outDot,dotBin,null);
         else{
             boolean success = true;
@@ -253,7 +252,7 @@ public class Wrappers {
         }
     }
 
-    public static String convertModalToString(Path inPath, TransformationParameter... params) throws IOException, exceptions.ParseException, AnalysisException, TransformationException {
+    public static String convertModalToString(Path inPath, TransformationParameter... params) throws IOException, ParseException, AnalysisException, TransformationException {
         return convertModalToString(inPath, null, null, null, null, params);
     }
 
@@ -261,7 +260,7 @@ public class Wrappers {
                                               Path outDot, String dotBin,
                                               String semantics,
                                               TransformationParameter... params)
-            throws IOException, exceptions.ParseException, AnalysisException, TransformationException {
+            throws IOException, ParseException, AnalysisException, TransformationException {
         String semName = "";
         if (semantics != null) {
             semName = SemanticsGenerator.thfName(semantics);
@@ -340,7 +339,7 @@ public class Wrappers {
      * inDot outDot dotBin can be null
      * semantics can be null ( semantics is already in the problem file )
      */
-    public static boolean convertModal(Path inPath, Path outPath, Path inDot, Path outDot, String dotBin, String semantics) throws IOException, exceptions.ParseException, AnalysisException, TransformationException {
+    public static boolean convertModal(Path inPath, Path outPath, Path inDot, Path outDot, String dotBin, String semantics) throws IOException, ParseException, AnalysisException, TransformationException {
         String newProblem = convertModalToString(inPath, inDot, outDot, dotBin, semantics);
         Files.write(outPath,newProblem.getBytes());
         log.info("Transformed problem was written to " + outPath.toString());

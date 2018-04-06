@@ -1,11 +1,12 @@
 package transformation.Definitions;
 
 import exceptions.AnalysisException;
+import exceptions.ImplementationError;
+import transformation.SemanticsAnalyzer;
 import util.tree.Node;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 public class Connectives {
     private static final String w = Common.w;
@@ -161,6 +162,88 @@ public class Connectives {
         }
 
         throw new AnalysisException("Connectives: Invalid modal operator: " + n.toString());
+    }
 
+    public static String getOppositeNormalizedModalOperator(String normalizedModalOperator) {
+        if (normalizedModalOperator.startsWith(box_int_prefix)){
+            return dia_int_prefix + normalizedModalOperator.substring(box_int_prefix.length());
+        } else if (normalizedModalOperator.startsWith(dia_int_prefix)){
+            return box_int_prefix + normalizedModalOperator.substring(dia_int_prefix.length());
+        } else if (normalizedModalOperator.startsWith(box_unimodal)){
+            return dia_unimodal + normalizedModalOperator.substring(box_unimodal.length());
+        } else if (normalizedModalOperator.startsWith(dia_unimodal)){
+            return box_unimodal + normalizedModalOperator.substring(dia_unimodal.length());
+        } else {
+            throw new ImplementationError("Could not convert normalized modal operator \"" + normalizedModalOperator + "\" to its opposite.");
+        }
+    }
+
+    // for the syntactical embedding of accessibility relation properties
+    // normalizedModalOperator may be dia or box
+    public static String applyPropertyToModality(SemanticsAnalyzer.AccessibilityRelationProperty p, String normalizedModalOperator) {
+        String box = normalizedModalOperator;
+        String dia = normalizedModalOperator;
+        if (normalizedModalOperator.startsWith(dia_int_prefix) || normalizedModalOperator.startsWith(dia_unimodal)) {
+            box = getOppositeNormalizedModalOperator(normalizedModalOperator);
+        } else {
+            dia = getOppositeNormalizedModalOperator(normalizedModalOperator);
+        }
+
+        //K,T,B,D,FOUR,FIVE,CD,BOXM,C4,C,S5U
+        String nameOfFrameCondition = AccessibilityRelation.accessibilityRelationPropertyNames.get(p);
+        switch (p){
+            case K:
+                // nothing to do in K
+                break;
+            case T:
+                return "thf( " + nameOfFrameCondition + "_syntactic , axiom , ( ![A:$o]: (" +
+                        // (box @ A) => A
+                        "(" + box + " @ A) => A" +
+                        ") ) ).";
+            case B:
+                return "thf( " + nameOfFrameCondition + "_syntactic , axiom , ( ![A:$o]: (" +
+                        // A => (box @ (dia @ A))
+                        "A => (" + box + " @ (" + dia + " @ A))" +
+                        ") ) ).";
+            case D:
+                return "thf( " + nameOfFrameCondition + "_syntactic , axiom , ( ![A:$o]: (" +
+                        // (box @ A) => (dia @ A)
+                        "(" + box + " @ A) => (" + dia + " @ A)" +
+                        ") ) ).";
+            case FOUR:
+                return "thf( " + nameOfFrameCondition + "_syntactic , axiom , ( ![A:$o]: (" +
+                        // (box @ A) => (box @ (box @ A))
+                        "(" + box + " @ A) => (" + box + " @ (" + box + " @ A))" +
+                        ") ) ).";
+            case FIVE:
+                return "thf( " + nameOfFrameCondition + "_syntactic , axiom , ( ![A:$o]: (" +
+                        // (dia @ A) => (box @ (dia @ A))
+                        "(" + dia + " @ A) => (" + box + " @ (" + dia + " @ A))" +
+                        ") ) ).";
+            case CD:
+                return "thf( " + nameOfFrameCondition + "_syntactic , axiom , ( ![A:$o]: (" +
+                        // (dia @ A) => (box @ A)
+                        "(" + dia + " @ A) => (" + box + " @ A)" +
+                        ") ) ).";
+            case BOXM:
+                return "thf( " + nameOfFrameCondition + "_syntactic , axiom , ( ![A:$o]: (" +
+                        // box @ ((box @ A) => A)
+                        box + " @ ((" + box + " @ A) => A)" +
+                        ") ) ).";
+            case C4:
+                return "thf( " + nameOfFrameCondition + "_syntactic , axiom , ( ![A:$o]: (" +
+                        // (box @ (box @ A)) => (box @ A)
+                        "(" + box + " @ (" + box + " @ A)) => (" + box + " @ A)" +
+                        ") ) ).";
+            case C:
+                return "thf( " + nameOfFrameCondition + "_syntactic , axiom , ( ![A:$o]: (" +
+                        // (dia @ (box @ A)) => (box @ (dia @ A))
+                        "(" + dia + " @ (" + box + " @ A)) => (" + box + " @ (" + dia + " @ A))" +
+                        ") ) ).";
+            case S5U:
+                // nothing to do in S5U
+                break;
+        }
+        throw new ImplementationError("Unsupported modality Operator \"" + p.name() + "\"");
     }
 }
