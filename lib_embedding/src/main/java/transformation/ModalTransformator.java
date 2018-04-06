@@ -627,6 +627,7 @@ public class ModalTransformator {
                 def.append(Quantification.eiw_and_nonempty_th0(normalizedType));
                 def.append("\n");
             }
+            def.append("\n");
             /*
             // the above should be right because only varying quantifiers need eiw and nonempty
             for (String q: typesExistsQuantifiers) { // for each type that a  quantor is used, introduce
@@ -658,13 +659,14 @@ public class ModalTransformator {
                 }
             }
             if (domRestr.length() != 0){
-                def.append("\n% define domain restrictions\n");
+                def.append("% define domain restrictions\n");
                 def.append(domRestr);
+                def.append("\n");
             }
         }
 
         if (!typesExistsQuantifiers.isEmpty()) {
-            def.append("\n% define exists quantifiers\n");
+            def.append("% define exists quantifiers\n");
             for (String normalizedType : typesExistsQuantifiers) {
                 SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(normalizedType);
 
@@ -716,25 +718,35 @@ public class ModalTransformator {
         return def.toString();
     }
 
-    private String postProblemInsertion() {
+    private String postProblemInsertion() throws TransformationException {
         StringBuilder def = new StringBuilder();
         for (String normalizedType: this.declaredUserConstants.keySet()) {
             if (!normalizedType.equals(Common.normalizeType("$tType"))) {
-                if (this.typesForVaryingQuantifiers.contains(normalizedType)) {
-                    // an eiw-predicate of type q already exists, we can just postulate an axiom
-                    // that these constants exist at all worlds
-                    for (String constant : declaredUserConstants.get(normalizedType)) {
-                        def.append(Quantification.constant_eiw_th0(constant, normalizedType));
+                SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(normalizedType);
+
+                // the problem is monomodal and S5U
+                if (problemIsMonomodal() && theMonomodalProblemIsS5U() && domainType != SemanticsAnalyzer.DomainType.VARYING){
+                    // do nothing
+                }
+
+                // non- (S5U && monomodal)
+                else {
+                    if (this.typesForVaryingQuantifiers.contains(normalizedType)) {
+                        // an eiw-predicate of type q already exists, we can just postulate an axiom
+                        // that these constants exist at all worlds
+                        for (String constant : declaredUserConstants.get(normalizedType)) {
+                            def.append(Quantification.constant_eiw_th0(constant, normalizedType));
+                            def.append("\n");
+                        }
+                    } else {
+                        // define eiw_predicate of that type first
+                        def.append(Quantification.eiw_and_nonempty_th0(normalizedType));
                         def.append("\n");
-                    }
-                } else {
-                    // define eiw_predicate of that type first
-                    def.append(Quantification.eiw_and_nonempty_th0(normalizedType));
-                    def.append("\n");
-                    // now postulate as anbove
-                    for (String constant : declaredUserConstants.get(normalizedType)) {
-                        def.append(Quantification.constant_eiw_th0(constant, normalizedType));
-                        def.append("\n");
+                        // now postulate as anbove
+                        for (String constant : declaredUserConstants.get(normalizedType)) {
+                            def.append(Quantification.constant_eiw_th0(constant, normalizedType));
+                            def.append("\n");
+                        }
                     }
                 }
             }
