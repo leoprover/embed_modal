@@ -72,7 +72,7 @@ public class ModalTransformator {
             throw new TransformationException("Semantical and syntactical axiomatization of the modalities cannot be used together.");
         if (!params.contains(TransformationParameter.SEMANTICAL) && !params.contains(TransformationParameter.SYNTACTICAL)){
             params = new HashSet<>(params);
-            params.add(TransformationParameter.SYNTACTICAL); // default
+            params.add(TransformationParameter.SEMANTICAL); // default
         }
         this.thfAnalyzer = new ThfAnalyzer(this.originalRoot);
         this.thfAnalyzer.analyze();
