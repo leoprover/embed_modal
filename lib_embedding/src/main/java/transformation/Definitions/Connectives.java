@@ -189,61 +189,61 @@ public class Connectives {
             dia = getOppositeNormalizedModalOperator(normalizedModalOperator);
         }
 
-        //K,T,B,D,FOUR,FIVE,CD,BOXM,C4,C,S5U
-        String nameOfFrameCondition = AccessibilityRelation.accessibilityRelationPropertyNames.get(p);
+        String axiom = null;
         switch (p){
             case K:
-                // nothing to do in K
-                break;
+                // nothing to do in K, this case should not happen
+                throw new ImplementationError("Unsupported modality Operator \"" + p.name() + "\"");
             case T:
-                return "thf( " + nameOfFrameCondition + "_syntactic , axiom , ( ![A:$o]: (" +
-                        // (box @ A) => A
-                        "(" + box + " @ A) => A" +
-                        ") ) ).";
-            case B:
-                return "thf( " + nameOfFrameCondition + "_syntactic , axiom , ( ![A:$o]: (" +
-                        // A => (box @ (dia @ A))
-                        "A => (" + box + " @ (" + dia + " @ A))" +
-                        ") ) ).";
-            case D:
-                return "thf( " + nameOfFrameCondition + "_syntactic , axiom , ( ![A:$o]: (" +
-                        // (box @ A) => (dia @ A)
-                        "(" + box + " @ A) => (" + dia + " @ A)" +
-                        ") ) ).";
-            case FOUR:
-                return "thf( " + nameOfFrameCondition + "_syntactic , axiom , ( ![A:$o]: (" +
-                        // (box @ A) => (box @ (box @ A))
-                        "(" + box + " @ A) => (" + box + " @ (" + box + " @ A))" +
-                        ") ) ).";
-            case FIVE:
-                return "thf( " + nameOfFrameCondition + "_syntactic , axiom , ( ![A:$o]: (" +
-                        // (dia @ A) => (box @ (dia @ A))
-                        "(" + dia + " @ A) => (" + box + " @ (" + dia + " @ A))" +
-                        ") ) ).";
-            case CD:
-                return "thf( " + nameOfFrameCondition + "_syntactic , axiom , ( ![A:$o]: (" +
-                        // (dia @ A) => (box @ A)
-                        "(" + dia + " @ A) => (" + box + " @ A)" +
-                        ") ) ).";
-            case BOXM:
-                return "thf( " + nameOfFrameCondition + "_syntactic , axiom , ( ![A:$o]: (" +
-                        // box @ ((box @ A) => A)
-                        box + " @ ((" + box + " @ A) => A)" +
-                        ") ) ).";
-            case C4:
-                return "thf( " + nameOfFrameCondition + "_syntactic , axiom , ( ![A:$o]: (" +
-                        // (box @ (box @ A)) => (box @ A)
-                        "(" + box + " @ (" + box + " @ A)) => (" + box + " @ A)" +
-                        ") ) ).";
-            case C:
-                return "thf( " + nameOfFrameCondition + "_syntactic , axiom , ( ![A:$o]: (" +
-                        // (dia @ (box @ A)) => (box @ (dia @ A))
-                        "(" + dia + " @ (" + box + " @ A)) => (" + box + " @ (" + dia + " @ A))" +
-                        ") ) ).";
-            case S5U:
-                // nothing to do in S5U
+                // (box @ A) => A
+                axiom = "mimplies @ (" + box + " @ A) @ A";
                 break;
+            case B:
+                // A => (box @ (dia @ A))
+                axiom = "mimplies @ A @ (" + box + " @ (" + dia + " @ A))";
+                break;
+            case D:
+                // (box @ A) => (dia @ A)
+                axiom = "mimplies @ (" + box + " @ A) @ (" + dia + " @ A)";
+                break;
+            case FOUR:
+                // (box @ A) => (box @ (box @ A))
+                axiom = "mimplies @ (" + box + " @ A) @ (" + box + " @ (" + box + " @ A))";
+                break;
+            case FIVE:
+                // (dia @ A) => (box @ (dia @ A))
+                axiom = "mimplies @ (" + dia + " @ A) @ (" + box + " @ (" + dia + " @ A))";
+                break;
+            case CD:
+                // (dia @ A) => (box @ A)
+                axiom = "mimplies @ (" + dia + " @ A) @ (" + box + " @ A)";
+                break;
+            case BOXM:
+                // box @ ((box @ A) => A)
+                axiom = box + " @ (mimplies @ (" + box + " @ A) @ A)";
+                break;
+            case C4:
+                // (box @ (box @ A)) => (box @ A)
+                axiom = "mimplies @ (" + box + " @ (" + box + " @ A)) @ (" + box + " @ A)";
+                break;
+            case C:
+                // (dia @ (box @ A)) => (box @ (dia @ A))
+                axiom = "mimplies @ (" + dia + " @ (" + box + " @ A)) @ (" + box + " @ (" + dia + " @ A))";
+                break;
+            case S5U:
+                // nothing to do in S5U, this case should not happen
+                throw new ImplementationError("Unsupported modality Operator \"" + p.name() + "\"");
+            default:
+                // should not happen
+                throw new ImplementationError("Unsupported modality Operator \"" + p.name() + "\"");
         }
-        throw new ImplementationError("Unsupported modality Operator \"" + p.name() + "\"");
+        String nameOfFrameCondition = AccessibilityRelation.accessibilityRelationPropertyNames.get(p);
+        String grounding = null;
+        // ! [A:world>$o]: (mvalid @ (mimplies @ (mbox @ A) @ A))
+        return "thf( " + nameOfFrameCondition + "_syntactic , axiom , (" +
+                    "![A:" + Common.embedded_truth_type + "]: (" +
+                        "![W:" + Common.w + "]: ((" + axiom + ") @ W)" +
+                    ")" +
+                ")).";
     }
 }

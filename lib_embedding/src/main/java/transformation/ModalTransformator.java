@@ -119,7 +119,7 @@ public class ModalTransformator {
                 // Lift types
                 // $o only since we assume rigid constants
                 if (Common.normalizeType(l.getLabel()).equals(Common.normalizeType("$o"))) {
-                    l.setLabel(Common.truth_type);
+                    l.setLabel(Common.embedded_truth_type);
                 }
 
                 // user types
@@ -154,7 +154,7 @@ public class ModalTransformator {
                 // Lift types
                 // $o only since we assume rigid constants
                 if (Common.normalizeType(l.getLabel()).equals(Common.normalizeType("$o"))){
-                    l.setLabel(Common.truth_type);
+                    l.setLabel(Common.embedded_truth_type);
 
                 // substitute nullary and unary operators
                 // $true $false $box $dia ~
@@ -610,6 +610,13 @@ public class ModalTransformator {
         // Collect used modalities for syntactical embedding and create a list of axioms which are introduced later after defining the embedded modal operators
         Set<String> syntacticalModalityAxioms = new HashSet<>();
         Set<String> additionalModalitiesFromSyntacticalEmbedding = new HashSet<>();
+        // debug output for the syntactical modality axiomatization
+        //for (SemanticsAnalyzer.AccessibilityRelationProperty p : SemanticsAnalyzer.AccessibilityRelationProperty.values()){
+        //    if (p != SemanticsAnalyzer.AccessibilityRelationProperty.K && p != SemanticsAnalyzer.AccessibilityRelationProperty.S5U) {
+        //        System.out.println(Connectives.applyPropertyToModality(p, usedModalities.stream().findAny().get()));
+        //    }
+        //}
+        boolean constainsSyntacticalAxiom = false;
         if (params.contains(TransformationParameter.SYNTACTICAL) && !usedModalities.isEmpty()) {
             for (String normalizedModalOperator : usedModalities) {
                 String normalizedRelationSuffix = getNormalizedRelationSuffixFromNormalizedModalOperator(normalizedModalOperator);
@@ -617,9 +624,13 @@ public class ModalTransformator {
                     if (p != SemanticsAnalyzer.AccessibilityRelationProperty.K && p != SemanticsAnalyzer.AccessibilityRelationProperty.S5U) { // K and S5U do not have accessibility relation properties
                         syntacticalModalityAxioms.add(Connectives.applyPropertyToModality(p, normalizedModalOperator)); // may be dia or box
                         additionalModalitiesFromSyntacticalEmbedding.add(Connectives.getOppositeNormalizedModalOperator(normalizedModalOperator));
+                        constainsSyntacticalAxiom = true;
                     }
                 }
             }
+        }
+        if (constainsSyntacticalAxiom) {
+            usedConnectives.add("mimplies");
         }
 
         // introduce mvalid for global consequence
@@ -659,16 +670,6 @@ public class ModalTransformator {
                 def.append("\n");
             }
 
-            def.append("\n");
-        }
-
-        // if using a syntactic embedding, postulate axioms on the operators now
-        if (params.contains(TransformationParameter.SYNTACTICAL) && !usedModalities.isEmpty()) {
-            def.append("% define axioms on the modalities\n");
-            for (String axiom : syntacticalModalityAxioms) {
-                def.append(axiom);
-                def.append("\n");
-            }
             def.append("\n");
         }
 
@@ -740,10 +741,11 @@ public class ModalTransformator {
                 }
                 def.append("\n");
             }
+            def.append("\n");
         }
 
         if (!typesForAllQuantifiers.isEmpty()) {
-            def.append("\n% define for all quantifiers\n");
+            def.append("% define for all quantifiers\n");
             for (String normalizedType : typesForAllQuantifiers) {
                 SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(normalizedType);
 
@@ -765,6 +767,17 @@ public class ModalTransformator {
                 }
                 def.append("\n");
             }
+            def.append("\n");
+        }
+
+        // if using a syntactic embedding, postulate axioms on the operators now
+        if (params.contains(TransformationParameter.SYNTACTICAL) && !syntacticalModalityAxioms.isEmpty()) {
+            def.append("% define axioms on the modalities\n");
+            for (String axiom : syntacticalModalityAxioms) {
+                def.append(axiom);
+                def.append("\n");
+            }
+            def.append("\n");
         }
 
         return def.toString();

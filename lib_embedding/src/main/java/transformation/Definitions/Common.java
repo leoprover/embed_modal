@@ -16,7 +16,7 @@ public class Common {
     public static final String w = "mworld";
     public static final String world_type_declaration = "" +
             "thf( " + w + "_type , type , ( " + w + ":$tType ) ).";
-    public static final String truth_type = "(" + w + ">$o)";
+    public static final String embedded_truth_type = "(" + w + ">$o)";
 
     /***************************************************************************
      * Grounding definitions

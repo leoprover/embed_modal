@@ -52,7 +52,6 @@ public class TransformContext {
             problem.append("% -------------------------------------------------------------------------\n");
             problem.append("\n");
             problem.append(this.modalDefintions);
-            problem.append("\n");
         } else {
             log.finest("Problem has no meta-modal definitions.");
         }
@@ -81,7 +80,6 @@ public class TransformContext {
 
     public String getProblemIncludingOld(){
         return this.getProblem() +
-                "\n\n" +
                 "% -------------------------------------------------------------------------\n" +
                 "% old problem\n" +
                 "% -------------------------------------------------------------------------\n" +
