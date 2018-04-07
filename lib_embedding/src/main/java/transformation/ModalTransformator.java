@@ -786,40 +786,47 @@ public class ModalTransformator {
     }
 
     private String postProblemInsertion() throws TransformationException {
-        StringBuilder def = new StringBuilder();
+        StringBuilder postDefinitions = new StringBuilder();
         for (String normalizedType: this.declaredUserConstants.keySet()) {
             if (!normalizedType.equals(Common.normalizeType("$tType"))) {
                 SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(normalizedType);
 
-                // the problem is monomodal and S5U
-                if (problemIsMonomodal() && theMonomodalProblemIsS5U() && domainType != SemanticsAnalyzer.DomainType.VARYING){
+                // constant domain type
+                if (domainType == SemanticsAnalyzer.DomainType.CONSTANT){
                     // do nothing
+                    // constant domain does not require user constants to exist in worlds
                 }
 
-                // non- (S5U && monomodal)
+                // the problem is monomodal and S5U and cumulative or decreasing
+                else if (problemIsMonomodal() && theMonomodalProblemIsS5U() && (domainType == SemanticsAnalyzer.DomainType.CUMULATIVE || domainType == SemanticsAnalyzer.DomainType.DECREASING)){
+                    // do nothing
+                    // in S5U a cumulative/decreasing domain is the same as constant domain
+                }
+
+                // domain is varying or (non-S5U + cumul/decr)
                 else {
                     if (this.typesForVaryingQuantifiers.contains(normalizedType)) {
                         // an eiw-predicate of type q already exists, we can just postulate an axiom
                         // that these constants exist at all worlds
                         for (String constant : declaredUserConstants.get(normalizedType)) {
-                            def.append(Quantification.constant_eiw_th0(constant, normalizedType));
-                            def.append("\n");
+                            postDefinitions.append(Quantification.constant_eiw_th0(constant, normalizedType));
+                            postDefinitions.append("\n");
                         }
                     } else {
                         // define eiw_predicate of that type first
-                        def.append(Quantification.eiw_and_nonempty_th0(normalizedType));
-                        def.append("\n");
+                        postDefinitions.append(Quantification.eiw_and_nonempty_th0(normalizedType));
+                        postDefinitions.append("\n");
                         // now postulate as anbove
                         for (String constant : declaredUserConstants.get(normalizedType)) {
-                            def.append(Quantification.constant_eiw_th0(constant, normalizedType));
-                            def.append("\n");
+                            postDefinitions.append(Quantification.constant_eiw_th0(constant, normalizedType));
+                            postDefinitions.append("\n");
                         }
                     }
                 }
             }
 
         }
-        if (def.toString().length() == 0) return "";
-        return "% define exists-in-world assertion for user-defined constants\n" + def.toString();
+        if (postDefinitions.toString().length() == 0) return "";
+        return "% define exists-in-world assertion for user-defined constants\n" + postDefinitions.toString();
     }
 }
