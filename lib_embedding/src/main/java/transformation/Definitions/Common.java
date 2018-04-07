@@ -1,5 +1,6 @@
 package transformation.Definitions;
 
+import exceptions.ImplementationError;
 import exceptions.ParseException;
 import parser.ParseContext;
 import parser.ThfAstGen;
@@ -34,8 +35,14 @@ public class Common {
 
 
     public static String normalizeType(String type){
-        String t = "";
+        String debugType = type;
         try {
+            // remove multiple parentheses
+            while (type.startsWith("(") && type.endsWith(")")){
+                type = type.substring(1,type.length()-1);
+            }
+
+            // parse
             ParseContext pc = ThfAstGen.parse(type,"thf_top_level_type","name");
             Node root = pc.getRoot();
             Stack<Node> nodes_to_visit = new Stack<>();
@@ -55,6 +62,9 @@ public class Common {
 
             // add parentheses on every branching node in the parse tree
             nodes_to_visit = new Stack<>();
+            //System.out.println("TYPE:"+type);
+            //if (type.equals("@")) throw new Error("TYPE");
+            //System.out.println("TOSTRINGLEAFS:"+root.toStringLeafs());
             if (root.hasOneLeaf()) return "(" + root.toStringLeafs() + ")";
             nodes_to_visit.push(root.getNextBotBranchingNode());
             while( !nodes_to_visit.isEmpty() ) {
@@ -66,11 +76,10 @@ public class Common {
                 current_node.addChildAt(new Node("(","("),0);
                 current_node.addChild(new Node(")",")"));
             }
-            t = root.toStringLeafs();
+            return root.toStringLeafs();
         } catch (ParseException e) {
-            e.printStackTrace();
+            throw new ImplementationError("Could not parse type \"" + debugType + "\"");
         }
-        return t;
     }
 
     // THIS IS UGLY - replace it by numbering quantifications later
