@@ -3,11 +3,11 @@ package transformation;
 import exceptions.AnalysisException;
 import exceptions.ParseException;
 import exceptions.TransformationException;
-import javafx.util.Pair;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CodePointCharStream;
 import parser.ParseContext;
 import parser.ThfAstGen;
+import util.Pair;
 import util.tree.Node;
 import transformation.ModalTransformator.TransformationParameter;
 
