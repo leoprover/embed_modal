@@ -2,6 +2,7 @@ package transformation;
 
 
 import exceptions.AnalysisException;
+import exceptions.ImplementationError;
 import exceptions.TransformationException;
 import transformation.Definitions.AccessibilityRelation;
 import transformation.Definitions.Common;
@@ -97,14 +98,15 @@ public class ModalTransformator {
      * Might only be called after embedding modalities since usedModalities is created during this process
      */
     private boolean problemIsMonomodal(){
-        return usedModalities.size() == 1;
+        return getAllRelationSuffixes().size() == 1;
     }
 
     /*
      * requires that the problem is actually monomodal and exactly one modality is actually used
      */
     private boolean theMonomodalProblemIsS5U() throws TransformationException{
-        return normalizedRelationSuffixcontainsS5U(getNormalizedRelationSuffixFromNormalizedModalOperator(usedModalities.stream().findAny().get()));
+        if (!problemIsMonomodal()) throw new ImplementationError("Called theMonomodalProblemIsS5U despite problem not monomodal.");
+        return normalizedRelationSuffixcontainsS5U(getAllRelationSuffixes().stream().findAny().get());
     }
 
     private TransformContext actualTransformation(Set<TransformationParameter> params) throws TransformationException, AnalysisException {
