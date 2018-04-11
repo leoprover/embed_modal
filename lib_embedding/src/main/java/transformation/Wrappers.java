@@ -1,5 +1,6 @@
 package transformation;
 
+import com.google.common.base.Strings;
 import exceptions.AnalysisException;
 import exceptions.ParseException;
 import exceptions.TransformationException;
@@ -32,7 +33,7 @@ public class Wrappers {
      * @param oPath output directory
      * One directory structures for every single semantics
      */
-    public static void convertModalMultipleSemanticsOnMultipleDirectoriesTraverseDirectory(Path inPath, String oPath, boolean dotin, boolean dotout, String dotBin, String[] semantics){
+    public static void convertModalMultipleSemanticsOnMultipleDirectoriesTraverseDirectory(Path inPath, String oPath, boolean dotin, boolean dotout, String dotBin, String[] semantics, TransformationParameter... params){
         if (Files.isDirectory(inPath)){
             log.info("Input is a directory " + inPath.toString());
             AtomicInteger problems = new AtomicInteger();
@@ -87,7 +88,7 @@ public class Wrappers {
 
                             // call embedding wrapper
                             try {
-                                boolean success = convertModal(f, outPath, inDot, outDot, dotBin, sem);
+                                boolean success = convertModal(f, outPath, inDot, outDot, dotBin, sem, params);
                                 if (!success) {
                                     log.warning("ParseError: Could not convert " + f.toString());
                                     parseErrors.add(f.toString());
@@ -141,7 +142,7 @@ public class Wrappers {
      * @param oPath output directory
      * One directory structure for all semantics
      */
-    public static void convertModalMultipleSemanticsTraverseDirectory(Path inPath, String oPath, boolean dotin, boolean dotout, String dotBin, String[] semantics) {
+    public static void convertModalMultipleSemanticsTraverseDirectory(Path inPath, String oPath, boolean dotin, boolean dotout, String dotBin, String[] semantics, TransformationParameter... params) {
         if (Files.isDirectory(inPath)){
             log.info("Input is a directory " + inPath.toString());
             log.info("Creating subdirectories.");
@@ -180,7 +181,7 @@ public class Wrappers {
 
                         // call to embedding wrapper
                         try {
-                            boolean success = convertModalMultipleSemantics(f,outPath,inDot,outDot,dotBin,semantics);
+                            boolean success = convertModalMultipleSemantics(f,outPath,inDot,outDot,dotBin,semantics, params);
                             if (!success){
                                 log.warning("ParseError: Could not convert " + f.toString());
                                 parseErrors.add(f.toString());
@@ -232,8 +233,8 @@ public class Wrappers {
      * The problem must not include semantics since multiple semantics declaration results in undefined behavior
      * experimental output
      */
-    public static boolean convertModalMultipleSemantics(Path inPath, Path outPath, Path inDot, Path outDot, String dotBin, String[] semantics) throws IOException, ParseException, AnalysisException, TransformationException {
-        if (semantics == null) return convertModal(inPath,outPath,inDot,outDot,dotBin,null);
+    public static boolean convertModalMultipleSemantics(Path inPath, Path outPath, Path inDot, Path outDot, String dotBin, String[] semantics, TransformationParameter... params) throws IOException, ParseException, AnalysisException, TransformationException {
+        if (semantics == null) return convertModal(inPath,outPath,inDot,outDot,dotBin,null, params);
         else{
             boolean success = true;
             for (String sem : semantics){
@@ -246,7 +247,7 @@ public class Wrappers {
                 Path t_outDot = null;
                 if (inDot != null) t_inDot = Paths.get(outproblem + "-" + semName + ".dot");
                 if (outDot != null) t_outDot = Paths.get(outproblem + "-" + semName + ".dot");
-                success &= convertModal(inPath,t_outPath,t_inDot,t_outDot,dotBin,sem);
+                success &= convertModal(inPath,t_outPath,t_inDot,t_outDot,dotBin,sem, params);
             }
             return success;
         }
@@ -261,13 +262,6 @@ public class Wrappers {
                                               String semantics,
                                               TransformationParameter... params)
             throws IOException, ParseException, AnalysisException, TransformationException {
-        String semName = "";
-        if (semantics != null) {
-            semName = SemanticsGenerator.thfName(semantics);
-            log.info("Processing " + inPath.toString() + " using additional semantics " + semName);
-        } else {
-            log.info("Processing " + inPath.toString());
-        }
         // read file
         if (!Files.isRegularFile(inPath)){
             throw new IOException("Could not read file " + inPath + " ::: " + "Not a regular file or does not exist");
@@ -278,11 +272,10 @@ public class Wrappers {
         } catch (IOException e) {
             throw new IOException("Could not read file " + inPath + " ::: " + e.getMessage());
         }
-        if (semantics != null && problem.contains("$modal")) log.warning("Problem may already contain semantical definitions.");
+        if (semantics != null && problem.contains("$modal")) log.warning("Problem may already contain semantical definitions. These may be partly overwritten by the semantics additionally specified.");
 
         // add optional semantics
-        if (semantics == null) semantics = "";
-        problem = semantics + "\n\n" + problem;
+        if (semantics != null) problem = problem + "\n\n" + semantics;
 
         // parse input
         String rule = "tPTP_file";
@@ -312,6 +305,9 @@ public class Wrappers {
         if ((paramSet.contains(TransformationParameter.SEMANTICAL) && paramSet.contains(TransformationParameter.SYNTACTICAL))) {
             throw new TransformationException("Cannot use SEMANTICAL and SYNTACTICAL parameters at the same time.");
         }
+        if (params.length == 0) log.info("No transformation parameters in use, using default embedding.");
+        else log.info("Transformation parameters: " + String.join(",", Arrays.stream(params).map(Enum::name).collect(Collectors.toList())));
+
         // embed
         TransformContext transformContext = null;
         ModalTransformator transformator = new ModalTransformator(root);
@@ -339,8 +335,8 @@ public class Wrappers {
      * inDot outDot dotBin can be null
      * semantics can be null ( semantics is already in the problem file )
      */
-    public static boolean convertModal(Path inPath, Path outPath, Path inDot, Path outDot, String dotBin, String semantics) throws IOException, ParseException, AnalysisException, TransformationException {
-        String newProblem = convertModalToString(inPath, inDot, outDot, dotBin, semantics);
+    public static boolean convertModal(Path inPath, Path outPath, Path inDot, Path outDot, String dotBin, String semantics, TransformationParameter... params) throws IOException, ParseException, AnalysisException, TransformationException {
+        String newProblem = convertModalToString(inPath, inDot, outDot, dotBin, semantics, params);
         Files.write(outPath,newProblem.getBytes());
         log.info("Transformed problem was written to " + outPath.toString());
         return true;

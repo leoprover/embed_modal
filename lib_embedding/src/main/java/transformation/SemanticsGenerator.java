@@ -60,12 +60,15 @@ public class SemanticsGenerator {
         domains[1] = "$varying";
         domains[2] = "$cumulative";
         domains[3] = "$decreasing";
-        constants = new String[2];
+
+        constants = new String[1];
         constants[0] = "$rigid";
-        constants[1] = "$flexible";
+        //constants[1] = "$flexible";
+
         consequences = new String[2];
         consequences[0] = "$global";
         consequences[1] = "$local";
+
         semanticsCube = new String[systems.length][domains.length][constants.length][consequences.length];
         for (int system = 0; system < systems.length; system++){
             for(int domain = 0; domain < domains.length; domain++){
@@ -127,6 +130,12 @@ public class SemanticsGenerator {
 
     // names as in the tptp semantics specification
     public static String semanticsToTPTPSpecification(String system, String domain, String constants, String consequence) {
+        /*
+        System.out.println(system + " " + systemToInt(system));
+        System.out.println(domain + " " + domainToInt(domain));
+        System.out.println(constants + " " + rigidityToInt(constants));
+        System.out.println(consequence + " " + consequenceToInt(consequence));
+        System.out.println(semanticsCube[systemToInt(system)][domainToInt(domain)][rigidityToInt(constants)][consequenceToInt(consequence)]);*/
         return semanticsCube[systemToInt(system)][domainToInt(domain)][rigidityToInt(constants)][consequenceToInt(consequence)];
     }
 

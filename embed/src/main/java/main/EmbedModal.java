@@ -13,17 +13,33 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
+import java.util.*;
 import java.util.logging.*;
+import java.util.stream.Collectors;
 
 
 public class EmbedModal {
 
     private static final Logger log = Logger.getLogger( "default" );
 
+    private static String defaultCliSystemName = "K";
+    private static String defaultCliConstantsName = "rigid";
+    private static String defaultCliDomainsName = "constant";
+    private static String defaultCliConsequenceName = "local";
+    private static List<String> cliSystemNames = new ArrayList<>();
+    private static List<String> cliConstantNames = new ArrayList<>();
+    private static List<String> cliDomainNames = new ArrayList<>();
+    private static List<String> cliConsequenceNames = new ArrayList<>();
+
+    static {
+        cliSystemNames.addAll(Arrays.stream(SemanticsGenerator.systems).map(s->s.substring(14)).collect(Collectors.toList()));
+        cliConstantNames.addAll(Arrays.stream(SemanticsGenerator.constants).map(s->s.substring(1)).collect(Collectors.toList()));
+        cliDomainNames.addAll(Arrays.stream(SemanticsGenerator.domains).map(s->s.substring(1)).collect(Collectors.toList()));
+        cliConsequenceNames.addAll(Arrays.stream(SemanticsGenerator.consequences).map(s->s.substring(1)).collect(Collectors.toList()));
+    }
+
     private static CommandLine argsParse(String[] args){
         Options options = new Options();
-        String[] validFormats = new String[]{"modal", "free"};
         options.addOption( Option.builder("h")
                 .longOpt( "help" )
                 .desc( "Print help"  )
@@ -63,11 +79,32 @@ public class EmbedModal {
                 .argName( "DOT_BIN" )
                 .build()
         );
-        options.addOption( Option.builder("semantics")
+        options.addOption( Option.builder("systems")
                 //.desc( "Entry from semantics cube [systems][domains][constants][consequences] or all for creating all available semantical options"  )
-                .desc("standard_s5 or all")
+                .desc("Modality semantics. Choices are: " + String.join(",", cliSystemNames))
                 .hasArg()
-                .argName( "SEMANTICS" )
+                .argName( "SYSTEM" )
+                .build()
+        );
+        options.addOption( Option.builder("constants")
+                //.desc( "Entry from semantics cube [systems][domains][constants][consequences] or all for creating all available semantical options"  )
+                .desc("Constant semantics. Choices are: " + String.join(",", cliConstantNames))
+                .hasArg()
+                .argName( "CONSTANTS" )
+                .build()
+        );
+        options.addOption( Option.builder("domains")
+                //.desc( "Entry from semantics cube [systems][domains][constants][consequences] or all for creating all available semantical options"  )
+                .desc("Domain semantics. Choices are: " + String.join(",", cliDomainNames))
+                .hasArg()
+                .argName( "DOMAIN" )
+                .build()
+        );
+        options.addOption( Option.builder("consequences")
+                //.desc( "Entry from semantics cube [systems][domains][constants][consequences] or all for creating all available semantical options"  )
+                .desc("Consequence semantics. Choices are: " + String.join(",", cliConsequenceNames))
+                .hasArg()
+                .argName( "CONSEQUENCE" )
                 .build()
         );
         options.addOption( Option.builder("diroutput")
@@ -117,9 +154,6 @@ public class EmbedModal {
             log.setUseParentHandlers(false);
             log.setLevel(level);
 
-            String format = line.getOptionValue("f");
-            if (!Arrays.stream(validFormats).anyMatch(format::contains))
-                throw new CliException("Invalid format. Valid formats: " + String.join(",",validFormats));
             try {
                 // setup log file
                 if (line.hasOption("log")){
@@ -140,8 +174,6 @@ public class EmbedModal {
             } catch (IOException e) {
                 log.warning("Could not open log file " + line.getOptionValue("LOG") + ": " + e.getMessage());
             }
-
-
             return line;
         }
         catch( ParseException | CliException e){
@@ -153,41 +185,77 @@ public class EmbedModal {
             System.err.println("Invalid arguments. Reason: " + e.getMessage());
             System.exit(1);
         }
-        return null;
+        return null; // does not happen since either returns before or exits with status 1
     }
 
-
     // SemanticsCube : [modal_system][domains][constants][consequence]
-    private static String[] resolveSemantics(String s){
-        if (s == null) return null;
-        String[] ret = null;
-        switch (s) {
-            case "standard_s5":
-                ret = new String[1];
-                ret[0] = SemanticsGenerator.semanticsCube[4][0][0][0];
-                break;
-            case "constant_rigid_global":
-                ret = SemanticsGenerator.constant_rigid_global;
-                break;
-            case "rigid_local":
-                ret = SemanticsGenerator.rigid_local;
-                break;
-            case "rigid":
-                ret = SemanticsGenerator.rigid;
-                break;
-            case "all":
-            case "all_supported":
-                ret = SemanticsGenerator.rigid;
-                break;
-            default:
-                log.severe("Unsupported semantics " + s);
-                System.exit(1);
+    private static List<String> resolveCliSemantics(String cliSystems, String cliConstants, String cliDomains, String cliConsequence) throws CliException {
+        List<String> systems = Arrays.stream(cliSystems.split(",")).map(String::trim).filter(x->!x.equals("")).collect(Collectors.toList());
+        List<String> constants = Arrays.stream(cliConstants.split(",")).map(String::trim).filter(x->!x.equals("")).collect(Collectors.toList());
+        List<String> domains = Arrays.stream(cliDomains.split(",")).map(String::trim).filter(x->!x.equals("")).collect(Collectors.toList());
+        List<String> consequences = Arrays.stream(cliConsequence.split(",")).map(String::trim).filter(x->!x.equals("")).collect(Collectors.toList());
+
+        if (systems.isEmpty()) {
+            systems.add(defaultCliSystemName);
+            log.info("No system semantic specified. Using default: " + defaultCliSystemName);
         }
-        return ret;
+        if (constants.isEmpty()) {
+            constants.add(defaultCliConstantsName);
+            log.info("No constants semantic specified. Using default: " + defaultCliConstantsName);
+        }
+        if (domains.isEmpty()) {
+            domains.add(defaultCliDomainsName);
+            log.info("No domain semantic specified. Using default: " + defaultCliDomainsName);
+        }
+        if (consequences.isEmpty()) {
+            consequences.add(defaultCliConsequenceName);
+            log.info("No consequence semantic specified. Using default: " + defaultCliConsequenceName);
+        }
+
+        for (String x : systems) if (!cliSystemNames.contains(x)) throw new CliException(x + " is not a valid system semantic.");
+        for (String x : constants) if (!cliConstantNames.contains(x)) throw new CliException(x + " is not a valid constant semantic.");
+        for (String x : domains) if (!cliDomainNames.contains(x)) throw new CliException(x + " is not a valid domain semantic.");
+        for (String x : consequences) if (!cliConsequenceNames.contains(x)) throw new CliException(x + " is not a valid consequence semantic.");
+
+        List<String> semantics = new ArrayList<>();
+        for (String cons : constants){
+            for (String consequence : consequences){
+                for (String dom : domains){
+                    for (String sys : systems){
+                        semantics.add(SemanticsGenerator.semanticsToTPTPSpecification(
+                                "$modal_system_" + sys,"$" + dom,"$" + cons, "$" + consequence
+                        ));
+                    }
+                }
+            }
+        }
+
+        log.info("Considered systems: " + systems);
+        log.info("Considered constants: " + constants);
+        log.info("Considered domains: " + domains);
+        log.info("Considered consequences: " + consequences);
+        log.info("Resulting in " + semantics.size() + " different semantics.");
+
+        return semantics;
+    }
+
+    private static List<String> getSemantics(CommandLine cl) throws CliException {
+        String systems = "";
+        String constants = "";
+        String domains = "";
+        String consequences = "";
+        if (cl.hasOption("systems")) systems = cl.getOptionValue("systems");
+        if (cl.hasOption("constants")) constants = cl.getOptionValue("constants");
+        if (cl.hasOption("domains")) domains = cl.getOptionValue("domains");
+        if (cl.hasOption("consequences")) consequences = cl.getOptionValue("consequences");
+        return resolveCliSemantics(systems,constants,domains,consequences);
+    }
+
+    private static boolean cliContainsSemantics(CommandLine cl){
+        return cl.hasOption("systems") || cl.hasOption("constants") || cl.hasOption("domains") || cl.hasOption("consequences");
     }
 
     public static void main(String[] args) throws Exception {
-
         CommandLine cl = argsParse(args);
 
         // modal logic embedding
@@ -207,7 +275,6 @@ public class EmbedModal {
                 Files.createDirectory(outPath);
                 log.info("Created output directory " + outPath.toString());
             }
-            String semantics = null;
             boolean inDot = false;
             if (cl.hasOption("dotin")){
                 inDot = true;
@@ -225,8 +292,7 @@ public class EmbedModal {
             String dot = null;
             if (cl.hasOption("dotbin")) dot = cl.getOptionValue("dotbin");
             // semantics have to be provided
-            if (cl.hasOption("semantics")){
-                semantics = cl.getOptionValue("semantics");
+            if (cliContainsSemantics(cl)){
                 if (!cl.hasOption("diroutput")){
                     log.severe("Please specify a directory output structure using -diroutput <structure>. Valid values are: joint,splitted");
                     System.exit(1);
@@ -235,11 +301,12 @@ public class EmbedModal {
                     log.severe("This is not a valid value for diroutput: " + cl.getOptionValue("diroutput") + ". Valid values are: joint,splitted");
                     System.exit(1);
                 }
-                if (cl.getOptionValue("diroutput").equals("splitted")) Wrappers.convertModalMultipleSemanticsOnMultipleDirectoriesTraverseDirectory(inPath,cl.getOptionValue("o"),inDot,outDot,dot,resolveSemantics(semantics));
-                if (cl.getOptionValue("diroutput").equals("joint")) Wrappers.convertModalMultipleSemanticsTraverseDirectory(inPath,cl.getOptionValue("o"),inDot,outDot,dot,resolveSemantics(semantics));
+                List<String> semantics = getSemantics(cl);
+                if (cl.getOptionValue("diroutput").equals("splitted")) Wrappers.convertModalMultipleSemanticsOnMultipleDirectoriesTraverseDirectory(inPath,cl.getOptionValue("o"),inDot,outDot,dot, semantics.toArray(new String[semantics.size()]));
+                if (cl.getOptionValue("diroutput").equals("joint")) Wrappers.convertModalMultipleSemanticsTraverseDirectory(inPath,cl.getOptionValue("o"),inDot,outDot,dot, semantics.toArray(new String[semantics.size()]));
             // no semantics will be provided
             } else {
-                Wrappers.convertModalMultipleSemanticsOnMultipleDirectoriesTraverseDirectory(inPath, cl.getOptionValue("o"), inDot, outDot, dot, resolveSemantics(semantics));
+                Wrappers.convertModalMultipleSemanticsOnMultipleDirectoriesTraverseDirectory(inPath, cl.getOptionValue("o"), inDot, outDot, dot, null);
             }
         // input is file
         }else{
@@ -251,19 +318,18 @@ public class EmbedModal {
             if (cl.hasOption("dotout")) outDot = Paths.get(cl.getOptionValue("dotout")).toAbsolutePath();
             String dot = null;
             if (cl.hasOption("dotbin")) dot = cl.getOptionValue("dotbin");
-            String semantics = null;
+
             // semantics have to be provided
-            if (cl.hasOption("semantics")) {
-                semantics = cl.getOptionValue("semantics");
-                String[] semanticsList = resolveSemantics(semantics);
-                if (semanticsList.length == 1) {
-                    Wrappers.convertModal(inPath, outPath, inDot, outDot, dot, semanticsList[0]);
+            if (cliContainsSemantics(cl)) {
+                List<String> semantics = getSemantics(cl);
+                if (semantics.size() == 1) {
+                    Wrappers.convertModal(inPath, outPath, inDot, outDot, dot, semantics.get(0));
                 } else {
-                    Wrappers.convertModalMultipleSemantics(inPath, outPath, inDot, outDot, dot, semanticsList);
+                    Wrappers.convertModalMultipleSemantics(inPath, outPath, inDot, outDot, dot, semantics.toArray(new String[semantics.size()]));
                 }
             // no semantics will be provided
             } else {
-                Wrappers.convertModalMultipleSemantics(inPath, outPath, inDot, outDot, dot, null);
+                Wrappers.convertModal(inPath, outPath, inDot, outDot, dot, null);
             }
         }
         System.exit(0);
