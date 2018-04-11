@@ -17,12 +17,7 @@
     <modules>
         <module>lib_embedding</module>
         <module>embed</module>
-        <module>test_problems</module>
-        <module>test_parser</module>
         <module>convert_qmltp_to_thf</module>
-        <module>test_multi</module>
-        <module>test_multi_native</module>
-        <module>compare_qmltp</module>
     </modules>
 
 </project>
