@@ -20,3 +20,4 @@ thf(3, axiom, ( ! [X:c] : (pc @ X) )).
 thf(4, axiom, ( ! [X:d] : (pd @ X) )).
 
 thf(5, axiom, ( ! [X:d,Y:a] : ((pd @ X) & (pa @ Y)))). %% multi-quantification with different semantics.
+thf(6, axiom, ($box @ $true)). % ensure $box is used at least once
