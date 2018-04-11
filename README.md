@@ -7,14 +7,12 @@ In the root directory invoke
 To convert a modal problem run
 
     java -jar embed/target/embed-1.0-SNAPSHOT-shaded.jar 
-    -f modal 
     -i <input_file>
     -o <output_file>
 
 To convert a directory containing modal problems run
 
     java -jar embed/target/embed-1.0-SNAPSHOT-shaded.jar 
-    -f modal 
     -i <input_directory>
     -o <output_directory>
     -diroutput <options_are_splitted_or_joint>
@@ -27,7 +25,6 @@ Add semantics with
     ...
 
 ## Parameter Usage
-    -f choose embedding
     -i input problem path
     -o output problem path
     -diroutput (required if input is a directory)
