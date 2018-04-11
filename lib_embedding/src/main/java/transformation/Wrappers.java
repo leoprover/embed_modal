@@ -1,6 +1,5 @@
 package transformation;
 
-import com.google.common.base.Strings;
 import exceptions.AnalysisException;
 import exceptions.ParseException;
 import exceptions.TransformationException;
@@ -181,7 +180,7 @@ public class Wrappers {
 
                         // call to embedding wrapper
                         try {
-                            boolean success = convertModalMultipleSemantics(f,outPath,inDot,outDot,dotBin,semantics, params);
+                            boolean success = convertOneFileToModalMultipleSemantics(f,outPath,inDot,outDot,dotBin,semantics, params);
                             if (!success){
                                 log.warning("ParseError: Could not convert " + f.toString());
                                 parseErrors.add(f.toString());
@@ -190,9 +189,8 @@ public class Wrappers {
                         } catch (TransformationException | ParseException | IOException | AnalysisException e) {
                             String error = "Could not convert " + f.toString() + " ::: " + e.toString() + " ::: " + e.getMessage();
                             log.warning(error);
-                            otherErrors.add(new Pair<String, String>(f.toString(),error));
+                            otherErrors.add(new Pair<>(f.toString(), error));
                             problemsOtherErrors.getAndIncrement();
-                            //e.printStackTrace();
                         }
                     });
 
@@ -233,20 +231,39 @@ public class Wrappers {
      * The problem must not include semantics since multiple semantics declaration results in undefined behavior
      * experimental output
      */
-    public static boolean convertModalMultipleSemantics(Path inPath, Path outPath, Path inDot, Path outDot, String dotBin, String[] semantics, TransformationParameter... params) throws IOException, ParseException, AnalysisException, TransformationException {
+    public static boolean convertOneFileToModalMultipleSemantics(Path inPath, Path outPath, Path inDot, Path outDot, String dotBin, String[] semantics, TransformationParameter... params) throws IOException, ParseException, AnalysisException, TransformationException {
         if (semantics == null) return convertModal(inPath,outPath,inDot,outDot,dotBin,null, params);
         else{
             boolean success = true;
+            int semNameNumber = 0;
+            Set<String> semNames = new HashSet<>();
             for (String sem : semantics){
+
+                // ensure every semantics name is unique
+                semNameNumber++;
                 String semName = SemanticsGenerator.thfName(sem);
+                if (semName.equals("") || semNames.contains(semName)) semName += semNameNumber;
+                semNames.add(semName);
+
                 log.info("Converting with semantics " + semName + " file " + inPath.toString());
                 String outproblem = outPath.toString();
                 if (outproblem.endsWith(".p")) outproblem = outproblem.substring(0,outproblem.lastIndexOf(".p"));
-                Path t_outPath = Paths.get(outproblem + "-" + semName + ".p");
+
+                // only one semantic - leave out semantics name
+                Path t_outPath = Paths.get(outproblem + ".p");
                 Path t_inDot = null;
                 Path t_outDot = null;
-                if (inDot != null) t_inDot = Paths.get(outproblem + "-" + semName + ".dot");
-                if (outDot != null) t_outDot = Paths.get(outproblem + "-" + semName + ".dot");
+                if (inDot != null) t_inDot = Paths.get(outproblem + ".in.dot");
+                if (outDot != null) t_outDot = Paths.get(outproblem + ".out.dot");
+
+                // multiple semantics - add semantics name
+                if (semantics.length != 1) {
+                    t_outPath = Paths.get(outproblem + "-" + semName + ".p");
+                    t_inDot = null;
+                    t_outDot = null;
+                    if (inDot != null) t_inDot = Paths.get(outproblem + "-" + semName + ".in.dot");
+                    if (outDot != null) t_outDot = Paths.get(outproblem + "-" + semName + ".out.dot");
+                }
                 success &= convertModal(inPath,t_outPath,t_inDot,t_outDot,dotBin,sem, params);
             }
             return success;

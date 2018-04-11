@@ -261,7 +261,7 @@ public class EmbedModal {
         // modal logic embedding
         Path inPath = Paths.get(cl.getOptionValue("i")).toAbsolutePath();
 
-        // input is directory
+        // input is a directory
         if (Files.isDirectory(inPath)){
             log.info("Input is directory " + inPath.toString());
             Path outPath = Paths.get(cl.getOptionValue("o")).toAbsolutePath();
@@ -275,40 +275,52 @@ public class EmbedModal {
                 Files.createDirectory(outPath);
                 log.info("Created output directory " + outPath.toString());
             }
+
             boolean inDot = false;
-            if (cl.hasOption("dotin")){
-                inDot = true;
-                if (!cl.getOptionValue("dotin").equals("yes")){
-                    log.severe("For directory input dotin has to be either yes or left out completely");
-                }
-            }
+            if (cl.hasOption("dotin")) inDot = true;
             boolean outDot = false;
-            if (cl.hasOption("dotout")){
-                outDot = true;
-                if (!cl.getOptionValue("dotout").equals("yes")){
-                    log.severe("For directory input dotout has to be either yes or left out completely");
-                }
-            }
+            if (cl.hasOption("dotout")) outDot = true;
             String dot = null;
             if (cl.hasOption("dotbin")) dot = cl.getOptionValue("dotbin");
+
             // semantics have to be provided
-            if (cliContainsSemantics(cl)){
-                if (!cl.hasOption("diroutput")){
-                    log.severe("Please specify a directory output structure using -diroutput <structure>. Valid values are: joint,splitted");
-                    System.exit(1);
-                }
-                if (!(cl.getOptionValue("diroutput").equals("joint") || cl.getOptionValue("diroutput").equals("splitted"))){
-                    log.severe("This is not a valid value for diroutput: " + cl.getOptionValue("diroutput") + ". Valid values are: joint,splitted");
-                    System.exit(1);
-                }
+            if (cliContainsSemantics(cl)) {
                 List<String> semantics = getSemantics(cl);
-                if (cl.getOptionValue("diroutput").equals("splitted")) Wrappers.convertModalMultipleSemanticsOnMultipleDirectoriesTraverseDirectory(inPath,cl.getOptionValue("o"),inDot,outDot,dot, semantics.toArray(new String[semantics.size()]));
-                if (cl.getOptionValue("diroutput").equals("joint")) Wrappers.convertModalMultipleSemanticsTraverseDirectory(inPath,cl.getOptionValue("o"),inDot,outDot,dot, semantics.toArray(new String[semantics.size()]));
-            // no semantics will be provided
-            } else {
-                Wrappers.convertModalMultipleSemanticsOnMultipleDirectoriesTraverseDirectory(inPath, cl.getOptionValue("o"), inDot, outDot, dot, null);
+                if (semantics.size() == 1) {
+                    Wrappers.convertModalMultipleSemanticsTraverseDirectory(
+                            inPath, cl.getOptionValue("o"), inDot, outDot, dot, semantics.toArray(new String[semantics.size()])
+                    );
+                } else {
+                    if (!cl.hasOption("diroutput")) {
+                        log.severe("Please specify a directory output structure using -diroutput <structure> if you use more than one semantic for converting a directory. Valid values are: joint,splitted");
+                        System.exit(1);
+                    }
+                    String dirOutput = cl.getOptionValue("diroutput");
+                    switch (dirOutput) {
+                        case "splitted":
+                            Wrappers.convertModalMultipleSemanticsOnMultipleDirectoriesTraverseDirectory(
+                                    inPath, cl.getOptionValue("o"), inDot, outDot, dot, semantics.toArray(new String[semantics.size()])
+                            );
+                            break;
+                        case "joint":
+                            Wrappers.convertModalMultipleSemanticsTraverseDirectory(
+                                    inPath, cl.getOptionValue("o"), inDot, outDot, dot, semantics.toArray(new String[semantics.size()])
+                            );
+                            break;
+                        default:
+                            log.severe("This is not a valid value for diroutput: " + cl.getOptionValue("diroutput") + ". Valid values are: joint,splitted");
+                            System.exit(1);
+                    }
+                }
             }
-        // input is file
+
+            // no semantics will be provided
+            else {
+                Wrappers.convertModalMultipleSemanticsOnMultipleDirectoriesTraverseDirectory(
+                        inPath, cl.getOptionValue("o"), inDot, outDot, dot, null);
+            }
+
+        // input is a file
         }else{
             log.info("Input is file " + inPath.toString());
             Path outPath = Paths.get(cl.getOptionValue("o")).toAbsolutePath();
@@ -325,7 +337,9 @@ public class EmbedModal {
                 if (semantics.size() == 1) {
                     Wrappers.convertModal(inPath, outPath, inDot, outDot, dot, semantics.get(0));
                 } else {
-                    Wrappers.convertModalMultipleSemantics(inPath, outPath, inDot, outDot, dot, semantics.toArray(new String[semantics.size()]));
+                    Wrappers.convertOneFileToModalMultipleSemantics(
+                            inPath, outPath, inDot, outDot, dot, semantics.toArray(new String[semantics.size()])
+                    );
                 }
             // no semantics will be provided
             } else {
