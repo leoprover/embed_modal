@@ -12,13 +12,16 @@
 * Check embedding for thf sentences containing the definition role
 * include similar installation process as ```make install```
 
+# Equality
+* support and explore various equalities
+
 # Mixed Modal Logics
 * test and explore mixed semantics e.g. ```$quantification = [$constant, $i := varying]```
 
 # Multiple Modalities
 * test all already implemented aspects of multimodal logics
 * support and explore cumulative and decreasing domains
-* support and explore S5U support
+* support and explore S5U
 
 # Code Quality
 * remove suffixrelation and replace by relation where possible
