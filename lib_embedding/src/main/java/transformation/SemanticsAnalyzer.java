@@ -4,7 +4,6 @@ package transformation;
 import exceptions.AnalysisException;
 import transformation.Definitions.AccessibilityRelation;
 import transformation.Definitions.Common;
-import transformation.Definitions.Connectives;
 import util.tree.Node;
 
 import java.util.*;
@@ -38,34 +37,29 @@ public class SemanticsAnalyzer {
     public static String domainDefault = Common.normalizeType("$default");
     public static String modalitiesDefault = "$default";
 
-    static Map<String,AccessibilityRelationProperty> modal_axioms;
+    public static Map<String,AccessibilityRelationProperty> modal_axioms;
     public static Map<String,Set<AccessibilityRelationProperty>> modal_systems;
     public static Map<String,ConsequenceType> consequenceTypes;
     public static Map<String,ConstantType> constantTypes;
     public static Map<String,DomainType> domainTypes;
 
-    /*
-    public static Set<String> thfListSymbols;
-    public static Predicate<Node> isAxiom;
-    public static Predicate<Node> isSystem;
-    public static Predicate<Node> isThfListSymbol;
-    */
-
     static{
-        /*
-        The following are supported modal semantics
-         */
+        // The following are supported modal semantics
+
         constantTypes = new HashMap<>();
         constantTypes.put("$rigid",ConstantType.RIGID);
         constantTypes.put("$flexible",ConstantType.FLEXIBLE);
+
         domainTypes = new HashMap<>();
         domainTypes.put("$constant",DomainType.CONSTANT);
         domainTypes.put("$varying",DomainType.VARYING);
         domainTypes.put("$cumulative",DomainType.CUMULATIVE);
         domainTypes.put("$decreasing",DomainType.DECREASING);
+
         consequenceTypes = new HashMap<>();
         consequenceTypes.put("$local",ConsequenceType.LOCAL);
         consequenceTypes.put("$global",ConsequenceType.GLOBAL);
+
         modal_axioms = new HashMap<>();
         modal_axioms.put("$modal_axiom_K",AccessibilityRelationProperty.K);
         modal_axioms.put("$modal_axiom_T",AccessibilityRelationProperty.T);
@@ -77,25 +71,33 @@ public class SemanticsAnalyzer {
         modal_axioms.put("$modal_axiom_BOXM",AccessibilityRelationProperty.BOXM);
         modal_axioms.put("$modal_axiom_C4",AccessibilityRelationProperty.C4);
         modal_axioms.put("$modal_axiom_C",AccessibilityRelationProperty.C);
+
         modal_systems = new HashMap<>();
         modal_systems.put("$modal_system_K", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K)));
         modal_systems.put("$modal_system_KB", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.B)));
-        modal_systems.put("$modal_system_T", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.T)));
+        modal_systems.put("$modal_system_K4", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.FOUR)));
+        modal_systems.put("$modal_system_K5", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.FIVE)));
+        modal_systems.put("$modal_system_K45", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.FOUR, AccessibilityRelationProperty.FIVE)));
+        modal_systems.put("$modal_system_KB5", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.B, AccessibilityRelationProperty.FIVE)));
+        modal_systems.put("$modal_system_KB5_KB5", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.B, AccessibilityRelationProperty.FIVE)));
+        modal_systems.put("$modal_system_KB5_KB4", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.B, AccessibilityRelationProperty.FOUR)));
         modal_systems.put("$modal_system_D", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.D)));
+        modal_systems.put("$modal_system_DB", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.D, AccessibilityRelationProperty.B)));
+        modal_systems.put("$modal_system_D4", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.D, AccessibilityRelationProperty.FOUR)));
+        modal_systems.put("$modal_system_D5", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.D, AccessibilityRelationProperty.FIVE)));
+        modal_systems.put("$modal_system_D45", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.D, AccessibilityRelationProperty.FOUR, AccessibilityRelationProperty.FIVE)));
+        modal_systems.put("$modal_system_T", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.T)));
+        modal_systems.put("$modal_system_B", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.B)));
         modal_systems.put("$modal_system_S4", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.T, AccessibilityRelationProperty.FOUR)));
         modal_systems.put("$modal_system_S5", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.T, AccessibilityRelationProperty.FIVE)));
+        modal_systems.put("$modal_system_S5_KT5", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.T, AccessibilityRelationProperty.FIVE)));
+        modal_systems.put("$modal_system_S5_KTB5", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.T, AccessibilityRelationProperty.B, AccessibilityRelationProperty.FIVE)));
+        modal_systems.put("$modal_system_S5_KT45", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.T, AccessibilityRelationProperty.FOUR, AccessibilityRelationProperty.FIVE)));
+        modal_systems.put("$modal_system_S5_KTB4", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.T, AccessibilityRelationProperty.B, AccessibilityRelationProperty.FOUR)));
+        modal_systems.put("$modal_system_S5_KDB4", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.D, AccessibilityRelationProperty.B, AccessibilityRelationProperty.FOUR)));
+        modal_systems.put("$modal_system_S5_KDB45", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.D, AccessibilityRelationProperty.B, AccessibilityRelationProperty.FOUR, AccessibilityRelationProperty.FIVE)));
+        modal_systems.put("$modal_system_S5_KDB5", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.D, AccessibilityRelationProperty.B, AccessibilityRelationProperty.FIVE)));
         modal_systems.put("$modal_system_S5U", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.S5U)));
-
-        /*
-        thfListSymbols = new HashSet<>();
-        thfListSymbols.add(",");
-        thfListSymbols.add("[");
-        thfListSymbols.add("]");
-
-        isAxiom = x->modal_axioms.containsKey(x);
-        isSystem = x->modal_systems.containsKey(x);
-        isThfListSymbol = x->thfListSymbols.contains(x);
-        */
     }
 
     private Node root;
