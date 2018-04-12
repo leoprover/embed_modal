@@ -1,13 +1,13 @@
 # Contents
 A set of tools to semantically embed higher-order modal logic problems formulated
 in the TPTP [1] dialect THF into higher-order logic formulated in THF. It contains
-* a standalone tool ```embed``` for the semantical embedding
+* a standalone tool ```embed``` for the semantical embedding.
 * a conversion tool ```convert_qmltp_to_thf``` for translating 
 first-order modal logic problems formulated in the dialect of the QMLTP [2]
 to higher-order logic problems formulated in THF. A translated version of 
-the QMLTP can be found on Github [3]
+the QMLTP can be found on Github [3].
 * a library ```embedding_lib``` you can include in your project to semantically 
-embed problems and wrapper functions for easier handling
+embed problems. Contains wrapper functions for easier handling.
 
 This software is based on the theoretical work of Benzmüller and Paulson [4].
 
@@ -79,9 +79,18 @@ Valid choices for ```<OPTIONS>``` are
 * syntactical_modality_axiomatization: embed modality semantics as axioms about modal operators
 
 # References
-[1] Geoff Sutcliffe - The TPTP Infrastructure - http://www.tptp.org
+[1] Geoff Sutcliffe - 
+    The TPTP Problem Library and Associated Infrastructure. From CNF to TH0, TPTP v6.4.0 - 
+    2017 - 
+    Journal of Automated Reasoning -
+    http://www.tptp.org
 
-[2] Jens Otten and Thomas Raths - The QMLTP Library - http://www.iltp.de/qmltp
+[2] Thomas Raths and Jens Otten - 
+    The QMLTP Problem Library for First-Order Modal Logics -
+    2012 -
+    Automated Reasoning, IJCAR 2012 - 
+    http://www.jens-otten.de/papers/qmltp_ijcar12.pdf - 
+    http://www.iltp.de/qmltp
 
 [3] Tobias Gleißner - QMLTP Mirror and QMLTP in THF - https://github.com/TobiasGleissner/QMLTP
 
@@ -96,3 +105,4 @@ Valid choices for ```<OPTIONS>``` are
     2017 - 
     LPAR-21. 21st International Conference on Logic for Programming, Artificial Intelligence and Reasoning -
     https://easychair.org/publications/paper/340346
+    
