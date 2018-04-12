@@ -11,6 +11,8 @@ embed problems and wrapper functions for easier handling
 
 This software is based on the theoretical work of Benzmüller and Paulson [4].
 
+Details of the embedding's procedure, a theoretical overview and some performance tests are available in Gleißner, Steen and Benzmüller [5].
+
 # Requirements
 * Maven 3.5 or higher
 * Java 8 or higher
@@ -88,3 +90,9 @@ Valid choices for ```<OPTIONS>``` are
     2013 - 
     Logica Universalis (Special Issue on Multimodal Logics) -
     http://christoph-benzmueller.de/papers/J23.pdf
+
+[5] Tobias Gleißner, Alexander Steen and Christoph Benzmüller - 
+    Theorem Provers For Every Normal Modal Logic - 
+    2017 - 
+    LPAR-21. 21st International Conference on Logic for Programming, Artificial Intelligence and Reasoning -
+    https://easychair.org/publications/paper/340346
