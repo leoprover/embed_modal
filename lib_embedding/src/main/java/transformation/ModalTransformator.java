@@ -16,6 +16,27 @@ import java.util.logging.Logger;
 public class ModalTransformator {
 
     public enum TransformationParameter{SEMANTICAL, SYNTACTICAL} // More probably to come, default is semantical
+
+    /*
+     * returns null if no contradictory parameters was found
+     * returns a String with reason otherwise
+     */
+    public static String transformationParameterSetIsNotContradictory(Set<TransformationParameter> params){
+        if (params.contains(TransformationParameter.SEMANTICAL) && params.contains(TransformationParameter.SYNTACTICAL))
+            return "Transformation parameter set cannot contain semantical and syntactical modality axiomatization";
+        return null;
+    }
+
+    /*
+     * Adds default values if necessary
+     */
+    public static Set<TransformationParameter> complementTransformationParameterSet(Set<TransformationParameter> params){
+        Set<TransformationParameter> newParams = new HashSet<>(params);
+        if (!newParams.contains(ModalTransformator.TransformationParameter.SEMANTICAL) && !params.contains(ModalTransformator.TransformationParameter.SYNTACTICAL))
+            newParams.add(TransformationParameter.SEMANTICAL);
+        return newParams;
+    }
+
     private static final Logger log = Logger.getLogger( "default" );
 
     private final Node originalRoot;
@@ -62,19 +83,22 @@ public class ModalTransformator {
         userTypes = new ArrayList<>();
     }
 
+    /*
+     * uses default transformation parameters
+     */
     public TransformContext transform() throws TransformationException, AnalysisException {
         HashSet<TransformationParameter> defaultParameters = new HashSet<>();
-        defaultParameters.add(TransformationParameter.SEMANTICAL); // default
-        return transform(defaultParameters);
+        return transform(complementTransformationParameterSet(defaultParameters));
     }
 
+    /*
+     * transformation parameters are supplemented if needed
+     */
     public TransformContext transform(Set<TransformationParameter> params) throws TransformationException, AnalysisException {
-        if (params.contains(TransformationParameter.SEMANTICAL) && params.contains(TransformationParameter.SYNTACTICAL))
-            throw new TransformationException("Semantical and syntactical axiomatization of the modalities cannot be used together.");
-        if (!params.contains(TransformationParameter.SEMANTICAL) && !params.contains(TransformationParameter.SYNTACTICAL)){
-            params = new HashSet<>(params);
-            params.add(TransformationParameter.SEMANTICAL); // default
-        }
+        params = complementTransformationParameterSet(params);
+        String paramsContradictoryReason = transformationParameterSetIsNotContradictory(params);
+        if (paramsContradictoryReason != null) throw new TransformationException(paramsContradictoryReason);
+
         this.thfAnalyzer = new ThfAnalyzer(this.originalRoot);
         this.thfAnalyzer.analyze();
         this.semanticsAnalyzer = new SemanticsAnalyzer(this.originalRoot, this.thfAnalyzer.semanticsNodes);
