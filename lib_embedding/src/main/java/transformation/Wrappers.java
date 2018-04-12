@@ -21,6 +21,8 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static util.THFRoleManipulation.stripThfSentenceFromProblemByRoleReturnString;
+
 public class Wrappers {
 
     private static final Logger log = Logger.getLogger( "default" );
@@ -289,10 +291,13 @@ public class Wrappers {
         } catch (IOException e) {
             throw new IOException("Could not read file " + inPath + " ::: " + e.getMessage());
         }
-        if (semantics != null && problem.contains("$modal")) log.warning("Problem may already contain semantical definitions. These may be partly overwritten by the semantics additionally specified.");
+        if (semantics != null && problem.contains("$modal")) log.warning("Problem may already contain semantical definitions which will be stripped from the problem.");
 
         // add optional semantics
-        if (semantics != null) problem = problem + "\n\n" + semantics;
+        if (semantics != null) {
+            problem = stripThfSentenceFromProblemByRoleReturnString(problem,"logic");
+            problem = semantics + "\n\n" + problem;
+        }
 
         // parse input
         String rule = "tPTP_file";
