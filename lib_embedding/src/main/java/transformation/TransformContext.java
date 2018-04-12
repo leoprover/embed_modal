@@ -1,7 +1,7 @@
 package transformation;
 
 
-import util.tree.Node;
+import util.Node;
 
 import java.util.List;
 import java.util.logging.Logger;

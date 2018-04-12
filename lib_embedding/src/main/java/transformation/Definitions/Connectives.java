@@ -3,7 +3,7 @@ package transformation.Definitions;
 import exceptions.AnalysisException;
 import exceptions.ImplementationError;
 import transformation.SemanticsAnalyzer;
-import util.tree.Node;
+import util.Node;
 
 import java.util.HashMap;
 import java.util.Map;

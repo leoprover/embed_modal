@@ -1,6 +1,6 @@
 import org.junit.Test;
 import transformation.ModalTransformator;
-import util.tree.Node;
+import util.Node;
 
 import java.lang.reflect.Method;
 

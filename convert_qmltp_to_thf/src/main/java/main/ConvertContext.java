@@ -1,6 +1,6 @@
 package main;
 
-import util.tree.Node;
+import util.Node;
 
 public class ConvertContext {
     public Node original;

@@ -4,7 +4,7 @@ package transformation;
 import exceptions.AnalysisException;
 import transformation.Definitions.AccessibilityRelation;
 import transformation.Definitions.Common;
-import util.tree.Node;
+import util.Node;
 
 import java.util.*;
 import java.util.logging.Logger;

@@ -7,7 +7,7 @@ import parser.ThfAstGen;
 import transformation.Definitions.Common;
 import transformation.ModalTransformator;
 import transformation.SemanticsAnalyzer;
-import util.tree.Node;
+import util.Node;
 
 import java.util.*;
 import static org.junit.Assert.*;

@@ -2,7 +2,7 @@ package transformation;
 
 
 import exceptions.AnalysisException;
-import util.tree.Node;
+import util.Node;
 
 import java.util.HashMap;
 import java.util.LinkedList;

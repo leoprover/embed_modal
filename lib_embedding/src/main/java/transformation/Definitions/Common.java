@@ -4,7 +4,7 @@ import exceptions.ImplementationError;
 import exceptions.ParseException;
 import parser.ParseContext;
 import parser.ThfAstGen;
-import util.tree.Node;
+import util.Node;
 
 import java.util.Stack;
 

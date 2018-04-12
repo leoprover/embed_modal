@@ -2,7 +2,7 @@ package transformation.Definitions;
 
 import exceptions.AnalysisException;
 import transformation.SemanticsAnalyzer.AccessibilityRelationProperty;
-import util.tree.Node;
+import util.Node;
 
 import java.util.HashMap;
 import java.util.Map;

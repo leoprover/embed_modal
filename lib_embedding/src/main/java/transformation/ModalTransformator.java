@@ -8,7 +8,7 @@ import transformation.Definitions.AccessibilityRelation;
 import transformation.Definitions.Common;
 import transformation.Definitions.Connectives;
 import transformation.Definitions.Quantification;
-import util.tree.Node;
+import util.Node;
 
 import java.util.*;
 import java.util.logging.Logger;

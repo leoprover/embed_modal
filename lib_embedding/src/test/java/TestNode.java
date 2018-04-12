@@ -1,5 +1,5 @@
 import org.junit.Test;
-import util.tree.Node;
+import util.Node;
 
 import static org.junit.Assert.*;
 

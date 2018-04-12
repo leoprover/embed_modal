@@ -8,7 +8,7 @@ import org.antlr.v4.runtime.CodePointCharStream;
 import parser.ParseContext;
 import parser.ThfAstGen;
 import util.Pair;
-import util.tree.Node;
+import util.Node;
 import transformation.ModalTransformator.TransformationParameter;
 
 import java.io.IOException;

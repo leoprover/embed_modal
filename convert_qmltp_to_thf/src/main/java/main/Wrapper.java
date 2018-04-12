@@ -4,8 +4,7 @@ import exceptions.ParseException;
 import fofParser.QmfAstGen;
 import javafx.util.Pair;
 import org.antlr.v4.runtime.ANTLRInputStream;
-import parser.ParseContext;
-import util.tree.Node;
+import util.Node;
 
 import java.io.IOException;
 import java.nio.file.Files;

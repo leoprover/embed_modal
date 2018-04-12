@@ -1,7 +1,7 @@
 package parser;
 
 import org.antlr.v4.runtime.ParserRuleContext;
-import util.tree.Node;
+import util.Node;
 
 
 public class ParseContext {

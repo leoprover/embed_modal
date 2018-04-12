@@ -1,6 +1,4 @@
-package util.tree;
-
-import util.EscapeUtils;
+package util;
 
 import java.util.*;
 import java.util.function.Predicate;
