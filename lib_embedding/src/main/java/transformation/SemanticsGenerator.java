@@ -28,7 +28,7 @@ public class SemanticsGenerator {
 
 
     static{
-        systems = new String[25];
+        systems = new String[26];
         systems[0] = "$modal_system_K";
         systems[1] = "$modal_system_KB";
         systems[2] = "$modal_system_K4";
@@ -37,23 +37,24 @@ public class SemanticsGenerator {
         systems[5] = "$modal_system_KB5"; // K+B+5
         systems[6] = "$modal_system_KB5_KB5"; // K+B+5
         systems[7] = "$modal_system_KB5_KB4"; // K+B+4
-        systems[8] = "$modal_system_D";
-        systems[9] = "$modal_system_DB";
-        systems[10] = "$modal_system_D4";
-        systems[11] = "$modal_system_D5";
-        systems[12] = "$modal_system_D45";
-        systems[13] = "$modal_system_T";
-        systems[14] = "$modal_system_B";
-        systems[15] = "$modal_system_S4";
-        systems[16] = "$modal_system_S5"; // K+T+5
-        systems[17] = "$modal_system_S5_KT5"; // K+T+5
-        systems[18] = "$modal_system_S5_KTB5"; // K+T+B+5
-        systems[19] = "$modal_system_S5_KT45"; // K+T+4+5
-        systems[20] = "$modal_system_S5_KT4B"; // K+T+4+B
-        systems[21] = "$modal_system_S5_KD4B"; // K+D+4+B
-        systems[22] = "$modal_system_S5_KD4B5"; // K+D+4+B+5
-        systems[23] = "$modal_system_S5_KDB5"; // K+D+B+5
-        systems[24] = "$modal_system_S5U";
+        systems[8] = "$modal_system_KB5_KB45"; // K+B+4+5
+        systems[9] = "$modal_system_D";
+        systems[10] = "$modal_system_DB";
+        systems[11] = "$modal_system_D4";
+        systems[12] = "$modal_system_D5";
+        systems[13] = "$modal_system_D45";
+        systems[14] = "$modal_system_T";
+        systems[15] = "$modal_system_B";
+        systems[16] = "$modal_system_S4";
+        systems[17] = "$modal_system_S5"; // K+T+5
+        systems[18] = "$modal_system_S5_KT5"; // K+T+5
+        systems[19] = "$modal_system_S5_KTB5"; // K+T+B+5
+        systems[20] = "$modal_system_S5_KT45"; // K+T+4+5
+        systems[21] = "$modal_system_S5_KTB4"; // K+T+4+B
+        systems[22] = "$modal_system_S5_KDB4"; // K+D+4+B
+        systems[23] = "$modal_system_S5_KDB45"; // K+D+4+B+5
+        systems[24] = "$modal_system_S5_KDB5"; // K+D+B+5
+        systems[25] = "$modal_system_S5U";
 
         domains = new String[4];
         domains[0] = "$constant";

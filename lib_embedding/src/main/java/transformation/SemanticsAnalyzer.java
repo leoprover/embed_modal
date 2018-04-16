@@ -81,6 +81,7 @@ public class SemanticsAnalyzer {
         modal_systems.put("$modal_system_KB5", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.B, AccessibilityRelationProperty.FIVE)));
         modal_systems.put("$modal_system_KB5_KB5", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.B, AccessibilityRelationProperty.FIVE)));
         modal_systems.put("$modal_system_KB5_KB4", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.B, AccessibilityRelationProperty.FOUR)));
+        modal_systems.put("$modal_system_KB5_KB45", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.B, AccessibilityRelationProperty.FOUR, AccessibilityRelationProperty.FIVE)));
         modal_systems.put("$modal_system_D", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.D)));
         modal_systems.put("$modal_system_DB", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.D, AccessibilityRelationProperty.B)));
         modal_systems.put("$modal_system_D4", new HashSet<>(Arrays.asList(AccessibilityRelationProperty.K, AccessibilityRelationProperty.D, AccessibilityRelationProperty.FOUR)));
