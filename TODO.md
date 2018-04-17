@@ -11,6 +11,7 @@
 * embedding of problems not containing modal operators
 * Check embedding for thf sentences containing the definition role
 * include similar installation process as ```make install```
+* Normalize parentheses in output problem
 
 # Equality
 * support and explore various equalities
