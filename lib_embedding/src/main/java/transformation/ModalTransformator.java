@@ -310,9 +310,10 @@ public class ModalTransformator {
 
     private void embed_modality_box_or_dia_int(Node boxOrDiaIntLeaf) throws AnalysisException {
         Node operatorTree = boxOrDiaIntLeaf.getNextTopBranchingNode(); // should be thf_apply_formula
+        if (!operatorTree.getRule().equals("thf_apply_formula")) throw new ImplementationError("box_int @ x is not a thf_apply_formula.");
         String normalizedModalOperator = Connectives.getNormalizedModalOperator(operatorTree);
         usedModalities.add(normalizedModalOperator);
-        String normalizedAccessibilityRelationSuffix = AccessibilityRelation.getNormalizedRelationSuffix(boxOrDiaIntLeaf);
+        String normalizedAccessibilityRelationSuffix = AccessibilityRelation.getNormalizedRelationSuffix(operatorTree);
         usedModalConnectivesToUsedModalities.put(normalizedModalOperator,normalizedAccessibilityRelationSuffix);
         operatorTree.delAllChildren();
         Node newOperator = new Node("t_box_dia_int" , normalizedModalOperator);

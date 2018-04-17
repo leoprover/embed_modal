@@ -120,10 +120,13 @@ public class AccessibilityRelation {
         return accessibility_relation_prefix + "_" + normalizedRelationSuffix;
     }
 
-    public static String getNormalizedRelationSuffix(Node modalOperator) throws AnalysisException {
+    /*
+     * operatorTree is the node containing $box or $box @ <number>
+     */
+    public static String getNormalizedRelationSuffix(Node operatorTree) throws AnalysisException {
         // TODO assert this is a valid operator
-        String op = modalOperator.toStringLeafs();
-        Node firstLeaf = modalOperator.getFirstLeaf();
+        String op = operatorTree.toStringLeafs();
+        Node firstLeaf = operatorTree.getFirstLeaf();
 
         // $box
         if (firstLeaf.getLabel().equals("$box")){
@@ -135,24 +138,24 @@ public class AccessibilityRelation {
         }
         // $box_int @ <int>
         if (firstLeaf.getLabel().equals("$box_int")){
-            Optional<Node> unsigned_integer = modalOperator.getLastChild().dfsRule("unsigned_integer");
+            Optional<Node> unsigned_integer = operatorTree.getLastChild().dfsRule("unsigned_integer");
             if (unsigned_integer.isPresent()){
                 return unsigned_integer.get().getFirstLeaf().getLabel();
             } else {
-                throw new AnalysisException("$box_int was not applied to an unsigned_integer: " + modalOperator.toString());
+                throw new AnalysisException("$box_int was not applied to an unsigned_integer: " + operatorTree.toString());
             }
         }
         // $dia_int @ <int>
         if (firstLeaf.getLabel().equals("$dia_int")){
-            Optional<Node> unsigned_integer = modalOperator.getLastChild().dfsRule("unsigned_integer");
+            Optional<Node> unsigned_integer = operatorTree.getLastChild().dfsRule("unsigned_integer");
             if (unsigned_integer.isPresent()){
                 return unsigned_integer.get().getFirstLeaf().getLabel();
             } else {
-                throw new AnalysisException("$box_int was not applied to an unsigned_integer: " + modalOperator.toString());
+                throw new AnalysisException("$box_int was not applied to an unsigned_integer: " + operatorTree.toString());
             }
         }
-        System.out.println("INV: " + modalOperator);
-        throw new AnalysisException("AccessibilityRelations: Invalid modal operator: " + modalOperator.toString());
+        System.out.println("INV: " + operatorTree);
+        throw new AnalysisException("AccessibilityRelations: Invalid modal operator: " + operatorTree.toString());
     }
 
     public static String getRelationDeclaration(String normalizedRelation){
