@@ -16,6 +16,7 @@ Details of the embedding's procedure, a theoretical overview and some performanc
 # Requirements
 * Maven 3.5 or higher
 * Java 8 or higher
+* Make
 
 # Build
 In the root directory invoke
