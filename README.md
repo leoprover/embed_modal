@@ -1,5 +1,5 @@
 # Contents
-A set of tools to semantically embed higher-order modal logic problems formulated
+A set of tools to semantically embed (multi-modal) higher-order modal logic problems formulated
 in the TPTP [1] dialect THF into higher-order logic formulated in THF. It contains
 * a standalone tool ```embed``` for the semantical embedding.
 * a conversion tool ```convert_qmltp_to_thf``` for translating 
@@ -46,7 +46,7 @@ the semantics used during the embedding
 * splitted: one duplicate directory structure for every semantic
 
 #### Adding Semantics
-Specify semantics (which overrides any semantics specified in the problem) using
+Specify semantics (which overrides any semantics specified in the problem) for mono-modal problems using
 
     -consequences <CONSEQUENCES>
     -constants <CONSTANTS>
