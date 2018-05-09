@@ -44,7 +44,7 @@ public class SemanticsGenerator {
         systems[12] = "$modal_system_D5";
         systems[13] = "$modal_system_D45";
         systems[14] = "$modal_system_T";
-        systems[15] = "$modal_system_B";
+        systems[15] = "$modal_system_B"; // K+B+T
         systems[16] = "$modal_system_S4";
         systems[17] = "$modal_system_S5"; // K+T+5
         systems[18] = "$modal_system_S5_KT5"; // K+T+5
