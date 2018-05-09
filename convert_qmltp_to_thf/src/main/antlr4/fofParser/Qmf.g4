@@ -132,7 +132,8 @@ fof_modal_body : L_PAREN fof_logic_formula R_PAREN
          //| MODAL_OPERATOR ':' fof_logic_formula;
          | constant
          | defined_constant
-         | system_constant;
+         | system_constant
+         | plain_term;
 MODAL_OPERATOR : '#box'|'#dia';
 
 //----Future answer variable ideas | <answer_formula
