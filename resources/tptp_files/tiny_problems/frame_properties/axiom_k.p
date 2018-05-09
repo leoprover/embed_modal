@@ -1,1 +1,0 @@
-thf( axiom_K , conjecture , ( ! [ A:$o,B:$o ] : ( ($box @ (A=>B) ) => ( ( $box @ A ) => ( $box @ B ) ) ) ) ).

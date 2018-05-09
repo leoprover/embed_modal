@@ -1,1 +1,0 @@
-thf( true_implies_false , conjecture , ( $false => $true ) ).
