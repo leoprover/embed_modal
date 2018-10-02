@@ -2,9 +2,9 @@ package main;
 
 import exceptions.ParseException;
 import fofParser.QmfAstGen;
-import javafx.util.Pair;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import util.Node;
+import util.Pair;
 
 import java.io.IOException;
 import java.nio.file.Files;
