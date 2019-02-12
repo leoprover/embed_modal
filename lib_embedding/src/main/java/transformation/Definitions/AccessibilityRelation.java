@@ -116,7 +116,7 @@ public class AccessibilityRelation {
      */
 
     public static String getNormalizedRelation(String normalizedRelationSuffix) {
-        if (normalizedRelationSuffix.equals("")) return accessibility_relation_prefix; // default relation
+        if (normalizedRelationSuffix.equals("")) return accessibility_relation_prefix; // default relation (for $box)
         return accessibility_relation_prefix + "_" + normalizedRelationSuffix;
     }
 

@@ -34,6 +34,7 @@ public class Common {
             "^ [Phi:(" + w + ">$o)] : ( Phi @ mcurrentworld ) ) ) ).";
 
 
+    /*
     public static String normalizeType(String type){
         String debugType = type;
         try {
@@ -81,7 +82,9 @@ public class Common {
             throw new ImplementationError("Could not parse type \"" + debugType + "\"");
         }
     }
+    */
 
+    /*
     // THIS IS UGLY - replace it by numbering quantifications later
     public static String escapeType(String type){
         String normalizedType = normalizeType(type);
@@ -92,5 +95,5 @@ public class Common {
                 .replaceAll("[(]","_o_")
                 .replaceAll("[)]","_c_");
     }
-
+    */
 }
