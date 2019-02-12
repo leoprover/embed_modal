@@ -9,5 +9,7 @@ public class TransformationException extends Exception{
     public TransformationException(String msg) {
         super(msg);
     }
-
+    public TransformationException(Exception e) {
+        super(e);
+    }
 }

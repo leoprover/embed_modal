@@ -18,7 +18,7 @@ import java.util.*;
 import java.util.logging.*;
 import java.util.stream.Collectors;
 
-import static transformation.ModalTransformator.complementTransformationParameterSet;
+import static transformation.ModalTransformator.completeToDefaultParameterSet;
 import static transformation.ModalTransformator.transformationParameterSetIsNotContradictory;
 
 
@@ -43,10 +43,13 @@ public class EmbedModal {
 
     private static Set<ModalTransformator.TransformationParameter> defaultCliTransformationParameters = new HashSet<>();
     private static Map<String, ModalTransformator.TransformationParameter> cliTransformationParameterNames = new HashMap<>();
-    static{
-        defaultCliTransformationParameters.add(ModalTransformator.TransformationParameter.SEMANTICAL);
-        cliTransformationParameterNames.put("semantical_modality_axiomatization", ModalTransformator.TransformationParameter.SEMANTICAL);
-        cliTransformationParameterNames.put("syntactical_modality_axiomatization", ModalTransformator.TransformationParameter.SYNTACTICAL);
+    static {
+        defaultCliTransformationParameters.add(ModalTransformator.TransformationParameter.SEMANTIC_MODALITY_AXIOMATIZATION);
+        defaultCliTransformationParameters.add(ModalTransformator.TransformationParameter.SEMANTIC_MONOTONIC_QUANTIFICATION);
+        defaultCliTransformationParameters.add(ModalTransformator.TransformationParameter.SEMANTIC_ANTIMONOTONIC_QUANTIFICATION);
+        for (ModalTransformator.TransformationParameter p : ModalTransformator.TransformationParameter.values()) {
+            cliTransformationParameterNames.put(p.name().toLowerCase(),p);
+        }
     }
 
     private static CommandLine argsParse(String[] args){
@@ -273,7 +276,7 @@ public class EmbedModal {
         Set<String> paramCliNames = Arrays.stream(cliTransParams.split(",")).map(String::trim).filter(x->!x.equals("")).collect(Collectors.toSet());
         for (String x : paramCliNames) if (!cliTransformationParameterNames.keySet().contains(x)) throw new CliException(x + " is not a valid transformation parameter.");
         Set<ModalTransformator.TransformationParameter> params = paramCliNames.stream().map(x->cliTransformationParameterNames.get(x)).collect(Collectors.toSet());
-        params = complementTransformationParameterSet(params);
+        params = completeToDefaultParameterSet(params);
         String validParams = transformationParameterSetIsNotContradictory(params);
         if (validParams != null) throw new CliException(validParams);
         return  params;

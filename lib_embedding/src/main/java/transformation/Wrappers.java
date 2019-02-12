@@ -17,6 +17,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -282,7 +283,7 @@ public class Wrappers {
                                               TransformationParameter... params)
             throws IOException, ParseException, AnalysisException, TransformationException {
         // read file
-        if (!Files.isRegularFile(inPath)){
+        if (!Files.isRegularFile(inPath)) {
             throw new IOException("Could not read file " + inPath + " ::: " + "Not a regular file or does not exist");
         }
         String problem = null;
@@ -291,8 +292,32 @@ public class Wrappers {
         } catch (IOException e) {
             throw new IOException("Could not read file " + inPath + " ::: " + e.getMessage());
         }
-        if (semantics != null && problem.contains("$modal")) log.warning("Problem may already contain semantical definitions which will be stripped from the problem.");
+        return convertModalStringToString(problem, inPath.getFileName().toString(), inDot,
+                                          outDot, dotBin,
+                                          semantics,
+                                          params);
 
+    }
+
+    /*
+
+     */
+    public static String convertModalStringToString(String problem, String name, Path inDot,
+                                                    Path outDot, String dotBin,
+                                                    String semantics,
+                                                    TransformationParameter... params) throws ParseException, IOException, TransformationException, AnalysisException {
+        return convertModalStringToContext(problem,name,inDot,outDot,dotBin,semantics,params).getProblemIncludingOld();
+    }
+
+    /*
+
+     */
+    public static TransformContext convertModalStringToContext(String problem, String name, Path inDot,
+                                                               Path outDot, String dotBin,
+                                                               String semantics,
+                                                               TransformationParameter... params) throws ParseException, IOException, TransformationException, AnalysisException {
+        if (semantics != null && problem.contains("$modal"))
+            log.warning("Problem may already contain semantical definitions which will be stripped from the problem.");
         // add optional semantics
         if (semantics != null) {
             problem = stripThfSentenceFromProblemByRoleReturnString(problem,"logic");
@@ -302,7 +327,7 @@ public class Wrappers {
         // parse input
         String rule = "tPTP_file";
         CodePointCharStream inputStream = CharStreams.fromString(problem);
-        ParseContext parseContext = ThfAstGen.parse(inputStream, rule, inPath.getFileName().toString());
+        ParseContext parseContext = ThfAstGen.parse(inputStream, rule, name);
         Node root = parseContext.getRoot();
 
         // create input dot
@@ -319,21 +344,23 @@ public class Wrappers {
 
         // check for parse error
         if (parseContext.hasParseError()){
-            throw new ParseException("Parse Error " + parseContext.getParseError() + " in file " + inPath.toString());
+            throw new ParseException("Parse Error " + parseContext.getParseError() + " in " + name);
         }
 
         // pack parameters in immutable set for easier handling
+        if (params == null) params = new TransformationParameter[0];
         Set<TransformationParameter> paramSet = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(params)));
-        if ((paramSet.contains(TransformationParameter.SEMANTICAL) && paramSet.contains(TransformationParameter.SYNTACTICAL))) {
-            throw new TransformationException("Cannot use SEMANTICAL and SYNTACTICAL parameters at the same time.");
+        String contradictoryParameterDescription = ModalTransformator.transformationParameterSetIsNotContradictory(paramSet);
+        if (contradictoryParameterDescription != null) {
+            throw new TransformationException(contradictoryParameterDescription);
         }
         if (params.length == 0) log.info("No transformation parameters in use, using default embedding.");
         else log.info("Transformation parameters: " + String.join(",", Arrays.stream(params).map(Enum::name).collect(Collectors.toList())));
 
         // embed
         TransformContext transformContext = null;
-        ModalTransformator transformator = new ModalTransformator(root);
-        transformContext = transformator.transform(paramSet);
+        ModalTransformator transformator = new ModalTransformator(root, paramSet);
+        transformContext = transformator.transform();
         log.info("Transformed problem.");
 
         // create output dot
@@ -349,7 +376,7 @@ public class Wrappers {
         }
 
         // output
-        return transformContext.getProblemIncludingOld();
+        return transformContext;
     }
 
     /*

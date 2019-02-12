@@ -4,6 +4,7 @@ package transformation;
 import exceptions.AnalysisException;
 import transformation.Definitions.AccessibilityRelation;
 import transformation.Definitions.Common;
+import transformation.Definitions.Type;
 import util.Node;
 
 import java.util.*;
@@ -34,7 +35,7 @@ public class SemanticsAnalyzer {
 
     public static String constantDefault = "$default";
     public static String consequenceDefault = "$default";
-    public static String domainDefault = Common.normalizeType("$default");
+    public static String domainDefault = Type.getType("$default").getNormalizedType();
     public static String modalitiesDefault = "$default";
 
     public static Map<String,AccessibilityRelationProperty> modal_axioms;
@@ -330,7 +331,7 @@ public class SemanticsAnalyzer {
             log.warning("Value " + value + " is not a valid value for domain semantics.");
             return;
         }
-        domainToDomainType.put(Common.normalizeType(name), t);
+        domainToDomainType.put(Type.getType(name).getNormalizedType(), t);
     }
 
     private void putConsequence(String name, String value){

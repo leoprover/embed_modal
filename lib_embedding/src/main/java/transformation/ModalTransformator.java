@@ -4,50 +4,83 @@ package transformation;
 import exceptions.AnalysisException;
 import exceptions.ImplementationError;
 import exceptions.TransformationException;
-import transformation.Definitions.AccessibilityRelation;
-import transformation.Definitions.Common;
-import transformation.Definitions.Connectives;
-import transformation.Definitions.Quantification;
+import transformation.Definitions.*;
 import util.Node;
 
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class ModalTransformator {
 
-    public enum TransformationParameter{SEMANTICAL, SYNTACTICAL} // More probably to come, default is semantical
+    public enum TransformationParameter{
+        SEMANTIC_MODALITY_AXIOMATIZATION, // frame properties as properties on accessibility relations
+        SYNTACTIC_MODALITY_AXIOMATIZATION, // frame properties as axioms about modalities
+        SEMANTIC_MONOTONIC_QUANTIFICATION, // cumulative domain quantification with restriction axiom and varying domains
+        SYNTACTIC_MONOTONIC_QUANTIFICATION, // // cumulative domain quantification with converse barcan formula and varying domains
+        SEMANTIC_ANTIMONOTONIC_QUANTIFICATION, // decreasing domain quantification with restriction axiom and varying domains
+        SYNTACTIC_ANTIMONOTONIC_QUANTIFICATION // decreasing domain quantification with barcan formula and varying domains
+        }
 
     /*
      * returns null if no contradictory parameters was found
      * returns a String with reason otherwise
      */
     public static String transformationParameterSetIsNotContradictory(Set<TransformationParameter> params){
-        if (params.contains(TransformationParameter.SEMANTICAL) && params.contains(TransformationParameter.SYNTACTICAL))
-            return "Transformation parameter set cannot contain semantical and syntactical modality axiomatization";
+        String ret = "";
+        if (params.contains(TransformationParameter.SEMANTIC_MODALITY_AXIOMATIZATION) &&
+                params.contains(TransformationParameter.SYNTACTIC_MODALITY_AXIOMATIZATION)) {
+            //if (!ret.equals("")) ret += "\n";
+            ret += "Transformation parameter set cannot contain semantic and syntactic modality axiomatization.";
+        }
+        if (params.contains(TransformationParameter.SEMANTIC_MONOTONIC_QUANTIFICATION) &&
+                params.contains(TransformationParameter.SYNTACTIC_MONOTONIC_QUANTIFICATION)) {
+            if (!ret.equals("")) ret += "\n";
+            ret += "Transformation parameter set cannot contain semantic and syntactic cumulative domain quantification.";
+        }
+        if (params.contains(TransformationParameter.SEMANTIC_ANTIMONOTONIC_QUANTIFICATION) &&
+                params.contains(TransformationParameter.SYNTACTIC_ANTIMONOTONIC_QUANTIFICATION)) {
+            if (!ret.equals("")) ret += "\n";
+            ret += "Transformation parameter set cannot contain semantic and syntactic decreasing domain quantification.";
+        }
+        if (!ret.equals("")) return ret;
         return null;
     }
 
     /*
      * Adds default values if necessary
      */
-    public static Set<TransformationParameter> complementTransformationParameterSet(Set<TransformationParameter> params){
+    public static Set<TransformationParameter> completeToDefaultParameterSet(Set<TransformationParameter> params){
         Set<TransformationParameter> newParams = new HashSet<>(params);
-        if (!newParams.contains(ModalTransformator.TransformationParameter.SEMANTICAL) && !params.contains(ModalTransformator.TransformationParameter.SYNTACTICAL))
-            newParams.add(TransformationParameter.SEMANTICAL);
+        // modality axiomatization
+        if (!newParams.contains(ModalTransformator.TransformationParameter.SEMANTIC_MODALITY_AXIOMATIZATION) &&
+                !params.contains(ModalTransformator.TransformationParameter.SYNTACTIC_MODALITY_AXIOMATIZATION))
+            newParams.add(TransformationParameter.SEMANTIC_MODALITY_AXIOMATIZATION);
+        // cumulative domain quantification
+        if (!newParams.contains(ModalTransformator.TransformationParameter.SEMANTIC_MONOTONIC_QUANTIFICATION) &&
+                !params.contains(ModalTransformator.TransformationParameter.SYNTACTIC_MONOTONIC_QUANTIFICATION))
+            newParams.add(TransformationParameter.SEMANTIC_MONOTONIC_QUANTIFICATION);
+        // decreasing domain quantification
+        if (!newParams.contains(ModalTransformator.TransformationParameter.SEMANTIC_ANTIMONOTONIC_QUANTIFICATION) &&
+                !params.contains(ModalTransformator.TransformationParameter.SYNTACTIC_ANTIMONOTONIC_QUANTIFICATION))
+            newParams.add(TransformationParameter.SEMANTIC_ANTIMONOTONIC_QUANTIFICATION);
         return newParams;
     }
 
     private static final Logger log = Logger.getLogger( "default" );
+    private boolean logging;
 
     private final Node originalRoot;
     private Node transformedRoot;
     public ThfAnalyzer thfAnalyzer;
     public SemanticsAnalyzer semanticsAnalyzer;
+    private Set<TransformationParameter> transformationParameters;
+    private Set<TransformationParameter> originalTransformationParameters;
 
-    private Set<String> typesExistsQuantifiers;
-    private Set<String> typesForAllQuantifiers;
-    private Set<String> typesForVaryingQuantifiers;
-    private Map<String, Set<String>> declaredUserConstants; // Type -> Set of symbols
+    private Set<Type> typesExistsQuantifiers;
+    private Set<Type> typesForAllQuantifiers;
+    private Set<Type> typesForVaryingQuantifiers;
+    private Map<Type, Set<String>> declaredUserConstants; // Type -> Set of symbols
     private Set<String> usedConnectives;
     private Set<String> usedModalities;
     private HashMap<String,String> usedModalConnectivesToUsedModalities; // contains suffixes, not the names of the relations. To get the names use the value of this map and put it into AccessibilityRelation.getNormalizedRelation(...)
@@ -70,6 +103,10 @@ public class ModalTransformator {
     }
 
     public ModalTransformator(Node root){
+        this(root, completeToDefaultParameterSet(new HashSet<>()));
+    }
+
+    public ModalTransformator(Node root, Set<TransformationParameter> transformationParameters){
         this.originalRoot = root.deepCopy();
         this.transformedRoot = root;
         typesExistsQuantifiers = new HashSet<>();
@@ -81,29 +118,26 @@ public class ModalTransformator {
         usedModalConnectivesToUsedModalities = new HashMap<>();
         usedSymbols = new HashSet<>();
         userTypes = new ArrayList<>();
+        this.originalTransformationParameters = transformationParameters;
+        this.transformationParameters = completeToDefaultParameterSet(transformationParameters);
+    }
+    
+    public void setLogLevel(Level logLevel){
+        log.setLevel(logLevel);
     }
 
     /*
-     * uses default transformation parameters
+     * Top-level method that performs the embedding
      */
     public TransformContext transform() throws TransformationException, AnalysisException {
-        HashSet<TransformationParameter> defaultParameters = new HashSet<>();
-        return transform(complementTransformationParameterSet(defaultParameters));
-    }
-
-    /*
-     * transformation parameters are supplemented if needed
-     */
-    public TransformContext transform(Set<TransformationParameter> params) throws TransformationException, AnalysisException {
-        params = complementTransformationParameterSet(params);
-        String paramsContradictoryReason = transformationParameterSetIsNotContradictory(params);
+        String paramsContradictoryReason = transformationParameterSetIsNotContradictory(this.transformationParameters);
         if (paramsContradictoryReason != null) throw new TransformationException(paramsContradictoryReason);
 
         this.thfAnalyzer = new ThfAnalyzer(this.originalRoot);
         this.thfAnalyzer.analyze();
         this.semanticsAnalyzer = new SemanticsAnalyzer(this.originalRoot, this.thfAnalyzer.semanticsNodes);
         this.semanticsAnalyzer.analyzeModalSemantics();
-        return this.actualTransformation(params);
+        return this.actualTransformation();
     }
 
     /***********************************************************************************
@@ -133,36 +167,36 @@ public class ModalTransformator {
         return normalizedRelationSuffixcontainsS5U(getAllRelationSuffixes().stream().findAny().get());
     }
 
-    private TransformContext actualTransformation(Set<TransformationParameter> params) throws TransformationException, AnalysisException {
+    private TransformContext actualTransformation() throws TransformationException, AnalysisException {
 
         // collect all symbols to avoid variable capture when defining new bound variabls
         this.originalRoot.getLeafsDfs().forEach(n->this.usedSymbols.add(n.getLabel()));
 
         // transform role type
-        for (Node type_statement : thfAnalyzer.typeRoleToNode.values()){
+        for (Node type_statement : thfAnalyzer.typeRoleToNode.values()) {
             for (Node l : type_statement.getLeafsDfs()) {
 
                 // Lift types
                 // $o only since we assume rigid constants
-                if (Common.normalizeType(l.getLabel()).equals(Common.normalizeType("$o"))) {
-                    l.setLabel(Common.embedded_truth_type);
-                }
+                //if (Common.normalizeType(l.getLabel()).equals(Common.normalizeType("$o"))) {
+                //    l.setLabel(Common.embedded_truth_type);
+                //}
 
                 // user types
-                if (Common.normalizeType(l.getLabel()).equals(Common.normalizeType("$tType"))) userTypes.add(l);
+                Type t = Type.getType(l.getLabel(), false);
+                if (t.equals(Type.getType("$tType"))) userTypes.add(l);
             }
             // if it is a type declaration (and not a definition) add labels (name and type) to the map of constants (for varying domains)
             Optional<Node> typeable = type_statement.dfsRule("thf_typeable_formula");
             if (typeable.isPresent()) {
                 String constant = typeable.get().getFirstLeaf().getLabel();
-                String type = type_statement.dfsRule("thf_top_level_type").get().getFirstChild().toStringLeafs();
-                String normalizedType = Common.normalizeType(type);
-                if (this.declaredUserConstants.containsKey(normalizedType)) {
-                    this.declaredUserConstants.get(normalizedType).add(constant);
+                Type type = Type.getType(type_statement.dfsRule("thf_top_level_type").get().getFirstChild().toStringLeafs());
+                if (this.declaredUserConstants.containsKey(type)) {
+                    this.declaredUserConstants.get(type).add(constant);
                 } else {
                     Set<String> newSet = new HashSet<>();
                     newSet.add(constant);
-                    this.declaredUserConstants.put(normalizedType, newSet);
+                    this.declaredUserConstants.put(type, newSet);
                 }
             }
         }
@@ -179,14 +213,14 @@ public class ModalTransformator {
 
                 // Lift types
                 // $o only since we assume rigid constants
-                if (Common.normalizeType(l.getLabel()).equals(Common.normalizeType("$o"))){
-                    l.setLabel(Common.embedded_truth_type);
+                //if (Common.normalizeType(l.getLabel()).equals(Common.normalizeType("$o"))){
+                //    l.setLabel(Common.embedded_truth_type);
 
                 // substitute nullary and unary operators
                 // $true $false $box $dia ~
-                }else {
-                    replaceNullaryAndUnaryOperators(l);
-                }
+                //}else {
+                replaceNullaryAndUnaryOperators(l);
+                //}
             }
 
             // substitute binary pairs (<=> | => | <= | <~> | ~| | ~& | = | !=)
@@ -213,11 +247,36 @@ public class ModalTransformator {
 
         }
 
+        // substitute quantified terms (! ?)
         for (Node statement : all){
-            // substitute quantifications (! ?)
             // has to happen after embedding modalities since S5U needs a list of all modalities
             for (Node thf_quantified_formula : statement.dfsRuleAll("thf_quantified_formula")){
                 embed_thf_quantified_formula(thf_quantified_formula);
+            }
+        }
+
+        // lift types
+        List<Node> thfToLift = new ArrayList<>();
+        thfToLift.addAll(thfAnalyzer.typeRoleToNode.values()); // type statements
+        thfToLift.addAll(thfAnalyzer.statementNodes);
+        thfToLift.addAll(thfAnalyzer.definitionNodes);
+        for (Node thf : thfToLift) {
+            System.out.println("THF: " + thf.toStringLeafs());
+            // embed what can be done by string replacement of leafs
+            // this includes types, nullary and unary operators
+            for (Node l : thf.getLeafsDfs()) {
+                // $o only since we assume rigid constants
+                Type t = Type.getType(l.getLabel(), false);
+                if (l.getLabel().equals("$o")){
+                    System.out.println("FOUND tRUTH!");
+                }
+                if (t.equals(Type.getTruthType())) {
+                    System.out.println("EQUAL label: " + l.getLabel() + " normalized type: " + t.getNormalizedType() + " default truth: " + Type.getTruthType());
+                    l.setLabel(Common.embedded_truth_type);
+                }
+                else {
+                    System.out.println("NOT label: " + l.getLabel() + " normalized type: " + t.getNormalizedType() + " default truth: " + Type.getTruthType());
+                }
             }
         }
 
@@ -248,7 +307,7 @@ public class ModalTransformator {
         }
 
         // get embedding definitions for prepending and appending, appending those with reference to constants within the problem
-        String modalDefinitions = preProblemInsertions(params);
+        String modalDefinitions = preProblemInsertions();
         String auxiliaryDefinitions = postProblemInsertion();
 
         // extract user types (sorts with $tType) to be placed in front of problem
@@ -352,7 +411,7 @@ public class ModalTransformator {
             if (thf_typed_variable.getRule().equals("thf_typed_variable")){
 
                 // retrieve Type
-                String type = thf_variable_list.getFirstChild().getFirstChild().getLastChild().toStringLeafs();
+                Type type = Type.getType(thf_variable_list.getFirstChild().getFirstChild().getLastChild().toStringLeafs());
                 //System.out.println(type);
 
                 // retrieve variable
@@ -368,7 +427,9 @@ public class ModalTransformator {
                 }
 
                 // add lambda abstraction over statement
-                Node lambda = new Node("t_lambda_over_statement","^ [ " + variable + " : " + type + " ] : (");
+                //Node lambda = new Node("t_lambda_over_statement","^ [ " + variable + " : " + type.getliftedNormalizedType() + " ] : (");
+                // #TYPING
+                Node lambda = new Node("t_lambda_over_statement","^ [ " + variable + " : " + type.getliftedNormalizedType() + " ] : (");
                 thf_typed_variable.addChildAt(lambda,0);
 
                 // add bracket left
@@ -385,48 +446,47 @@ public class ModalTransformator {
 
                 // add embedded quantifier functor and add quantifier for the type to
                 Node quant;
-                String normalizedType = Common.normalizeType(type);
-                SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(normalizedType);
+                SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(type.getNormalizedType());
 
                 // forall quantifier
                 if (quantifier.equals("!")){
 
                     // constant domain case
                     if (domainType == SemanticsAnalyzer.DomainType.CONSTANT)
-                        quant = new Node("t_quantifier", Quantification.embedded_forall(normalizedType));
+                        quant = new Node("t_quantifier", Quantification.embedded_forall_const_identifier(type));
 
                     // cumulative/decreasing S5U case for exactly one modality
                     else if (problemIsMonomodal() && // there is EXACTLY one modality actually in use
                             theMonomodalProblemIsS5U() && // the modality is S5U
                             (domainType == SemanticsAnalyzer.DomainType.CUMULATIVE || domainType == SemanticsAnalyzer.DomainType.DECREASING)){ // domains are either cumulative or decreasing
-                    quant = new Node("t_quantifier", Quantification.embedded_forall(normalizedType));
+                    quant = new Node("t_quantifier", Quantification.embedded_forall_const_identifier(type));
 
                     // varying case and cumulative/decreasing case for non S5U
                     } else {
-                        quant = new Node("t_quantifier", Quantification.embedded_forall_varying(normalizedType));
-                        typesForVaryingQuantifiers.add(normalizedType);
+                        quant = new Node("t_quantifier", Quantification.embedded_forall_varying_identifier(type));
+                        typesForVaryingQuantifiers.add(type);
                     }
-                    typesForAllQuantifiers.add(normalizedType);
+                    typesForAllQuantifiers.add(type);
 
                 // exists quantifier
                 }else{
 
                     // constant domain case
                     if (domainType == SemanticsAnalyzer.DomainType.CONSTANT)
-                        quant = new Node("t_quantifier", Quantification.embedded_exists(normalizedType));
+                        quant = new Node("t_quantifier", Quantification.embedded_exists_const_identifier(type));
 
                     // cumulative/decreasing S5U case for exactly one modality
                     else if (problemIsMonomodal() && // there is EXACTLY one modality actually in use
                             normalizedRelationSuffixcontainsS5U(getNormalizedRelationSuffixFromNormalizedModalOperator(usedModalities.stream().findAny().get())) && // the modality is S5U
                             (domainType == SemanticsAnalyzer.DomainType.CUMULATIVE || domainType == SemanticsAnalyzer.DomainType.DECREASING)){ // domains are either cumulative or decreasing
-                        quant = new Node("t_quantifier", Quantification.embedded_exists(normalizedType));
+                        quant = new Node("t_quantifier", Quantification.embedded_exists_const_identifier(type));
 
                     // varying case and cumulative/decreasing case for non S5U
                     } else {
-                        quant = new Node("t_quantifier", Quantification.embedded_exists_varying(normalizedType));
-                        typesForVaryingQuantifiers.add(normalizedType);
+                        quant = new Node("t_quantifier", Quantification.embedded_exists_varying_identifier(type));
+                        typesForVaryingQuantifiers.add(type);
                     }
-                    typesExistsQuantifiers.add(normalizedType);
+                    typesExistsQuantifiers.add(type);
                 }
                 thf_typed_variable.addChildAt(quant,0);
 
@@ -580,7 +640,13 @@ public class ModalTransformator {
         return domainType;
     }
 
-    private String preProblemInsertions(Set<TransformationParameter> params) throws TransformationException {
+    private String preProblemInsertions() throws TransformationException {
+        Set<String> additionalModalitiesFromSyntacticEmbedding = new HashSet<>();
+        Set<String> additionalConnectivesFromSyntacticEmbedding = new HashSet<>();
+        Set<Type> additionalExistQuantifiersFromSyntacticEmbedding = new HashSet<>();
+        Set<Type> additionalForallQuantifiersFromSyntacticEmbedding = new HashSet<>();
+        Set<Type> additionalTypesForVaryingQuantifiersFromSyntacticEmbedding = new HashSet<>();
+
         StringBuilder def = new StringBuilder();
 
         // declare world_type_declaration type
@@ -603,16 +669,16 @@ public class ModalTransformator {
         }
 
         // define accessibility relation properties
-        boolean propertyDefined = false;
+        boolean propertyDefined = false; // for cosmetics on the output
         Set<SemanticsAnalyzer.AccessibilityRelationProperty> allProperties = new HashSet<>();
         for (Set<SemanticsAnalyzer.AccessibilityRelationProperty> set : semanticsAnalyzer.modalityToAxiomList.values()){
             allProperties.addAll(set);
         }
 
-        // Only define relation properties if we use a semantical embedding. If a syntactical
+        // Only define relation properties if we use a semantic embedding. If a syntactical
         // embedding is used, the respective properties are formulated as axioms on the box/dia operators
         // further below.
-        if (params.contains(TransformationParameter.SEMANTICAL)) {
+        if (this.transformationParameters.contains(TransformationParameter.SEMANTIC_MODALITY_AXIOMATIZATION)) {
             for(SemanticsAnalyzer.AccessibilityRelationProperty p :  allProperties){
                 if (p != SemanticsAnalyzer.AccessibilityRelationProperty.K && p != SemanticsAnalyzer.AccessibilityRelationProperty.S5U) { // K and S5U do not have accessibility relation properties
                     if (!propertyDefined) def.append("% define accessibility relation properties\n");
@@ -638,28 +704,23 @@ public class ModalTransformator {
 
         // Collect used modalities for syntactical embedding and create a list of axioms which are introduced later after defining the embedded modal operators
         Set<String> syntacticalModalityAxioms = new HashSet<>();
-        Set<String> additionalModalitiesFromSyntacticalEmbedding = new HashSet<>();
         // debug output for the syntactical modality axiomatization
         //for (SemanticsAnalyzer.AccessibilityRelationProperty p : SemanticsAnalyzer.AccessibilityRelationProperty.values()){
         //    if (p != SemanticsAnalyzer.AccessibilityRelationProperty.K && p != SemanticsAnalyzer.AccessibilityRelationProperty.S5U) {
         //        System.out.println(Connectives.applyPropertyToModality(p, usedModalities.stream().findAny().get()));
         //    }
         //}
-        boolean constainsSyntacticalAxiom = false;
-        if (params.contains(TransformationParameter.SYNTACTICAL) && !usedModalities.isEmpty()) {
+        if (this.transformationParameters.contains(TransformationParameter.SYNTACTIC_MODALITY_AXIOMATIZATION) && !usedModalities.isEmpty()) {
             for (String normalizedModalOperator : usedModalities) {
                 String normalizedRelationSuffix = getNormalizedRelationSuffixFromNormalizedModalOperator(normalizedModalOperator);
                 for (SemanticsAnalyzer.AccessibilityRelationProperty p : getPropertiesFromNormalizedRelationSuffix(normalizedRelationSuffix) ) {
                     if (p != SemanticsAnalyzer.AccessibilityRelationProperty.K && p != SemanticsAnalyzer.AccessibilityRelationProperty.S5U) { // K and S5U do not have accessibility relation properties
                         syntacticalModalityAxioms.add(Connectives.applyPropertyToModality(p, normalizedModalOperator)); // may be dia or box
-                        additionalModalitiesFromSyntacticalEmbedding.add(Connectives.getOppositeNormalizedModalOperator(normalizedModalOperator));
-                        constainsSyntacticalAxiom = true;
+                        additionalModalitiesFromSyntacticEmbedding.add(Connectives.getOppositeNormalizedModalOperator(normalizedModalOperator));
+                        additionalConnectivesFromSyntacticEmbedding.add("mimplies");
                     }
                 }
             }
-        }
-        if (constainsSyntacticalAxiom) {
-            usedConnectives.add("mimplies");
         }
 
         // introduce mvalid for global consequence
@@ -678,16 +739,49 @@ public class ModalTransformator {
             def.append("\n\n");
         }
 
+        // collect domain restrictions for cumulative/decreasing
+        List<String> domRestr = new ArrayList<>();
+        Set<Type> additionalConstantDomainQuantifiers = new HashSet<>();
+        if (!typesForVaryingQuantifiers.isEmpty()) {
+            for (Type type: typesForVaryingQuantifiers) { // insert domain restriction (cumulative etc) if necessary
+                SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(type.getNormalizedType());
+                if (problemIsMonomodal() && theMonomodalProblemIsS5U()){
+                    // do not impose restrictions
+                } else {
+                    if (domainType == SemanticsAnalyzer.DomainType.CUMULATIVE) {
+                        if (transformationParameters.contains(TransformationParameter.SEMANTIC_MONOTONIC_QUANTIFICATION)) {
+                            domRestr.add(Quantification.cumulative_semantic_axiom_th0(type));
+                        }
+                        else if (transformationParameters.contains(TransformationParameter.SYNTACTIC_MONOTONIC_QUANTIFICATION)) {
+                            //additionalConnectivesFromSyntacticEmbedding.add("mimplies");
+                            //additionalModalitiesFromSyntacticEmbedding.add(Connectives.box_unimodal);
+                            //domRestr.add(Quantification.cumulative_syntactic_axiom_th0(normalizedType));
+                            //additionalTypesForVaryingQuantifiersFromSyntacticEmbedding.add(normalizedType);
+                            //additionalForallQuantifiersFromSyntacticEmbedding.add(normalizedType);
+                            //String normalizedTypeToBool = Common.normalizeType(normalizedType + ">$o");
+                            //System.out.println("### normalizedbool: " + normalizedTypeToBool);
+                            //additionalConstantDomainQuantifiers.add(normalizedTypeToBool);
+                            //additionalTypesForVaryingQuantifiersFromSyntacticEmbedding.add(normalizedTypeToBool);
+                            //additionalForallQuantifiersFromSyntacticEmbedding.add(normalizedTypeToBool);
+                        }
+                    } else if (domainType == SemanticsAnalyzer.DomainType.DECREASING) {
+                        domRestr.add(Quantification.decreasing_semantic_axiom_th0(type));
+                    } // else nothing, since either constant or unrestricted varying
+                }
+            }
+        }
+
         // introduce used operators which are not valid operator nor quantifiers
-        if (!(usedConnectives.isEmpty() && usedModalities.isEmpty())) {
+        Set<String> connectivesToDefine = new HashSet<>(usedConnectives);
+        connectivesToDefine.addAll(additionalConnectivesFromSyntacticEmbedding);
+        Set<String> modalitiesToDefine = new HashSet<>(usedModalities);
+        modalitiesToDefine.addAll(additionalModalitiesFromSyntacticEmbedding);
+        if (!(connectivesToDefine.isEmpty() && modalitiesToDefine.isEmpty())) {
             def.append("% define nullary, unary and binary connectives which are no quantifiers\n");
-            for (String o : usedConnectives) {
+            for (String o : connectivesToDefine) {
                 def.append(Connectives.modalSymbolDefinitions.get(o));
                 def.append("\n");
             }
-            Set<String> modalitiesToDefine = new HashSet<>(); // contains all actually used modalities from the problem and the ones needed for defining the syntactical modality axioms
-            modalitiesToDefine.addAll(additionalModalitiesFromSyntacticalEmbedding);
-            modalitiesToDefine.addAll(usedModalities);
             for (String normalizedModalOperator : modalitiesToDefine) {
                 String normalizedRelation = getNormalizedRelationFromNormalizedModalOperator(normalizedModalOperator);
                 String normalizedRelationSuffix = getNormalizedRelationSuffixFromNormalizedModalOperator(normalizedModalOperator);
@@ -702,105 +796,78 @@ public class ModalTransformator {
             def.append("\n");
         }
 
-        // introduce quantifiers
-        if (!typesForVaryingQuantifiers.isEmpty()) {
+        // introduce eiw and nonempty for varying domains
+        Set<Type> typesForVaryingQuantifiersToDefine = new HashSet<>(typesForVaryingQuantifiers);
+        typesForVaryingQuantifiersToDefine.addAll(additionalTypesForVaryingQuantifiersFromSyntacticEmbedding);
+        if (!typesForVaryingQuantifiersToDefine.isEmpty()) {
             def.append("% define exists-in-world predicates for quantified types and non-emptiness axioms\n");
-            for (String normalizedType : typesForVaryingQuantifiers){
-                def.append(Quantification.eiw_and_nonempty_th0(normalizedType));
+            for (Type type : typesForVaryingQuantifiers) {
+                def.append(Quantification.eiw_and_nonempty_th0(type));
                 def.append("\n");
             }
             def.append("\n");
-            /*
-            // the above should be right because only varying quantifiers need eiw and nonempty
-            for (String q: typesExistsQuantifiers) { // for each type that a  quantor is used, introduce
-                // an according eiw predicate
-                def.append(Quantification.eiw_and_nonempty_th0(q));
-                def.append("\n");
-            }
-            for (String q: typesForAllQuantifiers) { // for each type that a  quantor is used, introduce
-                // an according eiw predicate
-                if (!typesExistsQuantifiers.contains(q)) {
-                    def.append(Quantification.eiw_and_nonempty_th0(q));
-                    def.append("\n");
-                }
-            }
-            */
-            StringBuilder domRestr = new StringBuilder();
-            for (String normalizedType: typesForVaryingQuantifiers) { // insert domain restriction (cumulative etc) if necessary
-                SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(normalizedType);
-                if (problemIsMonomodal() && theMonomodalProblemIsS5U()){
-                    // do not impose restrictions
-                } else {
-                    if (domainType == SemanticsAnalyzer.DomainType.CUMULATIVE) {
-                        domRestr.append(Quantification.cumulative_eiw_th0(normalizedType));
-                        domRestr.append("\n");
-                    } else if (domainType == SemanticsAnalyzer.DomainType.DECREASING) {
-                        domRestr.append(Quantification.decreasing_eiw_th0(normalizedType));
-                        domRestr.append("\n");
-                    } // else nothing, since either constant or unrestricted varying
-                }
-            }
-            if (domRestr.length() != 0){
-                def.append("% define domain restrictions\n");
-                def.append(domRestr);
-                def.append("\n");
-            }
         }
 
-        if (!typesExistsQuantifiers.isEmpty()) {
+        // introduce exist quantifiers
+        Set<Type> typesExistsQuantifiersToDefine = new HashSet<>(typesExistsQuantifiers);
+        typesExistsQuantifiersToDefine.addAll(additionalExistQuantifiersFromSyntacticEmbedding);
+        if (!typesExistsQuantifiersToDefine.isEmpty()) {
             def.append("% define exists quantifiers\n");
-            for (String normalizedType : typesExistsQuantifiers) {
-                SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(normalizedType);
+            for (Type type : typesExistsQuantifiers) {
+                SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(type.getNormalizedType());
 
                 // constant domain case
                 if (domainType == SemanticsAnalyzer.DomainType.CONSTANT) {
-                    def.append(Quantification.mexists_const_th0(normalizedType));
+                    def.append(Quantification.mexists_const_th0(type));
                 }
 
                 // cumulative/decreasing S5U case for exactly one modality
                 else if (problemIsMonomodal() && // there is EXACTLY one modality actually in use
                         theMonomodalProblemIsS5U() && // the modality is S5U
                         (domainType == SemanticsAnalyzer.DomainType.CUMULATIVE || domainType == SemanticsAnalyzer.DomainType.DECREASING)) { // domains are either cumulative or decreasing
-                    def.append(Quantification.mexists_const_th0(normalizedType));
+                    def.append(Quantification.mexists_const_th0(type));
                 }
 
                 // varying case and cumulative/decreasing case for non S5U
                 else {
-                    def.append(Quantification.mexists_varying_th0(normalizedType));
+                    def.append(Quantification.mexists_varying_th0(type));
                 }
                 def.append("\n");
             }
             def.append("\n");
         }
 
-        if (!typesForAllQuantifiers.isEmpty()) {
+        // introduce forall quantifiers
+        Set<Type> typesForAllQuantifiersToDefine = new HashSet<>(typesForAllQuantifiers);
+        typesForAllQuantifiersToDefine.addAll(additionalForallQuantifiersFromSyntacticEmbedding);
+        if (!typesForAllQuantifiersToDefine.isEmpty()) {
             def.append("% define for all quantifiers\n");
-            for (String normalizedType : typesForAllQuantifiers) {
-                SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(normalizedType);
+            for (Type type : typesForAllQuantifiers) {
+                SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(type.getNormalizedType());
 
                 // constant domain case
                 if (domainType == SemanticsAnalyzer.DomainType.CONSTANT) {
-                    def.append(Quantification.mforall_const_th0(normalizedType));
+                    def.append(Quantification.mforall_const_th0(type));
                 }
 
                 // cumulative/decreasing S5U case for exactly one modality
                 else if (problemIsMonomodal() && // there is EXACTLY one modality actually in use
                         theMonomodalProblemIsS5U() && // the modality is S5U
                         (domainType == SemanticsAnalyzer.DomainType.CUMULATIVE || domainType == SemanticsAnalyzer.DomainType.DECREASING)) { // domains are either cumulative or decreasing
-                    def.append(Quantification.mforall_const_th0(normalizedType));
+                    def.append(Quantification.mforall_const_th0(type));
                 }
 
                 // varying case and cumulative/decreasing case for non S5U
                 else {
-                    def.append(Quantification.mforall_varying_th0(normalizedType));
+                    def.append(Quantification.mforall_varying_th0(type));
                 }
                 def.append("\n");
             }
             def.append("\n");
         }
 
-        // if using a syntactic embedding, postulate axioms on the operators now
-        if (params.contains(TransformationParameter.SYNTACTICAL) && !syntacticalModalityAxioms.isEmpty()) {
+        // if using a syntactic modality axiomatization, postulate axioms on the operators now
+        if (this.transformationParameters.contains(TransformationParameter.SYNTACTIC_MODALITY_AXIOMATIZATION) && !syntacticalModalityAxioms.isEmpty()) {
             def.append("% define axioms on the modalities\n");
             for (String axiom : syntacticalModalityAxioms) {
                 def.append(axiom);
@@ -809,14 +876,32 @@ public class ModalTransformator {
             def.append("\n");
         }
 
+        // introduce quantifiers for syntactic quantification embedding
+        if (additionalConstantDomainQuantifiers.size() != 0){
+            def.append("% define syntactic embedding quantifiers\n");
+            for (Type type: additionalConstantDomainQuantifiers) {
+                def.append(Quantification.mforall_const_th0(type));
+                def.append("\n\n");
+            }
+        }
+
+        // if using a syntactic quantification embedding, postulate axioms now
+        if (domRestr.size() != 0){
+            def.append("% define domain restrictions\n");
+            for (String d: domRestr) {
+                def.append(d);
+                def.append("\n\n");
+            }
+        }
+
         return def.toString();
     }
 
     private String postProblemInsertion() throws TransformationException {
         StringBuilder postDefinitions = new StringBuilder();
-        for (String normalizedType: this.declaredUserConstants.keySet()) {
-            if (!normalizedType.equals(Common.normalizeType("$tType"))) {
-                SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(normalizedType);
+        for (Type type: this.declaredUserConstants.keySet()) {
+            if (!type.equals(Type.getType("$tType"))) {
+                SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(type.getNormalizedType());
 
                 // constant domain type
                 if (domainType == SemanticsAnalyzer.DomainType.CONSTANT){
@@ -832,20 +917,24 @@ public class ModalTransformator {
 
                 // domain is varying or (non-S5U + cumul/decr)
                 else {
-                    if (this.typesForVaryingQuantifiers.contains(normalizedType)) {
+                    if (this.typesForVaryingQuantifiers.contains(type)) {
                         // an eiw-predicate of type q already exists, we can just postulate an axiom
                         // that these constants exist at all worlds
-                        for (String constant : declaredUserConstants.get(normalizedType)) {
-                            postDefinitions.append(Quantification.constant_eiw_th0(constant, normalizedType));
+                        for (String constant : declaredUserConstants.get(type)) {
+                            postDefinitions.append(Quantification.constant_eiw_th0(constant, type));
                             postDefinitions.append("\n");
                         }
                     } else {
                         // define eiw_predicate of that type first
-                        postDefinitions.append(Quantification.eiw_and_nonempty_th0(normalizedType));
+                        System.out.println("normalized type: " + type.getNormalizedType());
+                        System.out.println("lifted type: " + type.getliftedNormalizedType());
+                        System.out.println("liftedEscapedType: " + type.getLiftedEscapedType());
+                        System.out.println("eiwandnonempty: " + Quantification.eiw_and_nonempty_th0(type));
+                        postDefinitions.append(Quantification.eiw_and_nonempty_th0(type));
                         postDefinitions.append("\n");
                         // now postulate as anbove
-                        for (String constant : declaredUserConstants.get(normalizedType)) {
-                            postDefinitions.append(Quantification.constant_eiw_th0(constant, normalizedType));
+                        for (String constant : declaredUserConstants.get(type)) {
+                            postDefinitions.append(Quantification.constant_eiw_th0(constant, type));
                             postDefinitions.append("\n");
                         }
                     }
@@ -856,4 +945,9 @@ public class ModalTransformator {
         if (postDefinitions.toString().length() == 0) return "";
         return "% define exists-in-world assertion for user-defined constants\n" + postDefinitions.toString();
     }
+
+
+
+
 }
+

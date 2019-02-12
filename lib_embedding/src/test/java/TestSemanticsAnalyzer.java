@@ -5,6 +5,7 @@ import exceptions.TransformationException;
 import org.junit.Test;
 import parser.ThfAstGen;
 import transformation.Definitions.Common;
+import transformation.Definitions.Type;
 import transformation.ModalTransformator;
 import transformation.SemanticsAnalyzer;
 import util.Node;
@@ -116,7 +117,7 @@ public class TestSemanticsAnalyzer {
         axiomNameToConsequenceType.put(SemanticsAnalyzer.consequenceDefault, SemanticsAnalyzer.ConsequenceType.GLOBAL);
         axiomNameToConsequenceType.put("myaxiom", SemanticsAnalyzer.ConsequenceType.LOCAL);
         domainToDomainType.put(SemanticsAnalyzer.domainDefault, SemanticsAnalyzer.DomainType.CONSTANT);
-        domainToDomainType.put(Common.normalizeType("human"), SemanticsAnalyzer.DomainType.VARYING);
+        domainToDomainType.put(Type.getType("human").getNormalizedType(), SemanticsAnalyzer.DomainType.VARYING);
         modalityToAxiomList.put(SemanticsAnalyzer.modalitiesDefault,SemanticsAnalyzer.modal_systems.get("$modal_system_S5"));
         modalityToAxiomList.put("1",SemanticsAnalyzer.modal_systems.get("$modal_system_T"));
         test2.name = "more involved";
