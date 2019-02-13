@@ -1,10 +1,11 @@
 thf(simple_s5,logic,(
     $modal :=
-      [ $constants := $rigid,
-        $quantification := $cumulative,
-        $consequence := $global,
-        $modalities := $modal_system_S4
-      ] )).
+        [ $constants := $rigid,
+            $quantification := $cumulative,
+            $consequence := $global,
+            $modalities := $modal_system_S4
+        ]
+)).
 
 %thf(1,type,p: $i > $o).
 %thf(2,axiom,![X:$i]: p(X)).
