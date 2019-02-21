@@ -12,7 +12,7 @@ class OutputNotInterpretable(Exception):
 
 
 bin_treelimitedrun = "/home/tg/eval/TreeLimitedRun"
-bin_embed = "java -jar /home/tg/embed_modal/embed/target/embed-1.0-SNAPSHOT-shaded.jar"
+bin_embed = "java -jar /home/tg/oldembed/embed_modal/embed/target/embed-1.0-SNAPSHOT-shaded.jar"
 
 #-consequences local -constants rigid - systems K -domains varying,cumulative -diroutput joint -i data/QMLTP/qmltp_thf/APM/APM010+1.p -o embed_modal/qmltp_embedded/APM010+1.p
 
@@ -35,6 +35,8 @@ def run_local_prover_helper(prover_command, problem, wc_limit, cpu_limit):
     str_stdout = stdout.decode('utf-8')
     str_err = stderr.decode('utf-8')
     str_returncode = str(returncode)
+    #print(stdout)
+    #print(stderr)
 
     szs_status = parse_szs_status(str_stdout)
     wc = parse_wc(str_stdout)
@@ -134,7 +136,7 @@ def parse_szs_status(s):
     return s[:status_end].strip()
 
 def execute_treelimitedrun(cmd,wc_limit,cpu_limit):
-    newcmd = str(bin_treelimitedrun) + " " + str(cpu_limit) + " " + str(wc_limit) + " " + cmd
+    newcmd = str(bin_treelimitedrun) + " " + str(cpu_limit+3) + " " + str(wc_limit+3) + " " + cmd
     process = subprocess.Popen(newcmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     process.wait()
     stdout, stderr = process.communicate()
@@ -150,7 +152,14 @@ def run_embedding_and_prover(problem,embedding_parameters, embedding_semantics, 
                              prover_command, prover_wc_limit, prover_cpu_limit):
     embedding_ret = embed(problem, embedding_parameters, embedding_semantics, embedding_wc_limit, embedding_cpu_limit)
     #print(embedding_ret)
-    prover_ret = run_local_prover_helper(prover_command, embedding_ret['embedded_problem'],prover_wc_limit, prover_cpu_limit)
+    try:
+        prover_ret = run_local_prover_helper(prover_command, embedding_ret['embedded_problem'],prover_wc_limit, prover_cpu_limit)
+    except OutputNotInterpretable as e:
+        prover_ret = {
+            "szs_status": "TimeoutExecution",
+            "wc": str(prover_wc_limit),
+            "cpu": str(prover_cpu_limit)
+        }
     #print(prover_ret)
     return prover_ret
 
@@ -188,7 +197,7 @@ def get_proving_results_from_problem_file_list(callback, prover_name, prover_com
                                          " ".join(transformation_parameter_list)]
                         callback(line)
 
-save_file = "/home/tg/eval/output.csv"
+save_file = "/home/tg/embed_modal/eval/output.csv"
 fhs = open(save_file,"w")
 def debug_print_line(line):
     print(",".join(line))
@@ -197,28 +206,33 @@ def debug_print_line(line):
 
 prover_name = "leo3 1.3"
 prover_command = "leo3 %s -t %d"
-prover_wc_limit = 10
-prover_cpu_limit = 10
-embedding_wc_limit = 10
-embedding_cpu_limit = 10
-problem_file_list = common.get_problem_file_list(common.problem_directory)[:1]
+prover_wc_limit = 60
+prover_cpu_limit = 60
+embedding_wc_limit = 60
+embedding_cpu_limit = 60
+#prover_wc_limit = 6
+#prover_cpu_limit = 6
+#embedding_wc_limit = 6
+#embedding_cpu_limit = 6
+#problem_file_list = common.get_problem_file_list(common.problem_directory)[:1]
+problem_file_list = common.get_problem_file_list(common.problem_directory)
 
 system_list = [
-    "$modal_system_K",
-    "$modal_system_D",
-    "$modal_system_T",
-    "$modal_system_S4",
+    #"$modal_system_K"#,
+    #"$modal_system_D",
+    #"$modal_system_T",
+    #"$modal_system_S4",
     "$modal_system_S5"
 ]
 quantification_list = [
-    "$constant",
-    "$varying",
-    "$cumulative",
-    "$decreasing"
+    "$constant"#,
+    #"$varying",
+    #"$cumulative",
+    #"$decreasing"
 ]
 consequence_list = [
-    "$local",
-    "$global"
+    "$local"#,
+    #"$global"
 ]
 constants_list = [
     "$rigid"
@@ -228,7 +242,12 @@ transformation_parameter_list = [
     "semantic_monotonic_quantification",
     "semantic_antimonotonic_quantification"
 ]
+#semantic_modality_axiomatization semantic_monotonic_quantification semantic_antimonotonic_quantification
+transformation_parameter_list = [ # old params
+    "semantical_modality_axiomatization"
+]
 
+#get_proving_results_from_problem_file_list(debug_print_line,
 get_proving_results_from_problem_file_list(debug_print_line,
     prover_name, prover_command, prover_wc_limit, prover_cpu_limit,
     embedding_wc_limit, embedding_cpu_limit,

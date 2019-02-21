@@ -2,7 +2,7 @@
 import os
 from pathlib import Path
 
-problem_directory = "/home/tg/data/QMLTP/qmltp_thf"
+problem_directory = "/home/tg/data/QMLTP/qmltp_thf_no_mml"
 
 def get_problem_file_list(problem_directory):
     ret = []
