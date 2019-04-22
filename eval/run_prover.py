@@ -3,6 +3,8 @@ import pathlib
 import tempfile
 import os
 import common
+import sys
+from extract_qmltp_info import extract_qmltp_info_from_problem_to_dict
 
 class OutputNotInterpretable(Exception):
     def __init__(self, msg):
@@ -38,13 +40,19 @@ def run_local_prover_helper(prover_command, problem, wc_limit, cpu_limit):
     #print(stdout)
     #print(stderr)
 
-    szs_status = parse_szs_status(str_stdout)
-    wc = parse_wc(str_stdout)
-    cpu = parse_cpu(str_stdout)
+    try:
+        szs_status = parse_szs_status(str_stdout)
+        wc = parse_wc(str_stdout)
+        cpu = parse_cpu(str_stdout)
+    except:
+        szs_status = "TimeoutExecution"
+        wc = str(prover_wc_limit)
+        cpu = str(prover_cpu_limit)
 
     # success data
     send_data = {}
     send_data['status'] = 'ok'
+    send_data['problem'] = problem
     send_data['szs_status'] = szs_status
     send_data['wc'] = wc
     send_data['cpu'] = cpu
@@ -54,12 +62,10 @@ def run_local_prover_helper(prover_command, problem, wc_limit, cpu_limit):
 
 
 def embed(problem,params,semantics,wc_limit,cpu_limit):
-    # validate semantics
-    # TODO
-    if semantics == None:
-        filecontent = problem
-    else:
-        filecontent =  semantics + "\n" + problem
+    semantics_to_prepend = create_semantics(semantics['system'],semantics['quantification'],semantics['consequence'],semantics['constants'])
+
+
+    filecontent =  semantics_to_prepend + "\n" + problem
 
     # create temp files
     filename_original = create_temp_file(filecontent) # TODO pass semantics through cli somehow or strip semantics from problem first
@@ -79,7 +85,7 @@ def embed(problem,params,semantics,wc_limit,cpu_limit):
     except:
         send_data = {}
         send_data['status'] = 'error_output_file_not_readable'
-        send_data['plain_prover_output'] = str_stdout + "\n" + str_err
+        send_data['raw'] = str_stdout + "\n" + str_err
         send_data['return_code'] = str_returncode
         return send_data
     finally:
@@ -107,8 +113,10 @@ def embed(problem,params,semantics,wc_limit,cpu_limit):
     send_data['status'] = 'ok'
     send_data['wc'] = wc
     send_data['cpu'] = cpu
+    send_data['raw'] = str_stdout + "\n" + str_err
     send_data['console'] = str_stdout + "\n" + str_err
     send_data['return_code'] = str_returncode
+    send_data['semantics'] = semantics
     send_data['embedded_problem'] = problem_embedded
     return send_data
 
@@ -152,16 +160,9 @@ def run_embedding_and_prover(problem,embedding_parameters, embedding_semantics, 
                              prover_command, prover_wc_limit, prover_cpu_limit):
     embedding_ret = embed(problem, embedding_parameters, embedding_semantics, embedding_wc_limit, embedding_cpu_limit)
     #print(embedding_ret)
-    try:
-        prover_ret = run_local_prover_helper(prover_command, embedding_ret['embedded_problem'],prover_wc_limit, prover_cpu_limit)
-    except OutputNotInterpretable as e:
-        prover_ret = {
-            "szs_status": "TimeoutExecution",
-            "wc": str(prover_wc_limit),
-            "cpu": str(prover_cpu_limit)
-        }
+    prover_ret = run_local_prover_helper(prover_command, embedding_ret['embedded_problem'],prover_wc_limit, prover_cpu_limit)
     #print(prover_ret)
-    return prover_ret
+    return embedding_ret, prover_ret
 
 def create_semantics(system,quantification,consequence,constants):
     ret = """thf(simple_s5,logic,(
@@ -188,26 +189,40 @@ def get_proving_results_from_problem_file_list(callback, prover_name, prover_com
             for quantification in quantification_list:
                 for consequence in consequence_list:
                     for constants in constants_list:
-                        semantics = create_semantics(system,quantification,consequence,constants)
-                        r = run_embedding_and_prover(content,transformation_parameter_list, semantics,
+                        semantics = {"system":system,"quantification":quantification,"consequence":consequence,"constants":constants}
+                        e,r = run_embedding_and_prover(content,transformation_parameter_list, semantics,
                                                               embedding_wc_limit, embedding_cpu_limit,
                                                               prover_command, prover_wc_limit, prover_cpu_limit)
                         line = [p.name, prover_name, r['szs_status'],r['wc'],r['cpu'],
                                          system,quantification,consequence,constants,
                                          " ".join(transformation_parameter_list)]
-                        callback(line)
+                        callback(line, e,r)
 
 save_file = "/home/tg/embed_modal/eval/output.csv"
 fhs = open(save_file,"w")
-def debug_print_line(line):
+def debug_print_line(line,e,r):
     print(",".join(line))
     fhs.write(",".join(line)+"\n")
     fhs.flush()
+    if r['szs_status'] not in ["Theorem","CounterSatisfiable"]:
+        print(r['raw'].replace("\\n","\n"))
+        print(e['raw'].replace("\\n","\n"))
+    problem_status = extract_qmltp_info_from_problem_to_dict(r['problem'])
+    system = e['semantics']['system']
+    quant = e['semantics']['quantification']
+    qmltp_szs_status = problem_status[system][quant]
+    prove_status = r['szs_status']
+    print("qmltp: ",qmltp_szs_status)
+    print("prove: ",prove_status)
+    if prove_status != "TimeoutExecution" and prove_status != "GaveUp" and qmltp_szs_status not in ["Theorem","CounterSatisfiable"] and qmltp_szs_status != prove_status:
+        print("status does not match!")
+    print("===========================================")
+
 
 prover_name = "leo3 1.3"
 prover_command = "leo3 %s -t %d"
-prover_wc_limit = 60
-prover_cpu_limit = 60
+prover_wc_limit = 10
+prover_cpu_limit = 10
 embedding_wc_limit = 60
 embedding_cpu_limit = 60
 #prover_wc_limit = 6

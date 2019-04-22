@@ -31,7 +31,7 @@ def extract_qmltp_info_from_problem_file_list(problem_file_list):
         with open(p,"r") as fh:
             content = fh.read()
             info = extract_qmltp_info_from_problem(content)
-            for system, s_val in zip(("$modal_system_K","$modal_system_D","$modal_system_T","$modal_system_S4","$modal_system_S5"),info):
+            for system, s_val in zip(("$modal_system_K","$modal_system_D","$modal_system_T","$modal_system_S4","$modal_system_S5"),info): # s_val is an inner list
                 for quantification, q_val in zip(("$varying","$cumulative","$constant"),s_val):
                     line = [p.name, "QMLTP", q_val, "0", "0",
                               system, quantification, "$local", "$rigid",
@@ -39,9 +39,20 @@ def extract_qmltp_info_from_problem_file_list(problem_file_list):
                     res.append(line)
     return res
 
+# for debug
+def extract_qmltp_info_from_problem_to_dict(problem):
+    res = {}
+    info = extract_qmltp_info_from_problem(problem)
+    for system, s_val in zip(("$modal_system_K","$modal_system_D","$modal_system_T","$modal_system_S4","$modal_system_S5"),info):
+        if not system in res:
+            res[system] = {}
+        for quantification, q_val in zip(("$varying","$cumulative","$constant"),s_val):
+            if not quantification in res[system]:
+                res[system][quantification] = {}
+            res[system][quantification] = q_val
+    return res
 
-
-line_list = extract_qmltp_info_from_problem_file_list(common.get_problem_file_list(common.problem_directory))
-print(line_list)
+#line_list = extract_qmltp_info_from_problem_file_list(common.get_problem_file_list(common.problem_directory))
+#print(line_list)
 
 
