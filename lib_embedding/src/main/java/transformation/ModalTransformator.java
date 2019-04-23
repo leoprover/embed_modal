@@ -643,9 +643,9 @@ public class ModalTransformator {
     private String preProblemInsertions() throws TransformationException {
         Set<String> additionalModalitiesFromSyntacticEmbedding = new HashSet<>();
         Set<String> additionalConnectivesFromSyntacticEmbedding = new HashSet<>();
-        Set<Type> additionalExistQuantifiersFromSyntacticEmbedding = new HashSet<>();
-        Set<Type> additionalForallQuantifiersFromSyntacticEmbedding = new HashSet<>();
-        Set<Type> additionalTypesForVaryingQuantifiersFromSyntacticEmbedding = new HashSet<>();
+        //Set<Type> additionalExistQuantifiersFromSyntacticEmbedding = new HashSet<>();
+        Set<Type> additionalConstantQuantifiersFromSyntacticEmbedding = new HashSet<>();
+        Set<Type> additionalVaryingQuantifiersFromSyntacticEmbedding = new HashSet<>();
 
         StringBuilder def = new StringBuilder();
 
@@ -741,7 +741,6 @@ public class ModalTransformator {
 
         // collect domain restrictions for cumulative/decreasing
         List<String> domRestr = new ArrayList<>();
-        Set<Type> additionalConstantDomainQuantifiers = new HashSet<>();
         if (!typesForVaryingQuantifiers.isEmpty()) {
             for (Type type: typesForVaryingQuantifiers) { // insert domain restriction (cumulative etc) if necessary
                 SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(type.getNormalizedType());
@@ -753,11 +752,20 @@ public class ModalTransformator {
                             domRestr.add(Quantification.cumulative_semantic_axiom_th0(type));
                         }
                         else if (transformationParameters.contains(TransformationParameter.SYNTACTIC_MONOTONIC_QUANTIFICATION)) {
-                            //additionalConnectivesFromSyntacticEmbedding.add("mimplies");
-                            //additionalModalitiesFromSyntacticEmbedding.add(Connectives.box_unimodal);
-                            //domRestr.add(Quantification.cumulative_syntactic_axiom_th0(normalizedType));
-                            //additionalTypesForVaryingQuantifiersFromSyntacticEmbedding.add(normalizedType);
-                            //additionalForallQuantifiersFromSyntacticEmbedding.add(normalizedType);
+                            // TODO
+                            // prerequisites for converse the barcan formula
+                            //thf(4,axiom, (![Phi:($i>$o)]: (
+                            //    ( $box @ ( ![X:$i] : (Phi @ X) ) )
+                            //    =>
+                            //    ( ![X:$i] : ( $box @ (Phi @ X) ) )
+                            //))).
+                            additionalConnectivesFromSyntacticEmbedding.add("mimplies"); // implication operator
+                            additionalModalitiesFromSyntacticEmbedding.add(Connectives.box_unimodal); // box operator
+                            additionalVaryingQuantifiersFromSyntacticEmbedding.add(type); // varying forall quantifier for (type)
+                            additionalConstantQuantifiersFromSyntacticEmbedding.add(type); // constant forall quantifier for (type > bool)
+                            // the converse barcan formula for this type
+                            domRestr.add(Quantification.cumulative_syntactic_axiom_th0(type));
+
                             //String normalizedTypeToBool = Common.normalizeType(normalizedType + ">$o");
                             //System.out.println("### normalizedbool: " + normalizedTypeToBool);
                             //additionalConstantDomainQuantifiers.add(normalizedTypeToBool);
@@ -765,7 +773,13 @@ public class ModalTransformator {
                             //additionalForallQuantifiersFromSyntacticEmbedding.add(normalizedTypeToBool);
                         }
                     } else if (domainType == SemanticsAnalyzer.DomainType.DECREASING) {
-                        domRestr.add(Quantification.decreasing_semantic_axiom_th0(type));
+                        if (transformationParameters.contains(TransformationParameter.SEMANTIC_ANTIMONOTONIC_QUANTIFICATION)) {
+                            domRestr.add(Quantification.decreasing_semantic_axiom_th0(type));
+                        }
+                        else if (transformationParameters.contains(TransformationParameter.SYNTACTIC_ANTIMONOTONIC_QUANTIFICATION)) {
+                            // TODO
+                        }
+
                     } // else nothing, since either constant or unrestricted varying
                 }
             }
@@ -798,7 +812,7 @@ public class ModalTransformator {
 
         // introduce eiw and nonempty for varying domains
         Set<Type> typesForVaryingQuantifiersToDefine = new HashSet<>(typesForVaryingQuantifiers);
-        typesForVaryingQuantifiersToDefine.addAll(additionalTypesForVaryingQuantifiersFromSyntacticEmbedding);
+        typesForVaryingQuantifiersToDefine.addAll(additionalVaryingQuantifiersFromSyntacticEmbedding);
         if (!typesForVaryingQuantifiersToDefine.isEmpty()) {
             def.append("% define exists-in-world predicates for quantified types and non-emptiness axioms\n");
             for (Type type : typesForVaryingQuantifiers) {
@@ -810,7 +824,7 @@ public class ModalTransformator {
 
         // introduce exist quantifiers
         Set<Type> typesExistsQuantifiersToDefine = new HashSet<>(typesExistsQuantifiers);
-        typesExistsQuantifiersToDefine.addAll(additionalExistQuantifiersFromSyntacticEmbedding);
+        //typesExistsQuantifiersToDefine.addAll(additionalExistQuantifiersFromSyntacticEmbedding);
         if (!typesExistsQuantifiersToDefine.isEmpty()) {
             def.append("% define exists quantifiers\n");
             for (Type type : typesExistsQuantifiers) {
@@ -839,9 +853,10 @@ public class ModalTransformator {
 
         // introduce forall quantifiers
         Set<Type> typesForAllQuantifiersToDefine = new HashSet<>(typesForAllQuantifiers);
-        typesForAllQuantifiersToDefine.addAll(additionalForallQuantifiersFromSyntacticEmbedding);
-        if (!typesForAllQuantifiersToDefine.isEmpty()) {
+        if (!typesForAllQuantifiersToDefine.isEmpty() || !additionalVaryingQuantifiersFromSyntacticEmbedding.isEmpty() || !additionalConstantQuantifiersFromSyntacticEmbedding.isEmpty()) {
             def.append("% define for all quantifiers\n");
+
+            // quantifiers for the problem
             for (Type type : typesForAllQuantifiers) {
                 SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(type.getNormalizedType());
 
@@ -863,10 +878,36 @@ public class ModalTransformator {
                 }
                 def.append("\n");
             }
+
+            // additional quantifiers needed for syntactic quantification embedding (varying quantifiers)
+            for (Type type : additionalVaryingQuantifiersFromSyntacticEmbedding) { // vary forall from syntactic embedding
+                if (typesForAllQuantifiers.contains(type)){
+                    SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(type.getNormalizedType());
+                    if (domainType != SemanticsAnalyzer.DomainType.VARYING) {
+                        def.append(Quantification.mforall_varying_th0(type));
+                    }
+                } else {
+                    def.append(Quantification.mforall_varying_th0(type));
+                }
+                def.append("\n");
+            }
+
+            // additional quantifiers needed for syntactic quantification embedding (constant quantifiers)
+            for (Type type : additionalConstantQuantifiersFromSyntacticEmbedding) { // vary forall from syntactic embedding
+                if (typesForAllQuantifiers.contains(type)){
+                    SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(type.getNormalizedType());
+                    if (domainType != SemanticsAnalyzer.DomainType.CONSTANT) {
+                        def.append(Quantification.mforall_const_th0(type));
+                    }
+                } else {
+                    def.append(Quantification.mforall_const_th0(type));
+                }
+                def.append("\n");
+            }
             def.append("\n");
         }
 
-        // if using a syntactic modality axiomatization, postulate axioms on the operators now
+        // if using a syntactic modality axiomatization, postulate axioms on the operators
         if (this.transformationParameters.contains(TransformationParameter.SYNTACTIC_MODALITY_AXIOMATIZATION) && !syntacticalModalityAxioms.isEmpty()) {
             def.append("% define axioms on the modalities\n");
             for (String axiom : syntacticalModalityAxioms) {
@@ -877,15 +918,16 @@ public class ModalTransformator {
         }
 
         // introduce quantifiers for syntactic quantification embedding
-        if (additionalConstantDomainQuantifiers.size() != 0){
+        // already done
+        /*if (additionalConstantDomainQuantifiers.size() != 0){
             def.append("% define syntactic embedding quantifiers\n");
             for (Type type: additionalConstantDomainQuantifiers) {
                 def.append(Quantification.mforall_const_th0(type));
                 def.append("\n\n");
             }
-        }
+        }*/
 
-        // if using a syntactic quantification embedding, postulate axioms now
+        // postulate syntactic or semantic domain restrictions
         if (domRestr.size() != 0){
             def.append("% define domain restrictions\n");
             for (String d: domRestr) {
