@@ -169,29 +169,29 @@ public class Quantification {
 
     /** Syntactic Axiom for cumulative domains for type `type`. */
     public static String cumulative_syntactic_axiom_th0(Type type) {
-        /*
+
         String identifier = "cumul_syntactic_" + type.getLiftedEscapedType();
         //thf(4,axiom, (![Phi:($i>$o)]: (
         //    ( $box @ ( ![X:$i] : (Phi @ X) ) )
         //    =>
         //    ( ![X:$i] : ( $box @ (Phi @ X) ) )
         //))).
-        String converseBarcan = "![P:" + normalizedType + ">$o]: (($box @ (![X:" + normalizedType + "]: (P @ X))) => (![X:" + normalizedType + "]: ($box @ (P @ X)))))";
-        System.out.println("# BARCAN");
+        String converseBarcan = "![P:" + type.getNormalizedType() + ">$o]: (($box @ (![X:" + type.getNormalizedType() + "]: (P @ X))) => (![X:" + type.getNormalizedType() + "]: ($box @ (P @ X)))))";
+        System.out.println("# CONVERSE BARCAN");
         System.out.println(converseBarcan);
         String converseBarcanTHF = "thf(" + identifier + ", axiom, (" + converseBarcan + ")).";
         System.out.println(converseBarcanTHF);
         String semantics = "thf(simple_s5,logic,(\n" +
                 "    $modal :=\n" +
                 "      [ $constants := $rigid,\n" +
-                "        $quantification := [$constant," + normalizedType + " := $varying],\n" +
+                "        $quantification := [$constant," + type.getNormalizedType() + " := $varying],\n" +
                 "        $consequence := $global,\n" +
                 "        $modalities := $modal_system_K\n" +
                 "      ] )).";
         try {
             System.out.println("========= BEGIN INTER");
-            System.out.println("========= normalized type: " + normalizedType);
-            TransformContext tc = Wrappers.convertModalStringToContext(converseBarcanTHF,identifier, null,null,null, semantics, null);
+            System.out.println("========= normalized type: " + type.getNormalizedType());
+            TransformContext tc = Wrappers.convertModalStringToContext(converseBarcanTHF,identifier, null,null,null, semantics);
             String embeddedConverseBarcanTHF = tc.transformedRoot.toStringWithLinebreaks();
             System.out.println("========= CBF: " + converseBarcan);
             System.out.println("========= embedded: " + embeddedConverseBarcanTHF);
@@ -204,8 +204,9 @@ public class Quantification {
         } catch (TransformationException e) {
             e.printStackTrace();
             System.out.println(e.getMessage());
-        }*/
-        return "NONE";
+        }
+        assert(false);
+        return null;
     }
 
 
@@ -239,30 +240,8 @@ public class Quantification {
 
     /** Syntactic Axiom for decreasing domains for type `type`. */
     public static String decreasing_syntactic_axiom_th0(String normalizedType) {
-        // TODO alter for multimodal systems
-        StringBuilder sb = new StringBuilder();
-        String escapedType = "";//escapeType(normalizedType);
-        // decreasing axiom for each relation r
-        // thf( eiw_decre , axiom , (
-        // ! [W:" + w + ", V:" + w + ", C: T]: ((rel_r @ W @ V) => ((eiw @ C @ V) => (eiw @ C @ W)))
-        // )).
-//        for (String relation : relation_symbols) {
-        sb.append("thf( eiw_decre_");
-        sb.append(escapedType);
-        sb.append("_");
-        sb.append("r"); // sb.append(relation);
-        sb.append(" , axiom , (");
-        sb.append("! [W:" + w + ",V:" + w + ",C:" + normalizedType + "]: ( (");
-        sb.append(AccessibilityRelation.accessibility_relation_prefix);
-        // sb.append(relation_postfix);
-        sb.append(" @ W @ V) => ((eiw_");
-        sb.append(escapedType);
-        sb.append(" @ C @ V) => (eiw_");
-        sb.append(escapedType);
-        sb.append(" @ C @ W)) ");
-        sb.append("))).");
-//        }
-        return sb.toString();
+        assert(false);
+        return null;
     }
 
     /** Declaration of varying domain quantifier */
