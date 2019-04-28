@@ -53,6 +53,7 @@ def run_local_prover_helper(prover_command, problem, wc_limit, cpu_limit):
     send_data = {}
     send_data['status'] = 'ok'
     send_data['problem'] = problem
+    print("##",problem,"##")
     send_data['szs_status'] = szs_status
     send_data['wc'] = wc
     send_data['cpu'] = cpu
@@ -204,9 +205,9 @@ def debug_print_line(line,e,r):
     print(",".join(line))
     fhs.write(",".join(line)+"\n")
     fhs.flush()
-    if r['szs_status'] not in ["Theorem","CounterSatisfiable"]:
-        print(r['raw'].replace("\\n","\n"))
-        print(e['raw'].replace("\\n","\n"))
+    #if r['szs_status'] not in ["Theorem","CounterSatisfiable"]:
+    print(r['raw'].replace("\\n","\n"))
+    print(e['raw'].replace("\\n","\n"))
     problem_status = extract_qmltp_info_from_problem_to_dict(r['problem'])
     system = e['semantics']['system']
     quant = e['semantics']['quantification']
@@ -236,13 +237,13 @@ system_list = [
     #"$modal_system_K"#,
     #"$modal_system_D",
     #"$modal_system_T",
-    #"$modal_system_S4",
-    "$modal_system_S5"
+    "$modal_system_S4"
+    #"$modal_system_S5"
 ]
 quantification_list = [
-    "$constant"#,
+    #"$constant"#,
     #"$varying",
-    #"$cumulative",
+    "$cumulative",
     #"$decreasing"
 ]
 consequence_list = [
@@ -257,10 +258,15 @@ transformation_parameter_list = [
     "semantic_monotonic_quantification",
     "semantic_antimonotonic_quantification"
 ]
-#semantic_modality_axiomatization semantic_monotonic_quantification semantic_antimonotonic_quantification
-transformation_parameter_list = [ # old params
-    "semantical_modality_axiomatization"
+transformation_parameter_list = [
+    "syntactic_modality_axiomatization",
+    "syntactic_monotonic_quantification",
+    "semantic_antimonotonic_quantification"
 ]
+#semantic_modality_axiomatization semantic_monotonic_quantification semantic_antimonotonic_quantification
+#transformation_parameter_list = [ # old params
+#    "semantical_modality_axiomatization"
+#]
 
 #get_proving_results_from_problem_file_list(debug_print_line,
 get_proving_results_from_problem_file_list(debug_print_line,
