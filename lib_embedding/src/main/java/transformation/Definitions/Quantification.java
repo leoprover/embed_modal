@@ -189,13 +189,13 @@ public class Quantification {
                 "        $modalities := $modal_system_K\n" +
                 "      ] )).";
         try {
-            System.out.println("========= BEGIN INTER");
-            System.out.println("========= normalized type: " + type.getNormalizedType());
+            //System.out.println("========= BEGIN INTER");
+            //System.out.println("========= normalized type: " + type.getNormalizedType());
             TransformContext tc = Wrappers.convertModalStringToContext(converseBarcanTHF,identifier, null,null,null, semantics);
             String embeddedConverseBarcanTHF = tc.transformedRoot.toStringWithLinebreaks();
-            System.out.println("========= CBF: " + converseBarcan);
-            System.out.println("========= embedded: " + embeddedConverseBarcanTHF);
-            System.out.println("========= END INTER");
+            //System.out.println("========= CBF: " + converseBarcan);
+            //System.out.println("========= embedded: " + embeddedConverseBarcanTHF);
+            //System.out.println("========= END INTER");
             return embeddedConverseBarcanTHF;
         } catch (ParseException | IOException | AnalysisException e) {
             e.printStackTrace();

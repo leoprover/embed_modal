@@ -3,6 +3,7 @@ import pathlib
 import tempfile
 import os
 import common
+import csv
 import sys
 from extract_qmltp_info import extract_qmltp_info_from_problem_to_dict
 
@@ -200,8 +201,7 @@ def get_proving_results_from_problem_file_list(callback, prover_name, prover_com
                                          " ".join(transformation_parameter_list)]
                         callback(line, e,r)
 
-save_file = "/home/tg/embed_modal/eval/output.csv"
-fhs = open(save_file,"w")
+fhs = None
 def debug_print_line(line,e,r):
     print(",".join(line))
     fhs.write(",".join(line)+"\n")
@@ -225,6 +225,35 @@ def debug_print_line(line,e,r):
     print("# embedded problem")
     print(e['embedded_problem'])
     print("====================================================================================")
+
+class Problem:
+    def __init__(self,filename,prover,szs,wc,cpu,system,quantification,consequence,constants,transformation):
+        self.filename=filename
+        self.prover=prover
+        self.szs = szs
+        self.wc = wc
+        self.cpu = cpu
+        self.system = system
+        self.quantification = quantification
+        self.consequence = consequence
+        self.constants = constants
+        self.transformation = transformation # list of params
+
+def get_processed_problems():
+    csv_reader = csv.reader(save_file, delimiter=',')
+    for row in csv_reader:
+        #APM009+1.p,leo3 1.3,Theorem,2.6,8.8,$modal_system_S4,$cumulative,$local,$rigid,syntactic_modality_axiomatization syntactic_monotonic_quantification semantic_antimonotonic_quantification
+        p = Problem(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9].split(' '))
+        filename = row[0]
+        system = row[5]
+        quantification=row[6]
+        if not filename in processed_problems:
+            processed_problems[filename] = {}
+        if not system in processed_problems[filename]:
+            processed_problems[filename][system] = {}
+        if not quantification in processed_problems[filename][system]:
+            processed_problems[filename][system][quantification] = p
+
 
 
 prover_name = "leo3 1.3"
@@ -276,6 +305,13 @@ transformation_parameter_list = [
 #]
 
 #get_proving_results_from_problem_file_list(debug_print_line,
+save_file = "/home/tg/embed_modal/eval/output.csv"
+# file -> system -> quantsemn
+processed_problems = {} # dictionary of processed problems
+
+
+
+fhs = open(save_file,"w")
 get_proving_results_from_problem_file_list(debug_print_line,
     prover_name, prover_command, prover_wc_limit, prover_cpu_limit,
     embedding_wc_limit, embedding_cpu_limit,
