@@ -47,6 +47,9 @@ public class EmbedModal {
         defaultCliTransformationParameters.add(ModalTransformator.TransformationParameter.SEMANTIC_MODALITY_AXIOMATIZATION);
         defaultCliTransformationParameters.add(ModalTransformator.TransformationParameter.SEMANTIC_MONOTONIC_QUANTIFICATION);
         defaultCliTransformationParameters.add(ModalTransformator.TransformationParameter.SEMANTIC_ANTIMONOTONIC_QUANTIFICATION);
+        defaultCliTransformationParameters.add(ModalTransformator.TransformationParameter.SYNTACTIC_MODALITY_AXIOMATIZATION);
+        defaultCliTransformationParameters.add(ModalTransformator.TransformationParameter.SYNTACTIC_MONOTONIC_QUANTIFICATION);
+        defaultCliTransformationParameters.add(ModalTransformator.TransformationParameter.SYNTACTIC_ANTIMONOTONIC_QUANTIFICATION);
         for (ModalTransformator.TransformationParameter p : ModalTransformator.TransformationParameter.values()) {
             cliTransformationParameterNames.put(p.name().toLowerCase(),p);
         }

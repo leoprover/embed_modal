@@ -44,6 +44,7 @@ def extract_qmltp_info_from_problem_to_dict(problem):
     res = {}
     info = extract_qmltp_info_from_problem(problem)
     for system, s_val in zip(("$modal_system_K","$modal_system_D","$modal_system_T","$modal_system_S4","$modal_system_S5"),info):
+        #print("X",system,s_val)
         if not system in res:
             res[system] = {}
         for quantification, q_val in zip(("$varying","$cumulative","$constant"),s_val):

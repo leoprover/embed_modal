@@ -261,22 +261,23 @@ public class ModalTransformator {
         thfToLift.addAll(thfAnalyzer.statementNodes);
         thfToLift.addAll(thfAnalyzer.definitionNodes);
         for (Node thf : thfToLift) {
-            System.out.println("THF: " + thf.toStringLeafs());
+            //System.out.println("THF: " + thf.toStringLeafs()); // debug only
             // embed what can be done by string replacement of leafs
             // this includes types, nullary and unary operators
             for (Node l : thf.getLeafsDfs()) {
                 // $o only since we assume rigid constants
                 Type t = Type.getType(l.getLabel(), false);
-                if (l.getLabel().equals("$o")){
-                    System.out.println("FOUND tRUTH!");
-                }
+
+                /*if (l.getLabel().equals("$o")){
+                    System.out.println("FOUND tRUTH!"); // debug only
+                }*/
                 if (t.equals(Type.getTruthType())) {
-                    System.out.println("EQUAL label: " + l.getLabel() + " normalized type: " + t.getNormalizedType() + " default truth: " + Type.getTruthType());
+                    //System.out.println("EQUAL label: " + l.getLabel() + " normalized type: " + t.getNormalizedType() + " default truth: " + Type.getTruthType()); // debug only
                     l.setLabel(Common.embedded_truth_type);
                 }
-                else {
-                    System.out.println("NOT label: " + l.getLabel() + " normalized type: " + t.getNormalizedType() + " default truth: " + Type.getTruthType());
-                }
+                /*else {
+                    System.out.println("NOT label: " + l.getLabel() + " normalized type: " + t.getNormalizedType() + " default truth: " + Type.getTruthType()); // debug only
+                }*/
             }
         }
 
@@ -724,7 +725,10 @@ public class ModalTransformator {
         }
 
         // introduce mvalid for global consequence
-        if (this.semanticsAnalyzer.axiomNameToConsequenceType.values().contains(SemanticsAnalyzer.ConsequenceType.GLOBAL)) {
+        if (this.semanticsAnalyzer.axiomNameToConsequenceType.values().contains(SemanticsAnalyzer.ConsequenceType.GLOBAL) ||
+                transformationParameters.contains(TransformationParameter.SYNTACTIC_MODALITY_AXIOMATIZATION) ||
+                transformationParameters.contains(TransformationParameter.SYNTACTIC_MONOTONIC_QUANTIFICATION) ||
+                transformationParameters.contains(TransformationParameter.SYNTACTIC_ANTIMONOTONIC_QUANTIFICATION)) {
             def.append("% define valid operator\n");
             def.append(Common.mvalid);
             def.append("\n\n");
@@ -760,8 +764,8 @@ public class ModalTransformator {
                             // prerequisites for converse barcan formula
                             additionalConnectivesFromSyntacticEmbedding.add("mimplies"); // implication operator
                             additionalModalitiesFromSyntacticEmbedding.add(Connectives.box_unimodal); // box operator
-                            additionalVaryingForallQuantifiersFromSyntacticEmbedding.add(type); // varying forall quantifier for (type)
-                            additionalConstantForallQuantifiersFromSyntacticEmbedding.add(type); // constant forall quantifier for (type > bool)
+                            additionalVaryingForallQuantifiersFromSyntacticEmbedding.add(Type.getType(type.getliftedNormalizedType())); // varying forall quantifier for (type)
+                            additionalConstantForallQuantifiersFromSyntacticEmbedding.add(Type.getType(type.getNormalizedType()+">$o")); // constant forall quantifier for (type > bool)
                             // converse barcan formula
                             domRestr.add(Quantification.cumulative_syntactic_axiom_th0(type)); // the converse barcan formula for this type
                         }
@@ -951,10 +955,6 @@ public class ModalTransformator {
                         }
                     } else {
                         // define eiw_predicate of that type first
-                        System.out.println("normalized type: " + type.getNormalizedType());
-                        System.out.println("lifted type: " + type.getliftedNormalizedType());
-                        System.out.println("liftedEscapedType: " + type.getLiftedEscapedType());
-                        System.out.println("eiwandnonempty: " + Quantification.eiw_and_nonempty_th0(type));
                         postDefinitions.append(Quantification.eiw_and_nonempty_th0(type));
                         postDefinitions.append("\n");
                         // now postulate as anbove
