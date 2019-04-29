@@ -14,7 +14,7 @@ class OutputNotInterpretable(Exception):
 
 
 bin_treelimitedrun = "/home/tg/eval/TreeLimitedRun"
-bin_embed = "java -jar /home/tg/oldembed/embed_modal/embed/target/embed-1.0-SNAPSHOT-shaded.jar"
+bin_embed = "java -jar /home/tg/embed_modal/embed/target/embed-1.0-SNAPSHOT-shaded.jar"
 
 #-consequences local -constants rigid - systems K -domains varying,cumulative -diroutput joint -i data/QMLTP/qmltp_thf/APM/APM010+1.p -o embed_modal/qmltp_embedded/APM010+1.p
 
@@ -114,6 +114,7 @@ def embed(problem,params,semantics,wc_limit,cpu_limit):
     send_data['status'] = 'ok'
     send_data['wc'] = wc
     send_data['cpu'] = cpu
+    send_data['problem'] = problem
     send_data['raw'] = str_stdout + "\n" + str_err
     send_data['console'] = str_stdout + "\n" + str_err
     send_data['return_code'] = str_returncode
@@ -206,18 +207,24 @@ def debug_print_line(line,e,r):
     fhs.write(",".join(line)+"\n")
     fhs.flush()
     #if r['szs_status'] not in ["Theorem","CounterSatisfiable"]:
-    print(r['raw'].replace("\\n","\n"))
+    print("# embedding stdout")
     print(e['raw'].replace("\\n","\n"))
-    problem_status = extract_qmltp_info_from_problem_to_dict(r['problem'])
+    print("# prover stdout")
+    print(r['raw'].replace("\\n","\n"))
+    problem_status = extract_qmltp_info_from_problem_to_dict(e['problem'])
     system = e['semantics']['system']
     quant = e['semantics']['quantification']
     qmltp_szs_status = problem_status[system][quant]
     prove_status = r['szs_status']
-    print("qmltp: ",qmltp_szs_status)
-    print("prove: ",prove_status)
+    print("qmltp szs: ",qmltp_szs_status)
+    print("prover szs: ",prove_status)
     if prove_status != "TimeoutExecution" and prove_status != "GaveUp" and qmltp_szs_status not in ["Theorem","CounterSatisfiable"] and qmltp_szs_status != prove_status:
         print("status does not match!")
-    print("===========================================")
+    print("# original problem")
+    print(e['problem'])
+    print("# embedded problem")
+    print(e['embedded_problem'])
+    print("====================================================================================")
 
 
 prover_name = "leo3 1.3"
