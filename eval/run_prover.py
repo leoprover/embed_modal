@@ -54,7 +54,6 @@ def run_local_prover_helper(prover_command, problem, wc_limit, cpu_limit):
     send_data = {}
     send_data['status'] = 'ok'
     send_data['problem'] = problem
-    print("##",problem,"##")
     send_data['szs_status'] = szs_status
     send_data['wc'] = wc
     send_data['cpu'] = cpu
@@ -192,6 +191,8 @@ def get_proving_results_from_problem_file_list(callback, prover_name, prover_com
             for quantification in quantification_list:
                 for consequence in consequence_list:
                     for constants in constants_list:
+                        if already_processed(p.name,system,quantification):
+                            continue
                         semantics = {"system":system,"quantification":quantification,"consequence":consequence,"constants":constants}
                         e,r = run_embedding_and_prover(content,transformation_parameter_list, semantics,
                                                               embedding_wc_limit, embedding_cpu_limit,
@@ -206,11 +207,7 @@ def debug_print_line(line,e,r):
     print(",".join(line))
     fhs.write(",".join(line)+"\n")
     fhs.flush()
-    #if r['szs_status'] not in ["Theorem","CounterSatisfiable"]:
-    print("# embedding stdout")
-    print(e['raw'].replace("\\n","\n"))
-    print("# prover stdout")
-    print(r['raw'].replace("\\n","\n"))
+
     problem_status = extract_qmltp_info_from_problem_to_dict(e['problem'])
     system = e['semantics']['system']
     quant = e['semantics']['quantification']
@@ -218,12 +215,19 @@ def debug_print_line(line,e,r):
     prove_status = r['szs_status']
     print("qmltp szs: ",qmltp_szs_status)
     print("prover szs: ",prove_status)
-    if prove_status != "TimeoutExecution" and prove_status != "GaveUp" and qmltp_szs_status not in ["Theorem","CounterSatisfiable"] and qmltp_szs_status != prove_status:
-        print("status does not match!")
-    print("# original problem")
-    print(e['problem'])
-    print("# embedded problem")
-    print(e['embedded_problem'])
+    if prove_status != "TimeoutExecution" and \
+            prove_status != "GaveUp" and \
+            qmltp_szs_status in ["Theorem","CounterSatisfiable"] and \
+            qmltp_szs_status != prove_status:
+        print("### ERROR: status does not match!")
+        print("### embedding stdout")
+        print(e['raw'].replace("\\n","\n"))
+        print("### prover stdout")
+        print(r['raw'].replace("\\n","\n"))
+        print("### original problem")
+        print(e['problem'])
+        print("### embedded problem")
+        print(e['embedded_problem'])
     print("====================================================================================")
 
 class Problem:
@@ -239,10 +243,19 @@ class Problem:
         self.constants = constants
         self.transformation = transformation # list of params
 
+    def __repr__(self):
+        return self.szs
+
+processed_problems = None
 def get_processed_problems():
-    csv_reader = csv.reader(save_file, delimiter=',')
-    for row in csv_reader:
+    f = open(save_file,'r')
+    processed_problems = {}
+    for r in f.readlines():
         #APM009+1.p,leo3 1.3,Theorem,2.6,8.8,$modal_system_S4,$cumulative,$local,$rigid,syntactic_modality_axiomatization syntactic_monotonic_quantification semantic_antimonotonic_quantification
+        #print(row)
+        if r.strip() == '':
+            continue
+        row = r.split(',')
         p = Problem(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9].split(' '))
         filename = row[0]
         system = row[5]
@@ -253,8 +266,17 @@ def get_processed_problems():
             processed_problems[filename][system] = {}
         if not quantification in processed_problems[filename][system]:
             processed_problems[filename][system][quantification] = p
+    f.close()
+    return processed_problems
 
-
+def already_processed(filename,system,quantification):
+    if not filename in processed_problems:
+        return False
+    if not system in processed_problems[filename]:
+        return False
+    if not quantification in processed_problems[filename][system]:
+        return False
+    return True
 
 prover_name = "leo3 1.3"
 prover_command = "leo3 %s -t %d"
@@ -307,10 +329,11 @@ transformation_parameter_list = [
 #get_proving_results_from_problem_file_list(debug_print_line,
 save_file = "/home/tg/embed_modal/eval/output.csv"
 # file -> system -> quantsemn
-processed_problems = {} # dictionary of processed problems
 
 
-
+processed_problems = get_processed_problems()
+print("##processed_problems")
+print(processed_problems)
 fhs = open(save_file,"w")
 get_proving_results_from_problem_file_list(debug_print_line,
     prover_name, prover_command, prover_wc_limit, prover_cpu_limit,
