@@ -808,9 +808,9 @@ public class ModalTransformator {
         }
 
         // introduce eiw and nonempty for varying domains
-        Set<Type> typesForVaryingQuantifiersToDefine = new HashSet<>(typesForVaryingQuantifiers);
-        typesForVaryingQuantifiersToDefine.addAll(additionalVaryingForallQuantifiersFromSyntacticEmbedding);
-        if (!typesForVaryingQuantifiersToDefine.isEmpty()) {
+        Set<Type> eiw_nonempty_types = new HashSet<>(typesForVaryingQuantifiers);
+        eiw_nonempty_types.addAll(additionalVaryingForallQuantifiersFromSyntacticEmbedding);
+        if (!eiw_nonempty_types.isEmpty()) {
             def.append("% define exists-in-world predicates for quantified types and non-emptiness axioms\n");
             for (Type type : typesForVaryingQuantifiers) {
                 def.append(Quantification.eiw_and_nonempty_th0(type));
@@ -880,7 +880,11 @@ public class ModalTransformator {
             for (Type type : additionalVaryingForallQuantifiersFromSyntacticEmbedding) { // vary forall from syntactic embedding
                 if (typesForAllQuantifiers.contains(type)){
                     SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(type.getNormalizedType());
-                    if (domainType != SemanticsAnalyzer.DomainType.VARYING) {
+                    if (
+                            domainType != SemanticsAnalyzer.DomainType.VARYING &&
+                            domainType != SemanticsAnalyzer.DomainType.CUMULATIVE &&
+                            domainType != SemanticsAnalyzer.DomainType.DECREASING
+                    ) {
                         def.append(Quantification.mforall_varying_th0(type));
                     }
                 } else {
