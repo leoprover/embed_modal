@@ -204,9 +204,9 @@ def get_proving_results_from_problem_file_list(callback, prover_name, prover_com
 
 fhs = None
 def debug_print_line(line,e,r):
-    print(",".join(line))
     fhs.write(",".join(line)+"\n")
     fhs.flush()
+    print(",".join(line))
 
     problem_status = extract_qmltp_info_from_problem_to_dict(e['problem'])
     system = e['semantics']['system']
@@ -215,7 +215,9 @@ def debug_print_line(line,e,r):
     prove_status = r['szs_status']
     print("qmltp szs: ",qmltp_szs_status)
     print("prover szs: ",prove_status)
-    if prove_status != "TimeoutExecution" and \
+    if \
+            prove_status != "TimeoutExecution" and \
+            prove_status != "Timeout" and \
             prove_status != "GaveUp" and \
             qmltp_szs_status in ["Theorem","CounterSatisfiable"] and \
             qmltp_szs_status != prove_status:
@@ -332,9 +334,11 @@ save_file = "/home/tg/embed_modal/eval/output.csv"
 
 
 processed_problems = get_processed_problems()
-print("##processed_problems")
-print(processed_problems)
-fhs = open(save_file,"w")
+def count_nested_dict(d):
+    return sum([count_nested_dict(v) if isinstance(v, dict) else 1 for v in d.values()])
+print("already processed: " + str(count_nested_dict(processed_problems)))
+
+fhs = open(save_file,"a+")
 get_proving_results_from_problem_file_list(debug_print_line,
     prover_name, prover_command, prover_wc_limit, prover_cpu_limit,
     embedding_wc_limit, embedding_cpu_limit,
