@@ -4,6 +4,7 @@ import tempfile
 import os
 import common
 import csv
+import datetime
 import sys
 from extract_qmltp_info import extract_qmltp_info_from_problem_to_dict,Problem
 from interesting_problems import cumul_interesting_problems
@@ -192,7 +193,7 @@ def get_proving_results_from_problem_file_list(callback, prover_name, prover_com
             for quantification in quantification_list:
                 for consequence in consequence_list:
                     for constants in constants_list:
-                        if not p.name in problem_white_filter:
+                        if problem_white_filter != None and not p.name in problem_white_filter:
                             continue
                         if already_processed(p.name,system,quantification):
                             continue
@@ -205,35 +206,45 @@ def get_proving_results_from_problem_file_list(callback, prover_name, prover_com
                                          " ".join(transformation_parameter_list)]
                         callback(line, e,r)
 
+fhs_log = None
+def log(*content):
+    out = str(datetime.datetime.now()) + "   " + " ".join(content)
+    print(out)
+    fhs_log.write(out)
+    fhs_log.flush()
+
 fhs = None
 def debug_print_line(line,e,r):
     fhs.write(",".join(line)+"\n")
     fhs.flush()
-    print(",".join(line))
-
+    log(",".join(line))
     problem_status = extract_qmltp_info_from_problem_to_dict(e['problem'])
     system = e['semantics']['system']
     quant = e['semantics']['quantification']
     qmltp_szs_status = problem_status[system][quant]
     prove_status = r['szs_status']
-    print("qmltp szs: ",qmltp_szs_status)
-    print("prover szs: ",prove_status)
+    log("qmltp szs:  ",qmltp_szs_status)
+    log("prover szs: ",prove_status)
+    if qmltp_szs_status == prove_status and qmltp_szs_status in ["Theorem","Non-Theorem","CounterSatisfiable"]:
+        log("szs_match")
+    else:
+        log("szs_nomatch")
     if \
             prove_status != "TimeoutExecution" and \
             prove_status != "Timeout" and \
             prove_status != "GaveUp" and \
-            qmltp_szs_status in ["Theorem","CounterSatisfiable"] and \
+            qmltp_szs_status in ["Theorem","Non-Theorem","CounterSatisfiable"] and \
             qmltp_szs_status != prove_status:
-        print("### ERROR: status does not match!")
-        print("### embedding stdout")
-        print(e['raw'].replace("\\n","\n"))
-        print("### prover stdout")
-        print(r['raw'].replace("\\n","\n"))
-        print("### original problem")
-        print(e['problem'])
-        print("### embedded problem")
-        print(e['embedded_problem'])
-    print("====================================================================================")
+        log("### ERROR: status does not match!")
+        log("### embedding stdout")
+        log(e['raw'].replace("\\n","\n"))
+        log("### prover stdout")
+        log(r['raw'].replace("\\n","\n"))
+        log("### original problem")
+        log(e['problem'])
+        log("### embedded problem")
+        log(e['embedded_problem'])
+    log("====================================================================================")
 
 
 
@@ -275,8 +286,8 @@ def already_processed(filename,system,quantification):
 
 prover_name = "leo3 1.3"
 prover_command = "leo3 %s -t %d"
-prover_wc_limit = 10
-prover_cpu_limit = 10
+prover_wc_limit = 30
+prover_cpu_limit = 30
 embedding_wc_limit = 60
 embedding_cpu_limit = 60
 #prover_wc_limit = 6
@@ -291,16 +302,16 @@ problem_file_list = common.get_problem_file_list(common.problem_directory)
 ###############################################################
 
 system_list = [
-    #"$modal_system_K"#,
-    #"$modal_system_D",
-    #"$modal_system_T",
-    "$modal_system_S4"
-    #"$modal_system_S5"
+    "$modal_system_K",
+    "$modal_system_D",
+    "$modal_system_T",
+    "$modal_system_S4",
+    "$modal_system_S5"
 ]
 quantification_list = [
-    #"$constant"#,
+    "$constant"#,
     #"$varying",
-    "$cumulative",
+    #"$cumulative",
     #"$decreasing"
 ]
 consequence_list = [
@@ -335,6 +346,7 @@ problem_white_filter = cumul_interesting_problems
 
 save_file = "/home/tg/embed_modal/eval/output.csv"
 # file -> system -> quantsemn
+log_file = "/home/tg/embed_modal/eval/log.csv"
 
 ###############################################################
 # execution
@@ -346,6 +358,7 @@ def count_nested_dict(d):
 print("already processed: " + str(count_nested_dict(processed_problems)))
 
 fhs = open(save_file,"a+")
+fhs_log = open(log_file,"a+")
 get_proving_results_from_problem_file_list(debug_print_line,
     prover_name, prover_command, prover_wc_limit, prover_cpu_limit,
     embedding_wc_limit, embedding_cpu_limit,
