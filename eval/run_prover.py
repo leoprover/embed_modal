@@ -5,7 +5,8 @@ import os
 import common
 import csv
 import sys
-from extract_qmltp_info import extract_qmltp_info_from_problem_to_dict
+from extract_qmltp_info import extract_qmltp_info_from_problem_to_dict,Problem
+from interesting_problems import cumul_interesting_problems
 
 class OutputNotInterpretable(Exception):
     def __init__(self, msg):
@@ -191,6 +192,8 @@ def get_proving_results_from_problem_file_list(callback, prover_name, prover_com
             for quantification in quantification_list:
                 for consequence in consequence_list:
                     for constants in constants_list:
+                        if not p.name in problem_white_filter:
+                            continue
                         if already_processed(p.name,system,quantification):
                             continue
                         semantics = {"system":system,"quantification":quantification,"consequence":consequence,"constants":constants}
@@ -232,21 +235,7 @@ def debug_print_line(line,e,r):
         print(e['embedded_problem'])
     print("====================================================================================")
 
-class Problem:
-    def __init__(self,filename,prover,szs,wc,cpu,system,quantification,consequence,constants,transformation):
-        self.filename=filename
-        self.prover=prover
-        self.szs = szs
-        self.wc = wc
-        self.cpu = cpu
-        self.system = system
-        self.quantification = quantification
-        self.consequence = consequence
-        self.constants = constants
-        self.transformation = transformation # list of params
 
-    def __repr__(self):
-        return self.szs
 
 processed_problems = None
 def get_processed_problems():
@@ -280,6 +269,10 @@ def already_processed(filename,system,quantification):
         return False
     return True
 
+###############################################################
+# prover settings
+###############################################################
+
 prover_name = "leo3 1.3"
 prover_command = "leo3 %s -t %d"
 prover_wc_limit = 10
@@ -292,6 +285,10 @@ embedding_cpu_limit = 60
 #embedding_cpu_limit = 6
 #problem_file_list = common.get_problem_file_list(common.problem_directory)[:1]
 problem_file_list = common.get_problem_file_list(common.problem_directory)
+
+###############################################################
+# embedding settings
+###############################################################
 
 system_list = [
     #"$modal_system_K"#,
@@ -315,23 +312,33 @@ constants_list = [
 ]
 transformation_parameter_list = [
     "semantic_modality_axiomatization",
-    "semantic_monotonic_quantification",
-    "semantic_antimonotonic_quantification"
-]
-transformation_parameter_list = [
-    "syntactic_modality_axiomatization",
+    #"semantic_monotonic_quantification",
+    #"semantic_antimonotonic_quantification"
+    #"syntactic_modality_axiomatization",
     "syntactic_monotonic_quantification",
-    "semantic_antimonotonic_quantification"
+    "syntactic_antimonotonic_quantification"
 ]
 #semantic_modality_axiomatization semantic_monotonic_quantification semantic_antimonotonic_quantification
 #transformation_parameter_list = [ # old params
 #    "semantical_modality_axiomatization"
 #]
+###############################################################
+# filter for problems
+###############################################################
 
-#get_proving_results_from_problem_file_list(debug_print_line,
+problem_white_filter = None
+problem_white_filter = cumul_interesting_problems
+
+###############################################################
+# output file
+###############################################################
+
 save_file = "/home/tg/embed_modal/eval/output.csv"
 # file -> system -> quantsemn
 
+###############################################################
+# execution
+###############################################################
 
 processed_problems = get_processed_problems()
 def count_nested_dict(d):

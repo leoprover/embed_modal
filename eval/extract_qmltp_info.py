@@ -2,6 +2,22 @@ import os
 import common
 from pathlib import *
 
+class Problem:
+    def __init__(self,filename,prover,szs,wc,cpu,system,quantification,consequence,constants,transformation):
+        self.filename=filename
+        self.prover=prover
+        self.szs = szs
+        self.wc = wc
+        self.cpu = cpu
+        self.system = system
+        self.quantification = quantification
+        self.consequence = consequence
+        self.constants = constants
+        self.transformation = transformation # list of params
+
+    def __repr__(self):
+        return self.szs
+
 def extract_qmltp_info_from_problem(problem):
     start = problem.find("% Status") + len("% Status")
     end = problem.find("% Rating")
@@ -39,7 +55,14 @@ def extract_qmltp_info_from_problem_file_list(problem_file_list):
                     res.append(line)
     return res
 
-# for debug
+def extract_qmltp_info_from_problem_file_list_to_problem_list(problem_file_list):
+    res = []
+    qmltp_info = extract_qmltp_info_from_problem_file_list(problem_file_list)
+    for p in qmltp_info:
+        newp = Problem(p[0],p[1],p[2],p[3],p[4],p[5],p[6],p[7],p[8],p[9])
+        res.append(newp)
+    return res
+
 def extract_qmltp_info_from_problem_to_dict(problem):
     res = {}
     info = extract_qmltp_info_from_problem(problem)
@@ -53,7 +76,11 @@ def extract_qmltp_info_from_problem_to_dict(problem):
             res[system][quantification] = q_val
     return res
 
-#line_list = extract_qmltp_info_from_problem_file_list(common.get_problem_file_list(common.problem_directory))
-#print(line_list)
-
+def extract_qmltp_info_from_problem_file_list_to_dicts(problem_file_list):
+    res = {}
+    for p in problem_file_list:
+        with open(p,"r") as fh:
+            content = fh.read()
+            res[p.name] = extract_qmltp_info_from_problem_to_dict(content)
+    return res
 
