@@ -7,7 +7,7 @@ import csv
 import datetime
 import sys
 from extract_qmltp_info import extract_qmltp_info_from_problem_to_dict,Problem
-from interesting_problems import cumul_interesting_problems
+from qmltp_problem_filter import cumul_interesting_problems,qmltp_problems_containing_equality
 
 class OutputNotInterpretable(Exception):
     def __init__(self, msg):
@@ -195,6 +195,8 @@ def get_proving_results_from_problem_file_list(callback, prover_name, prover_com
                     for constants in constants_list:
                         if problem_white_filter != None and not p.name in problem_white_filter:
                             continue
+                        if problem_black_filter != None and p.name in problem_black_filter:
+                            continue
                         if already_processed(p.name,system,quantification):
                             continue
                         semantics = {"system":system,"quantification":quantification,"consequence":consequence,"constants":constants}
@@ -288,8 +290,8 @@ prover_name = "leo3 1.3"
 prover_command = "leo3 %s -t %d"
 prover_wc_limit = 30
 prover_cpu_limit = 30
-embedding_wc_limit = 60
-embedding_cpu_limit = 60
+embedding_wc_limit = 600
+embedding_cpu_limit = 3600
 #prover_wc_limit = 6
 #prover_cpu_limit = 6
 #embedding_wc_limit = 6
@@ -310,8 +312,8 @@ system_list = [
 ]
 quantification_list = [
     "$constant"#,
-    #"$varying",
-    #"$cumulative",
+    "$varying",
+    "$cumulative",
     #"$decreasing"
 ]
 consequence_list = [
@@ -323,11 +325,11 @@ constants_list = [
 ]
 transformation_parameter_list = [
     "semantic_modality_axiomatization",
-    #"semantic_monotonic_quantification",
-    #"semantic_antimonotonic_quantification"
+    "semantic_monotonic_quantification",
+    "semantic_antimonotonic_quantification"
     #"syntactic_modality_axiomatization",
-    "syntactic_monotonic_quantification",
-    "syntactic_antimonotonic_quantification"
+    #"syntactic_monotonic_quantification",
+    #"syntactic_antimonotonic_quantification"
 ]
 #semantic_modality_axiomatization semantic_monotonic_quantification semantic_antimonotonic_quantification
 #transformation_parameter_list = [ # old params
@@ -338,7 +340,10 @@ transformation_parameter_list = [
 ###############################################################
 
 problem_white_filter = None
-problem_white_filter = cumul_interesting_problems
+#problem_white_filter = cumul_interesting_problems
+problem_black_filter = None
+#problem_black_filter = qmltp_problems_containing_equality
+
 
 ###############################################################
 # output file
