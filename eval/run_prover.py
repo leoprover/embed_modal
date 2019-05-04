@@ -311,7 +311,7 @@ system_list = [
     "$modal_system_S5"
 ]
 quantification_list = [
-    "$constant"#,
+    "$constant",
     "$varying",
     "$cumulative",
     #"$decreasing"
