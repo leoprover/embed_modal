@@ -74,4 +74,11 @@ qmltp_problems_containing_equality = [
     "GSV106+1.p",
     "GSV107+1.p"]
 
-
+problems_without_modal_operators = [
+    "NLP001+1.p",
+    "NLP002+1.p",
+    "NLP003+1.p",
+    "NLP004+1.p",
+    "NLP005+1.p",
+    "SET" # and many more
+]

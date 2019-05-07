@@ -1,22 +1,7 @@
-import os
 import common
 from pathlib import *
 
-class Problem:
-    def __init__(self,filename,prover,szs,wc,cpu,system,quantification,consequence,constants,transformation):
-        self.filename=filename
-        self.prover=prover
-        self.szs = szs
-        self.wc = wc
-        self.cpu = cpu
-        self.system = system
-        self.quantification = quantification
-        self.consequence = consequence
-        self.constants = constants
-        self.transformation = transformation # list of params
 
-    def __repr__(self):
-        return self.szs
 
 def extract_qmltp_info_from_problem(problem):
     start = problem.find("% Status") + len("% Status")
@@ -59,7 +44,7 @@ def extract_qmltp_info_from_problem_file_list_to_problem_list(problem_file_list)
     res = []
     qmltp_info = extract_qmltp_info_from_problem_file_list(problem_file_list)
     for p in qmltp_info:
-        newp = Problem(p[0],p[1],p[2],p[3],p[4],p[5],p[6],p[7],p[8],p[9])
+        newp = common.Problem(p[0],p[1],p[2],p[3],p[4],p[5],p[6],p[7],p[8],p[9])
         res.append(newp)
     return res
 

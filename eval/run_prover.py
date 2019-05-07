@@ -6,8 +6,8 @@ import common
 import csv
 import datetime
 import sys
-from extract_qmltp_info import extract_qmltp_info_from_problem_to_dict,Problem
-from qmltp_problem_filter import cumul_interesting_problems,qmltp_problems_containing_equality
+from extract_qmltp_info import extract_qmltp_info_from_problem_to_dict
+from filters_for_the_qmltp import cumul_interesting_problems,qmltp_problems_containing_equality
 
 class OutputNotInterpretable(Exception):
     def __init__(self, msg):
@@ -212,7 +212,7 @@ fhs_log = None
 def log(*content):
     out = str(datetime.datetime.now()) + "   " + " ".join(content)
     print(out)
-    fhs_log.write(out)
+    fhs_log.write(out+"\n")
     fhs_log.flush()
 
 fhs = None
@@ -260,7 +260,7 @@ def get_processed_problems():
         if r.strip() == '':
             continue
         row = r.split(',')
-        p = Problem(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9].split(' '))
+        p = common.Problem(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9].split(' '))
         filename = row[0]
         system = row[5]
         quantification=row[6]
