@@ -8,19 +8,17 @@ def check_consistency_iteration_callback(filename, system, quantification, probl
     ret_dict = callback_args[0]
     szs_dict = common.create_szs_dict_of_configuration(problem_list)
     #if filename == "NLP001+1.p":
-        #print("--------------------------------------")
-        #for p in problem_list:
-        #    print(p)
-        #print("= dict now")
-        #print(szs_dict.keys())
-    if ("Theorem" in szs_dict and "Non-Theorem" in szs_dict) or \
-        ("Theorem" in szs_dict and "CounterSatisfiable" in szs_dict) or \
-            ("Theorem" in szs_dict and "ContradictoryAxioms" in szs_dict):
+    #print("--------------------------------------")
+    #for p in problem_list:
+    #    print(p)
+    #print("= dict now")
+    #print(szs_dict.keys())
+    if ("InputError" in szs_dict):
         if not filename in ret_dict:
             ret_dict[filename] = []
         ret_dict[filename].append({'system':system,
-                                     'quantification':quantification,
-                                     'problem_list':problem_list})
+                                   'quantification':quantification,
+                                   'problem_list':problem_list})
 
 filename_to_issue = {}
 common.iterate_dict(problem_dict, check_consistency_iteration_callback, filename_to_issue)
