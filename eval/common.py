@@ -1,8 +1,6 @@
-# filename, status, time, system, quantification, consequence, constants
 import os
 from pathlib import Path
 
-problem_directory = "/home/tg/data/QMLTP/qmltp_thf_no_mml"
 
 def get_problem_file_list(problem_directory):
     ret = []
@@ -27,7 +25,16 @@ class Problem:
         self.constants = constants
         self.transformation = transformation # list of params
     def __repr__(self):
-        return self.szs
+        return ",".join([
+            self.filename,
+            self.prover,
+            self.szs,
+            self.system,
+            self.quantification,
+            self.consequence,
+            self.constants,
+            " ".join(self.transformation)
+        ])
     def to_string_important(self):
         return ",".join([
             self.filename,
@@ -37,8 +44,21 @@ class Problem:
             self.quantification,
             self.consequence,
             self.constants,
-            " ".join([self.transformation])
+            " ".join(self.transformation)
             ])
+    def to_csv_line(self):
+        return ",".join([
+            self.filename,
+            self.prover,
+            self.szs,
+            self.wc,
+            self.cpu,
+            self.system,
+            self.quantification,
+            self.consequence,
+            self.constants,
+            " ".join([self.transformation])
+        ])
     def syntactic_modality_axiomatization(self):
         return "syntactic_modality_axiomatization" in self.transformation
     def syntactic_monotonic_quantification(self):
@@ -54,19 +74,25 @@ class Problem:
 
 def read_csv(filename):
     ret = []
-    f = open(save_file,'r')
+    f = open(filename,'r')
     for r in f.readlines():
         #APM009+1.p,leo3 1.3,Theorem,2.6,8.8,$modal_system_S4,$cumulative,$local,$rigid,syntactic_modality_axiomatization syntactic_monotonic_quantification semantic_antimonotonic_quantification
-        #print(row)
+        # empty transformation parameter means valid for all transformation parameters
         if r.strip() == '':
             continue
         row = r.split(',')
-        p = common.Problem(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9].split(' '))
+        p = Problem(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9].strip().split(' '))
         ret.append(p)
-    return p
+    return ret
+
+def accumulate_csv(filenames):
+    ret = []
+    for f in filenames:
+        ret = ret + read_csv(f)
+    return ret
 
 # nested dict with
-# filename -> system -> quantification -> prover
+# filename -> system -> quantification
 def create_dict_from_problems(problem_list):
     ret = {}
     for p in problem_list:
@@ -75,14 +101,31 @@ def create_dict_from_problems(problem_list):
         if not p.system in ret[p.filename]:
             ret[p.filename][p.system] = {}
         if not p.quantification in ret[p.filename][p.system]:
-            ret[p.filename][p.system][p.quantification] = {}
-        if not p.prover in ret[p.filename][p.system][p.quantification]:
-            ret[p.filename][p.system][p.quantification][p.prover] = []
-        ret[p.filename][p.system][p.quantification][p.prover].append(p)
+            ret[p.filename][p.system][p.quantification] = []
+        ret[p.filename][p.system][p.quantification].append(p)
     return ret
 
-def representation_of_problem_list(problem_list):
-    ret = ""
-    for p in problem_list:
+def iterate_dict(problem_dict, callback, *callback_args):
+    for filename, system_dict in problem_dict.items():
+        for system, quantification_dict in system_dict.items():
+            for quantification, problem_list in quantification_dict.items():
+                callback(filename, system, quantification, problem_list, *callback_args)
 
+def representation_of_problem_list(problem_list):
+    return "\n".join(map(lambda p: p.to_string_important(),problem_list ))
+
+def representation_of_configuration(system,quantification,problem_list):
+    ret = system + " " + quantification + "\n"
+    ret += "-"*(len(system+quantification)+1) + "\n"
+    for p in problem_list:
+        ret += "{: <15} {: <15} {: <40}".format(p.prover,p.szs," ".join(p.transformation)) + "\n"
+    return ret
+
+def create_szs_dict_of_configuration(problem_list):
+    ret = {}
+    for p in problem_list:
+        if p.szs not in ret:
+            ret[p.szs] = []
+        ret[p.szs].append(p)
+    return ret
 
