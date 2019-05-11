@@ -1,6 +1,6 @@
 import common
 from pathlib import *
-
+import sys
 
 
 def extract_qmltp_info_from_problem(problem):
@@ -69,3 +69,13 @@ def extract_qmltp_info_from_problem_file_list_to_dicts(problem_file_list):
             res[p.name] = extract_qmltp_info_from_problem_to_dict(content)
     return res
 
+qmltp_path = sys.argv[1]
+csv_output_path = sys.argv[2]
+problem_path_list = common.get_problem_file_list(qmltp_path)
+problem_list = extract_qmltp_info_from_problem_file_list_to_problem_list(problem_path_list)
+fh = open(csv_output_path,"w+")
+for p in problem_list:
+    print(p)
+    fh.write(p.to_csv_line() + "\n")
+fh.flush()
+fh.close()
