@@ -30,3 +30,8 @@ for filename in sorted(filename_to_issue):
     for issue_dict in issue_list:
         print("")
         print(common.representation_of_configuration(issue_dict['system'],issue_dict['quantification'],issue_dict['problem_list']))
+
+print("###############")
+print("###############")
+print("###############")
+print("[\"" + "\",\n\"".join(sorted(filename_to_issue)) + "\"]")
