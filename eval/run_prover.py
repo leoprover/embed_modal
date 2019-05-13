@@ -7,7 +7,7 @@ import csv
 import datetime
 import sys
 from extract_qmltp_info import extract_qmltp_info_from_problem_to_dict
-from filters_for_the_qmltp import cumul_interesting_problems,qmltp_problems_containing_equality
+from filters_for_the_qmltp import cumul_interesting_problems,qmltp_problems_containing_equality, init
 
 class OutputNotInterpretable(Exception):
     def __init__(self, msg):
@@ -252,26 +252,30 @@ def debug_print_line(line,e,r):
 
 processed_problems = None
 def get_processed_problems():
-    f = open(save_file,'r')
     processed_problems = {}
-    for r in f.readlines():
-        #APM009+1.p,leo3 1.3,Theorem,2.6,8.8,$modal_system_S4,$cumulative,$local,$rigid,syntactic_modality_axiomatization syntactic_monotonic_quantification semantic_antimonotonic_quantification
-        #print(row)
-        if r.strip() == '':
-            continue
-        row = r.split(',')
-        p = common.Problem(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9].split(' '))
-        filename = row[0]
-        system = row[5]
-        quantification=row[6]
-        if not filename in processed_problems:
-            processed_problems[filename] = {}
-        if not system in processed_problems[filename]:
-            processed_problems[filename][system] = {}
-        if not quantification in processed_problems[filename][system]:
-            processed_problems[filename][system][quantification] = p
-    f.close()
+    try:
+        f = open(save_file,'r')
+        for r in f.readlines():
+            #APM009+1.p,leo3 1.3,Theorem,2.6,8.8,$modal_system_S4,$cumulative,$local,$rigid,syntactic_modality_axiomatization syntactic_monotonic_quantification semantic_antimonotonic_quantification
+            #print(row)
+            if r.strip() == '':
+                continue
+            row = r.split(',')
+            p = common.Problem(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9].split(' '))
+            filename = row[0]
+            system = row[5]
+            quantification=row[6]
+            if not filename in processed_problems:
+                processed_problems[filename] = {}
+            if not system in processed_problems[filename]:
+                processed_problems[filename][system] = {}
+            if not quantification in processed_problems[filename][system]:
+                processed_problems[filename][system][quantification] = p
+        f.close()
+    except:
+        pass
     return processed_problems
+
 
 def already_processed(filename,system,quantification):
     if not filename in processed_problems:
@@ -281,6 +285,54 @@ def already_processed(filename,system,quantification):
     if not quantification in processed_problems[filename][system]:
         return False
     return True
+
+
+
+###############################################################
+# embedding settings
+###############################################################
+
+system_list = [
+    "$modal_system_K",
+    "$modal_system_D",
+    "$modal_system_T",
+    "$modal_system_S4",
+    "$modal_system_S5"
+]
+quantification_list = [
+    #"$constant",
+    #"$varying",
+    "$cumulative"
+    #"$decreasing"
+]
+consequence_list = [
+    "$local"#,
+    #"$global"
+]
+constants_list = [
+    "$rigid"
+]
+transformation_parameter_list = [
+    "semantic_modality_axiomatization",
+    #"semantic_monotonic_quantification",
+    "semantic_antimonotonic_quantification",
+    #"syntactic_modality_axiomatization",
+    "syntactic_monotonic_quantification"
+    #"syntactic_antimonotonic_quantification"
+]
+#semantic_modality_axiomatization semantic_monotonic_quantification semantic_antimonotonic_quantification
+#transformation_parameter_list = [ # old params
+#    "semantical_modality_axiomatization"
+#]
+
+###############################################################
+# paths
+###############################################################
+
+save_file = "/home/tg/embed_modal/eval/result_leo_semm_synq.csv"
+log_file = "/home/tg/embed_modal/eval/result_leo_semm_synq.log.csv"
+qmltp_path = "/home/tg/data/QMLTP/qmltp_thf_no_mml"
+
 
 ###############################################################
 # prover settings
@@ -297,61 +349,19 @@ embedding_cpu_limit = 3600
 #embedding_wc_limit = 6
 #embedding_cpu_limit = 6
 #problem_file_list = common.get_problem_file_list(common.problem_directory)[:1]
-problem_file_list = common.get_problem_file_list(common.problem_directory)
+problem_file_list = common.get_problem_file_list(qmltp_path)
 
-###############################################################
-# embedding settings
-###############################################################
 
-system_list = [
-    "$modal_system_K",
-    "$modal_system_D",
-    "$modal_system_T",
-    "$modal_system_S4",
-    "$modal_system_S5"
-]
-quantification_list = [
-    "$constant",
-    "$varying",
-    "$cumulative",
-    #"$decreasing"
-]
-consequence_list = [
-    "$local"#,
-    #"$global"
-]
-constants_list = [
-    "$rigid"
-]
-transformation_parameter_list = [
-    "semantic_modality_axiomatization",
-    "semantic_monotonic_quantification",
-    "semantic_antimonotonic_quantification"
-    #"syntactic_modality_axiomatization",
-    #"syntactic_monotonic_quantification",
-    #"syntactic_antimonotonic_quantification"
-]
-#semantic_modality_axiomatization semantic_monotonic_quantification semantic_antimonotonic_quantification
-#transformation_parameter_list = [ # old params
-#    "semantical_modality_axiomatization"
-#]
 ###############################################################
 # filter for problems
 ###############################################################
 
+init(qmltp_path)
 problem_white_filter = None
 #problem_white_filter = cumul_interesting_problems
 problem_black_filter = None
 #problem_black_filter = qmltp_problems_containing_equality
 
-
-###############################################################
-# output file
-###############################################################
-
-save_file = "/home/tg/embed_modal/eval/output.csv"
-# file -> system -> quantsemn
-log_file = "/home/tg/embed_modal/eval/log.csv"
 
 ###############################################################
 # execution
