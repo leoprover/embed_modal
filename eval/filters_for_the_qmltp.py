@@ -23,7 +23,7 @@ def get_different_cumul_status():
                     ret[problem_name] = system_dict
     return ret
 
-
+# found with filter_for_equality_operator.py
 qmltp_problems_containing_equality = [
     "SYM052+1.p",
     "SYM055+1.p",
@@ -81,6 +81,8 @@ qmltp_problems_containing_equality = [
     "GSV106+1.p",
     "GSV107+1.p"]
 
+# found using filter_for_problems_without_modal_operators
+# also identical with the list found using prover_input_error on an embedding, that does not handle non-modal problems
 qmltp_problems_without_modal_operators = [
     "NLP001+1.p",
     "NLP002+1.p",
