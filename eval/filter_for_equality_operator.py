@@ -59,8 +59,9 @@ class HmfEqualityListener(HmfListener):
 def main():
     qmltp_path = sys.argv[1]
     problem_file_list = common.get_problem_file_list(qmltp_path)
-    problem_white_filter = filters_for_the_qmltp.qmltp_problems_containing_equality
-    problem_black_filter = []
+    #problem_white_filter = filters_for_the_qmltp.qmltp_problems_containing_equality
+    problem_white_filter = None
+    problem_black_filter = None
     problems_with_equalities = []
 
     for f in problem_file_list:
