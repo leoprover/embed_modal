@@ -24,11 +24,11 @@ bin_embed = "java -jar /home/tg/embed_modal/embed/target/embed-1.0-SNAPSHOT-shad
 
 def run_local_prover_helper(prover_command, problem, wc_limit, cpu_limit):
     # create temp file
-    filename = create_temp_file(problem)
+    filename = common.create_temp_file(problem)
 
     #  execute prover command with tree limited run on temp file
     cmd = prover_command.replace("%s",filename).replace("%d",str(wc_limit))
-    stdout,stderr,returncode = execute_treelimitedrun(cmd, wc_limit, cpu_limit)
+    stdout,stderr,returncode = common.execute_treelimitedrun(bin_treelimitedrun,cmd, wc_limit, cpu_limit)
 
     # delete temp file
     try:
@@ -44,9 +44,9 @@ def run_local_prover_helper(prover_command, problem, wc_limit, cpu_limit):
     #print(stderr)
 
     try:
-        szs_status = parse_szs_status(str_stdout)
-        wc = parse_wc(str_stdout)
-        cpu = parse_cpu(str_stdout)
+        szs_status = common.parse_szs_status(str_stdout)
+        wc = common.parse_wc(str_stdout)
+        cpu = common.parse_cpu(str_stdout)
     except:
         szs_status = "TimeoutExecution"
         wc = str(prover_wc_limit)
@@ -64,121 +64,27 @@ def run_local_prover_helper(prover_command, problem, wc_limit, cpu_limit):
     return send_data
 
 
-def embed(problem,params,semantics,wc_limit,cpu_limit):
-    semantics_to_prepend = create_semantics(semantics['system'],semantics['quantification'],semantics['consequence'],semantics['constants'])
 
-
-    filecontent =  semantics_to_prepend + "\n" + problem
-
-    # create temp files
-    filename_original = create_temp_file(filecontent) # TODO pass semantics through cli somehow or strip semantics from problem first
-    filename_embedded = create_temp_file("")
-
-    #  execute prover command with tree limited run on temp file
-    cmd = str(bin_embed) + " -i " + filename_original + " -o " + filename_embedded
-    if len(params) != 0:
-        cmd += " -t " + ",".join(params)
-    stdout, stderr, returncode = execute_treelimitedrun(cmd, wc_limit, cpu_limit)
-    str_stdout = stdout.decode('utf-8')
-    str_err = stderr.decode('utf-8')
-    str_returncode = str(returncode)
-    try:
-        fd = open(filename_embedded,"r")
-        problem_embedded = fd.read()
-    except:
-        send_data = {}
-        send_data['status'] = 'error_output_file_not_readable'
-        send_data['raw'] = str_stdout + "\n" + str_err
-        send_data['return_code'] = str_returncode
-        return send_data
-    finally:
-        try:
-            fd.close()
-        except:
-            pass
-
-    # delete temp files
-    try:
-        os.remove(filename_original)
-    except:
-        pass
-    try:
-        os.remove(filename_embedded)
-    except:
-        pass
-
-    # extract information from embedding console
-    wc = parse_wc(str_stdout)
-    cpu = parse_cpu(str_stdout)
-
-    # success data
-    send_data = {}
-    send_data['status'] = 'ok'
-    send_data['wc'] = wc
-    send_data['cpu'] = cpu
-    send_data['problem'] = problem
-    send_data['raw'] = str_stdout + "\n" + str_err
-    send_data['console'] = str_stdout + "\n" + str_err
-    send_data['return_code'] = str_returncode
-    send_data['semantics'] = semantics
-    send_data['embedded_problem'] = problem_embedded
-    return send_data
 
 ##############################
 # here come the helper methods
 ##############################
 
-def parse_cpu(s):
-    cpu_start = s.find("FINAL WATCH:") + 12
-    cpu_end = s.find("CPU")
-    return s[cpu_start:cpu_end].strip()
 
-def parse_wc(s):
-    wc_start = s.find("CPU") + 3
-    wc_end = s.find("WC")
-    return s[wc_start:wc_end].strip()
 
-def parse_szs_status(s):
-    status_start = s.find("SZS status")
-    if status_start == -1:
-        raise OutputNotInterpretable("status_start == -1")
-    status_start += 10
-    s = s[status_start:].strip()
-    status_end = s.find(" ")
-    return s[:status_end].strip()
 
-def execute_treelimitedrun(cmd,wc_limit,cpu_limit):
-    newcmd = str(bin_treelimitedrun) + " " + str(cpu_limit+3) + " " + str(wc_limit+3) + " " + cmd
-    process = subprocess.Popen(newcmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-    process.wait()
-    stdout, stderr = process.communicate()
-    return stdout, stderr, process.returncode
 
-def create_temp_file(content):
-    fd, filename = tempfile.mkstemp()
-    os.write(fd,content.encode('utf-8'))
-    os.close(fd)
-    return filename
+
 
 def run_embedding_and_prover(problem,embedding_parameters, embedding_semantics, embedding_wc_limit, embedding_cpu_limit,
                              prover_command, prover_wc_limit, prover_cpu_limit):
-    embedding_ret = embed(problem, embedding_parameters, embedding_semantics, embedding_wc_limit, embedding_cpu_limit)
+    embedding_ret = common.embed(bin_treelimitedrun, bin_embed,problem, embedding_parameters, embedding_semantics, embedding_wc_limit, embedding_cpu_limit)
     #print(embedding_ret)
     prover_ret = run_local_prover_helper(prover_command, embedding_ret['embedded_problem'],prover_wc_limit, prover_cpu_limit)
     #print(prover_ret)
     return embedding_ret, prover_ret
 
-def create_semantics(system,quantification,consequence,constants):
-    ret = """thf(simple_s5,logic,(
-    $modal :=
-        [   
-            $constants := {0},
-            $quantification := {1},
-            $consequence := {2},
-            $modalities := {3}
-        ] 
-)).""".format(constants,quantification,consequence,system)
-    return ret
+
 
 # filename, prover, status, wc_time, cpu_time, system, quantification, consequence, constants, transformation_parameter_list
 def get_proving_results_from_problem_file_list(callback, prover_name, prover_command, prover_wc_limit, prover_cpu_limit,
@@ -231,6 +137,12 @@ def debug_print_line(line,e,r):
         log("szs_match")
     else:
         log("szs_nomatch")
+    log("### prover stdout")
+    log(r['raw'].replace("\\n","\n"))
+    log("### embedding stdout")
+    log(e['raw'].replace("\\n","\n"))
+    log("### embedded problem")
+    log(e['embedded_problem'])
     if \
             prove_status != "TimeoutExecution" and \
             prove_status != "Timeout" and \
@@ -238,14 +150,9 @@ def debug_print_line(line,e,r):
             qmltp_szs_status in ["Theorem","Non-Theorem","CounterSatisfiable"] and \
             qmltp_szs_status != prove_status:
         log("### ERROR: status does not match!")
-        log("### embedding stdout")
-        log(e['raw'].replace("\\n","\n"))
-        log("### prover stdout")
-        log(r['raw'].replace("\\n","\n"))
         log("### original problem")
         log(e['problem'])
-        log("### embedded problem")
-        log(e['embedded_problem'])
+
     log("====================================================================================")
 
 
@@ -339,9 +246,27 @@ qmltp_path = "/home/tg/data/QMLTP/qmltp_thf_no_mml"
 ###############################################################
 
 prover_name = "leo3 1.3"
-prover_command = "leo3 %s -t %d"
-prover_wc_limit = 30
-prover_cpu_limit = 30
+#prover_command = "leo3 %s -t %d"
+#prover_command = "java -Xss128m -Xmx4g -Xms1g -jar /home/tg/starexec/uberleo/leo3.jar %s -t %d " \
+#                 "--atp iprover=/home/tg/starexec/uberleo/externals/iprover " \
+#                 "--atp e=/home/tg/starexec/uberleo/externals/eprover " \
+#                 "--atp cvc4=/home/tg/starexec/uberleo/externals/cvc4-1.7-x86_64-linux-opt " \
+#                 "--atp vampire=/home/tg/starexec/uberleo/externals/vampire " \
+#                 "--atp-max-jobs 2 " \
+#                 "--atp-timeout cvc4=30 " \
+#                 "--atp-timeout e=30 " \
+#                 "--atp-timeout vampire=30 " \
+#                 "--atp-timeout iprover=30 " \
+#                 "--atp-debug "
+prover_command = "java -Xss128m -Xmx4g -Xms1g -jar /home/tg/starexec/uberleo/leo3.jar %s -t %d " \
+                     "--atp e=/home/tg/starexec/uberleo/externals/eprover " \
+                     "--atp cvc4=/home/tg/starexec/uberleo/externals/cvc4-1.7-x86_64-linux-opt " \
+                     "--atp-max-jobs 2 " \
+                     "--atp-timeout cvc4=30 " \
+                     "--atp-timeout e=30 " \
+                     "--atp-debug "
+prover_wc_limit = 120
+prover_cpu_limit = 120
 embedding_wc_limit = 600
 embedding_cpu_limit = 3600
 #prover_wc_limit = 6
