@@ -18,7 +18,9 @@ public class TransformContext {
     public final ThfAnalyzer thfAnalyzer;
     public final SemanticsAnalyzer semanticsAnalyzer;
 
-    protected TransformContext(String modalDefintions, String auxiliaryDefinitions, List<Node> userTypes, Node originalRoot, Node transformedRoot, ThfAnalyzer thfAnalyzer, SemanticsAnalyzer semanticsAnalyzer){
+    protected TransformContext(String modalDefintions, String auxiliaryDefinitions, List<Node> userTypes,
+                               Node originalRoot, Node transformedRoot,
+                               ThfAnalyzer thfAnalyzer, SemanticsAnalyzer semanticsAnalyzer){
         this.modalDefintions = modalDefintions;
         this.auxiliaryDefinitions = auxiliaryDefinitions;
         this.userTypes = userTypes;
