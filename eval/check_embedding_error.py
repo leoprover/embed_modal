@@ -3,17 +3,17 @@ import sys
 import filters_for_the_qmltp
 
 system_list = [
-    "$modal_system_K",
-    "$modal_system_D",
-    "$modal_system_T",
-    "$modal_system_S4",
+    #"$modal_system_K",
+    #"$modal_system_D",
+    #"$modal_system_T",
+    #"$modal_system_S4",
     "$modal_system_S5"
 ]
 quantification_list = [
-    #"$constant"
-    #"$varying",
-    "$cumulative"
-    #"$decreasing"
+    "$constant",
+    "$varying",
+    "$cumulative",
+    "$decreasing"
 ]
 consequence_list = [
     "$local"#,
@@ -34,7 +34,8 @@ transformation_parameter_list = [
 bin_treelimitedrun = "/home/tg/eval/TreeLimitedRun"
 bin_embed = "java -jar /home/tg/embed_modal/embed/target/embed-1.0-SNAPSHOT-shaded.jar"
 problem_black_filter = None
-problem_white_filter = filters_for_the_qmltp.qmltp_problems_without_modal_operators
+#problem_white_filter = filters_for_the_qmltp.qmltp_problems_without_modal_operators
+problem_white_filter = None
 embedding_wc_limit = 600
 embedding_cpu_limit = 3600
 qmltp_path = sys.argv[1]
