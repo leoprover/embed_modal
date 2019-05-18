@@ -7,7 +7,7 @@ import csv
 import datetime
 import sys
 from extract_qmltp_info import extract_qmltp_info_from_problem_to_dict
-from filters_for_the_qmltp import cumul_interesting_problems,qmltp_problems_containing_equality, init
+from filters_for_the_qmltp import cumul_interesting_problems,qmltp_problems_containing_equality, init, qmltp_problems_without_modal_operators
 
 class OutputNotInterpretable(Exception):
     def __init__(self, msg):
@@ -236,8 +236,8 @@ transformation_parameter_list = [
 # paths
 ###############################################################
 
-save_file = "/home/tg/embed_modal/eval/result_leo_semm_synq.csv"
-log_file = "/home/tg/embed_modal/eval/result_leo_semm_synq.log.csv"
+save_file = "/home/tg/embed_modal/eval/result_leo_nonmodal.csv"
+log_file = "/home/tg/embed_modal/eval/result_leo_nonmodal.log.csv"
 qmltp_path = "/home/tg/data/QMLTP/qmltp_thf_no_mml"
 
 
@@ -282,8 +282,9 @@ problem_file_list = common.get_problem_file_list(qmltp_path)
 ###############################################################
 
 init(qmltp_path)
-problem_white_filter = None
+problem_white_filter = qmltp_problems_without_modal_operators
 #problem_white_filter = cumul_interesting_problems
+#problem_white_filter = None
 problem_black_filter = None
 #problem_black_filter = qmltp_problems_containing_equality
 
