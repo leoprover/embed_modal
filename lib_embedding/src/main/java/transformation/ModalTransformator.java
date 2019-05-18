@@ -70,8 +70,8 @@ public class ModalTransformator {
     private static final Logger log = Logger.getLogger( "default" );
     private boolean logging;
 
-    private final Node originalRoot;
-    private Node transformedRoot;
+    private final Node transformedRoot;
+    private Node originalRoot;
     public ThfAnalyzer thfAnalyzer;
     public SemanticsAnalyzer semanticsAnalyzer;
     private Set<TransformationParameter> transformationParameters;
@@ -107,8 +107,8 @@ public class ModalTransformator {
     }
 
     public ModalTransformator(Node root, Set<TransformationParameter> transformationParameters){
-        this.originalRoot = root.deepCopy();
-        this.transformedRoot = root;
+        this.transformedRoot = root.deepCopy();
+        this.originalRoot = root;
         typesExistsQuantifiers = new HashSet<>();
         typesForAllQuantifiers = new HashSet<>();
         typesForVaryingQuantifiers = new HashSet<>();
@@ -133,9 +133,9 @@ public class ModalTransformator {
         String paramsContradictoryReason = transformationParameterSetIsNotContradictory(this.transformationParameters);
         if (paramsContradictoryReason != null) throw new TransformationException(paramsContradictoryReason);
 
-        this.thfAnalyzer = new ThfAnalyzer(this.originalRoot);
+        this.thfAnalyzer = new ThfAnalyzer(this.transformedRoot);
         this.thfAnalyzer.analyze();
-        this.semanticsAnalyzer = new SemanticsAnalyzer(this.originalRoot, this.thfAnalyzer.semanticsNodes);
+        this.semanticsAnalyzer = new SemanticsAnalyzer(this.transformedRoot, this.thfAnalyzer.semanticsNodes);
         this.semanticsAnalyzer.analyzeModalSemantics();
         return this.actualTransformation();
     }
@@ -170,7 +170,36 @@ public class ModalTransformator {
     private TransformContext actualTransformation() throws TransformationException, AnalysisException {
 
         // collect all symbols to avoid variable capture when defining new bound variabls
-        this.originalRoot.getLeafsDfs().forEach(n->this.usedSymbols.add(n.getLabel()));
+        this.transformedRoot.getLeafsDfs().forEach(n->this.usedSymbols.add(n.getLabel()));
+
+        // if problem does not contain any modal operators return optimized embedding which is the identity
+        boolean modalityFound = false;
+        for (Node t : this.transformedRoot.getLeafsDfs()) {
+            if ((t.getLabel().contains("$box")) || (t.getLabel().contains("$dia"))) {
+                System.out.println("modality found!");
+                modalityFound = true;
+                break;
+            }
+        }
+        if (!modalityFound) {
+            // remove semantic thf sentences
+            for (Node thf : this.thfAnalyzer.semanticsNodes){
+                Node semanticalRoot = thf.getParent().getParent().getParent(); // tPTP_input
+                System.out.println("SEMANTIC ROOT:" + semanticalRoot.toStringLeafs());
+                Node parent = semanticalRoot.getParent(); // tPTP_file
+                parent.delChild(semanticalRoot);
+            }
+            System.out.println("............transformed......................");
+            System.out.println(this.originalRoot.toStringWithLinebreaks());
+            System.out.println("........original.........................");
+            System.out.println(this.transformedRoot.toStringWithLinebreaks());
+            System.out.println("....................................");
+            return new TransformContext("","",
+                    new ArrayList<>(),this.originalRoot,this.transformedRoot,
+                    this.thfAnalyzer,this.semanticsAnalyzer);
+        } else {
+            System.out.println("could find a modality");
+        }
 
         // transform role type
         for (Node type_statement : thfAnalyzer.typeRoleToNode.values()) {
@@ -300,7 +329,7 @@ public class ModalTransformator {
             }
         }
 
-        // remove semantical thf sentences
+        // remove semantic thf sentences
         for (Node thf : this.thfAnalyzer.semanticsNodes){
             Node semanticalRoot = thf.getParent().getParent().getParent(); // tPTP_input
             Node parent = semanticalRoot.getParent(); // tPTP_file
@@ -314,7 +343,8 @@ public class ModalTransformator {
         // extract user types (sorts with $tType) to be placed in front of problem
         extractUserTypes();
 
-        return new TransformContext(modalDefinitions, auxiliaryDefinitions, this.userTypes, this.transformedRoot, this.originalRoot, this.thfAnalyzer, this.semanticsAnalyzer);
+        return new TransformContext(modalDefinitions, auxiliaryDefinitions, this.userTypes, this.originalRoot, this.transformedRoot, this.thfAnalyzer, this.semanticsAnalyzer);
+
     }
 
     /***********************************************************************************
