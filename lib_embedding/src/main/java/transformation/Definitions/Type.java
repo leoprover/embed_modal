@@ -69,8 +69,7 @@ public class Type {
         return truthType;
     }
 
-    private static String escapeType(String type){
-        String normalizedType = normalizeType(type);
+    private static String escapeType(String normalizedType){
         return normalizedType
                 .replaceAll("[$]","_d_")
                 .replaceAll("[>]","_t_")

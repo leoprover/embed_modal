@@ -176,7 +176,6 @@ public class ModalTransformator {
         boolean modalityFound = false;
         for (Node t : this.transformedRoot.getLeafsDfs()) {
             if ((t.getLabel().contains("$box")) || (t.getLabel().contains("$dia"))) {
-                System.out.println("modality found!");
                 modalityFound = true;
                 break;
             }
@@ -185,20 +184,12 @@ public class ModalTransformator {
             // remove semantic thf sentences
             for (Node thf : this.thfAnalyzer.semanticsNodes){
                 Node semanticalRoot = thf.getParent().getParent().getParent(); // tPTP_input
-                System.out.println("SEMANTIC ROOT:" + semanticalRoot.toStringLeafs());
                 Node parent = semanticalRoot.getParent(); // tPTP_file
                 parent.delChild(semanticalRoot);
             }
-            System.out.println("............transformed......................");
-            System.out.println(this.originalRoot.toStringWithLinebreaks());
-            System.out.println("........original.........................");
-            System.out.println(this.transformedRoot.toStringWithLinebreaks());
-            System.out.println("....................................");
             return new TransformContext("","",
                     new ArrayList<>(),this.originalRoot,this.transformedRoot,
                     this.thfAnalyzer,this.semanticsAnalyzer);
-        } else {
-            System.out.println("could find a modality");
         }
 
         // transform role type
@@ -786,11 +777,6 @@ public class ModalTransformator {
                             domRestr.add(Quantification.cumulative_semantic_axiom_th0(type));
                         }
                         else if (transformationParameters.contains(TransformationParameter.SYNTACTIC_MONOTONIC_QUANTIFICATION)) {
-                            //thf(4,axiom, (![Phi:($i>$o)]: (
-                            //    ( $box @ ( ![X:$i] : (Phi @ X) ) )
-                            //    =>
-                            //    ( ![X:$i] : ( $box @ (Phi @ X) ) )
-                            //))).
                             // prerequisites for converse barcan formula
                             additionalConnectivesFromSyntacticEmbedding.add("mimplies"); // implication operator
                             additionalModalitiesFromSyntacticEmbedding.add(Connectives.box_unimodal); // box operator
@@ -804,7 +790,13 @@ public class ModalTransformator {
                             domRestr.add(Quantification.decreasing_semantic_axiom_th0(type));
                         }
                         else if (transformationParameters.contains(TransformationParameter.SYNTACTIC_ANTIMONOTONIC_QUANTIFICATION)) {
-                            // TODO
+                            // prerequisites for barcan formula
+                            additionalConnectivesFromSyntacticEmbedding.add("mimplies"); // implication operator
+                            additionalModalitiesFromSyntacticEmbedding.add(Connectives.box_unimodal); // box operator
+                            additionalVaryingForallQuantifiersFromSyntacticEmbedding.add(Type.getType(type.getliftedNormalizedType())); // varying forall quantifier for (type)
+                            additionalConstantForallQuantifiersFromSyntacticEmbedding.add(Type.getType(type.getNormalizedType()+">$o")); // constant forall quantifier for (type > bool)
+                            // barcan formula
+                            domRestr.add(Quantification.decreasing_syntactic_axiom_th0(type)); // the converse barcan formula for this type
                         }
 
                     } // else nothing, since either constant or unrestricted varying
@@ -842,12 +834,13 @@ public class ModalTransformator {
         eiw_nonempty_types.addAll(additionalVaryingForallQuantifiersFromSyntacticEmbedding);
         if (!eiw_nonempty_types.isEmpty()) {
             def.append("% define exists-in-world predicates for quantified types and non-emptiness axioms\n");
-            for (Type type : typesForVaryingQuantifiers) {
+            for (Type type : eiw_nonempty_types) {
                 def.append(Quantification.eiw_and_nonempty_th0(type));
                 def.append("\n");
             }
             def.append("\n");
         }
+
 
         // introduce exist quantifiers
         Set<Type> typesExistsQuantifiersToDefine = new HashSet<>(typesExistsQuantifiers);
@@ -924,7 +917,7 @@ public class ModalTransformator {
             }
 
             // additional quantifiers needed for syntactic quantification embedding (constant quantifiers)
-            for (Type type : additionalConstantForallQuantifiersFromSyntacticEmbedding) { // vary forall from syntactic embedding
+            for (Type type : additionalConstantForallQuantifiersFromSyntacticEmbedding) { // constant forall from syntactic embedding
                 if (typesForAllQuantifiers.contains(type)){
                     SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(type.getNormalizedType());
                     if (domainType != SemanticsAnalyzer.DomainType.CONSTANT) {
