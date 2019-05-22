@@ -129,7 +129,10 @@ def debug_print_line(line,e,r):
     problem_status = extract_qmltp_info_from_problem_to_dict(e['problem'])
     system = e['semantics']['system']
     quant = e['semantics']['quantification']
-    qmltp_szs_status = problem_status[system][quant]
+    if system == "$modal_system_S5U":
+        qmltp_szs_status = problem_status["$modal_system_S5"][quant]
+    else:
+        qmltp_szs_status = problem_status[system][quant]
     prove_status = r['szs_status']
     log("qmltp szs:  ",qmltp_szs_status)
     log("prover szs: ",prove_status)
@@ -200,16 +203,17 @@ def already_processed(filename,system,quantification):
 ###############################################################
 
 system_list = [
-    "$modal_system_K",
-    "$modal_system_D",
-    "$modal_system_T",
-    "$modal_system_S4",
-    "$modal_system_S5"
+    #"$modal_system_K",
+    #"$modal_system_D",
+    #"$modal_system_T",
+    #"$modal_system_S4",
+    #"$modal_system_S5",
+    "$modal_system_S5U"
 ]
 quantification_list = [
-    #"$constant",
-    #"$varying",
-    "$cumulative"
+    "$constant",
+    "$varying",
+    "$cumulative",
     #"$decreasing"
 ]
 consequence_list = [
@@ -220,10 +224,10 @@ constants_list = [
     "$rigid"
 ]
 transformation_parameter_list = [
-    "semantic_modality_axiomatization",
+    #"semantic_modality_axiomatization",
     #"semantic_monotonic_quantification",
     "semantic_antimonotonic_quantification",
-    #"syntactic_modality_axiomatization",
+    "syntactic_modality_axiomatization",
     "syntactic_monotonic_quantification"
     #"syntactic_antimonotonic_quantification"
 ]
@@ -236,8 +240,8 @@ transformation_parameter_list = [
 # paths
 ###############################################################
 
-save_file = "/home/tg/embed_modal/eval/result_leo_nonmodal.csv"
-log_file = "/home/tg/embed_modal/eval/result_leo_nonmodal.log.csv"
+save_file = "/home/tg/embed_modal/eval/result_leo_s5u_syn.csv"
+log_file = "/home/tg/embed_modal/eval/result_leo_s5u_syn.log.csv"
 qmltp_path = "/home/tg/data/QMLTP/qmltp_thf_no_mml"
 
 
@@ -282,9 +286,9 @@ problem_file_list = common.get_problem_file_list(qmltp_path)
 ###############################################################
 
 init(qmltp_path)
-problem_white_filter = qmltp_problems_without_modal_operators
+#problem_white_filter = qmltp_problems_without_modal_operators
 #problem_white_filter = cumul_interesting_problems
-#problem_white_filter = None
+problem_white_filter = None
 problem_black_filter = None
 #problem_black_filter = qmltp_problems_containing_equality
 
