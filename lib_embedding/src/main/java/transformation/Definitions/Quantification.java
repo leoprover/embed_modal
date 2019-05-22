@@ -169,18 +169,16 @@ public class Quantification {
 
     /** Syntactic Axiom for cumulative domains for type `type`. */
     public static String cumulative_syntactic_axiom_th0(Type type) {
-
+        // TODO alter for multimodal systems
         String identifier = "cumul_syntactic_" + type.getLiftedEscapedType();
+        // example for type $i
         //thf(4,axiom, (![Phi:($i>$o)]: (
         //    ( $box @ ( ![X:$i] : (Phi @ X) ) )
         //    =>
         //    ( ![X:$i] : ( $box @ (Phi @ X) ) )
         //))).
         String converseBarcan = "![P:" + type.getNormalizedType() + ">$o]: (($box @ (![X:" + type.getNormalizedType() + "]: (P @ X))) => (![X:" + type.getNormalizedType() + "]: ($box @ (P @ X)))))";
-        System.out.println("# CONVERSE BARCAN");
-        System.out.println(converseBarcan);
         String converseBarcanTHF = "thf(" + identifier + ", axiom, (" + converseBarcan + ")).";
-        System.out.println(converseBarcanTHF);
         String semantics = "thf(simple_s5,logic,(\n" +
                 "    $modal :=\n" +
                 "      [ $constants := $rigid,\n" +
@@ -189,18 +187,12 @@ public class Quantification {
                 "        $modalities := $modal_system_K\n" +
                 "      ] )).";
         try {
-            //System.out.println("========= BEGIN INTER");
-            //System.out.println("========= normalized type: " + type.getNormalizedType());
             TransformContext tc = Wrappers.convertModalStringToContext(converseBarcanTHF,identifier, null,null,null, semantics);
             String embeddedConverseBarcanTHF = tc.transformedRoot.toStringWithLinebreaks();
-            //System.out.println("========= CBF: " + converseBarcan);
-            //System.out.println("========= embedded: " + embeddedConverseBarcanTHF);
-            //System.out.println("========= END INTER");
             return embeddedConverseBarcanTHF;
         } catch (ParseException | IOException | AnalysisException e) {
             e.printStackTrace();
             System.out.println(e.getMessage());
-            //throw new TransformationException(e);
         } catch (TransformationException e) {
             e.printStackTrace();
             System.out.println(e.getMessage());
@@ -239,7 +231,36 @@ public class Quantification {
     }
 
     /** Syntactic Axiom for decreasing domains for type `type`. */
-    public static String decreasing_syntactic_axiom_th0(String normalizedType) {
+    public static String decreasing_syntactic_axiom_th0(Type type) {
+        // TODO alter for multimodal systems
+        String identifier = "decre_syntactic_" + type.getLiftedEscapedType();
+        // example for type $i
+        //thf(4,axiom, (![Phi:($i>$o)]: (
+        //    ( ![X:$i] : ( $box @ (Phi @ X) ) )
+        //    =>
+        //    ( $box @ ( ![X:$i] : (Phi @ X) ) )
+        //))).
+        String barcan = "![P:" + type.getNormalizedType() + ">$o]: ((![X:" + type.getNormalizedType() + "]: ($box @ (P @ X))) => ($box @ (![X:" + type.getNormalizedType() + "]: (P @ X))))";
+        String barcanTHF = "thf(" + identifier + ", axiom, (" + barcan + ")).";
+        String semantics = "thf(simple_s5,logic,(\n" +
+                "    $modal :=\n" +
+                "      [ $constants := $rigid,\n" +
+                "        $quantification := [$constant," + type.getNormalizedType() + " := $varying],\n" +
+                "        $consequence := $global,\n" +
+                "        $modalities := $modal_system_K\n" +
+                "      ] )).";
+        try {
+            TransformContext tc = Wrappers.convertModalStringToContext(barcanTHF,identifier, null,null,null, semantics);
+            String embeddedBarcanTHF = tc.transformedRoot.toStringWithLinebreaks();
+            return embeddedBarcanTHF;
+        } catch (ParseException | IOException | AnalysisException e) {
+            e.printStackTrace();
+            System.out.println(e.getMessage());
+            //throw new TransformationException(e);
+        } catch (TransformationException e) {
+            e.printStackTrace();
+            System.out.println(e.getMessage());
+        }
         assert(false);
         return null;
     }
@@ -247,28 +268,22 @@ public class Quantification {
     /** Declaration of varying domain quantifier */
     public static String mforall_varying_th0(Type type){
         StringBuilder sb = new StringBuilder();
-        // concrete type sentence from
-        // thf( mforall_const_type , type , ( mforall_const : !> [T:$tType] : (T > " + w + " > $o) > " + w + " > $o ) ).
         sb.append("thf(mforall_vary_type_");
         sb.append(type.getLiftedEscapedType());
         sb.append(" , type , ( mforall_vary_");
         sb.append(type.getLiftedEscapedType());
         sb.append(" : ( ( ( ");
-        sb.append(type.getNormalizedType());
+        sb.append(type.getliftedNormalizedType());
         sb.append(" ) > ( " + w + " > $o ) ) > " + w + " > $o ) ) ).");
         sb.append("\n");
-        // concrete definition sentence from
-        // thf( mforall_const , definition , ( mforall_const = (
-        // ^ [A:T>" + w + ">$o,W:" + w + "] : ! [X:T] : ((eiw  @ X @ W) => (A @ X @ W))
-        //        ))).
         sb.append("thf(mforall_vary_");
         sb.append(type.getLiftedEscapedType());
         sb.append(" , definition , ( mforall_vary_");
         sb.append(type.getLiftedEscapedType());
         sb.append(" = ( ^ [A:(");
-        sb.append(type.getNormalizedType());
+        sb.append(type.getliftedNormalizedType());
         sb.append(")>" + w + ">$o,W:" + w + "] : ! [X:(");
-        sb.append(type.getNormalizedType());
+        sb.append(type.getliftedNormalizedType());
         sb.append(")] : ((eiw_");
         sb.append(type.getLiftedEscapedType());
         sb.append(" @ X @ W) => (A @ X @ W))");
@@ -287,10 +302,6 @@ public class Quantification {
         sb.append(type.getliftedNormalizedType());
         sb.append(" ) > ( " + w + " > $o ) ) > " + w + " > $o ) ) ).");
         sb.append("\n");
-        // concrete definition sentence from
-        // thf( mexists_const , definition , ( mexists_const = (
-        // ^ [A:T>" + w + ">$o,W:" + w + "] : ? [X:T] : ((eiw  @ X @ W) & (A @ X @ W))
-        //        ))).
         sb.append("thf(mexists_vary_");
         sb.append(type.getLiftedEscapedType());
         sb.append(" , definition , ( mexists_vary_");
@@ -311,5 +322,12 @@ public class Quantification {
      * Varying Quantification TH1
      ***************************************************************************/
     // TODO
+    // thf( mforall_const_type , type , ( mforall_const : !> [T:$tType] : (T > " + w + " > $o) > " + w + " > $o ) ).
+    // thf( mforall_const , definition , ( mforall_const = (
+    // ^ [A:T>" + w + ">$o,W:" + w + "] : ! [X:T] : ((eiw  @ X @ W) => (A @ X @ W))
+    //        ))).
+    // thf( mexists_const , definition , ( mexists_const = (
+    // ^ [A:T>" + w + ">$o,W:" + w + "] : ? [X:T] : ((eiw  @ X @ W) & (A @ X @ W))
+    //        ))).
 
 }
