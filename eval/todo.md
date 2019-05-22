@@ -6,14 +6,17 @@
 * implement syntactic embedding for decreasing
 * test barcan for decreasing
 * CHECK dataset: find problems with native =/!=
-* test S5U (constant, cumul_sem, cumul_syn, vary)
 * dataset: replace =/!= by other symbol for problems with native =
 * dataset: test problems with replaced =/!=
+* CHECK test S5U (constant, cumul_sem, cumul_syn, vary)
 
-# another benchmark (optional)
+# another benchmark I (optional)
 * dataset: find problems with axiomatized equality
+* dataset: find the common axioms
 * dataset: replace problems containing axiomatized equality with native equality
 * dataset: test problems with native equality
+
+# another benchmark II (optional)
 * implement TH1
 * find TH1 provers
 * test TH1
@@ -33,7 +36,10 @@
 
 ## Configurations
 (minimum)
-K,D,T,S4,S5,S5U x local x constant,vary,cumul_sem,cumul_syn
+K_syn,D_syn,T_syn,S4_syn,S5_syn,
+K_sem,D_sem,T_sem,S4_sem,S5_sem,
+S5U (can we optimize here?)
+x local x constant,vary,cumul_sem,cumul_syn
 
 (optional)
 global, decreasing

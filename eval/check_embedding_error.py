@@ -7,13 +7,14 @@ system_list = [
     #"$modal_system_D",
     #"$modal_system_T",
     #"$modal_system_S4",
-    "$modal_system_S5"
+    #"$modal_system_S5",
+    "$modal_system_S5U"
 ]
 quantification_list = [
     "$constant",
     "$varying",
     "$cumulative",
-    "$decreasing"
+    #"$decreasing"
 ]
 consequence_list = [
     "$local"#,
@@ -24,10 +25,10 @@ constants_list = [
 ]
 transformation_parameter_list = [
     "semantic_modality_axiomatization",
-    #"semantic_monotonic_quantification",
+    "semantic_monotonic_quantification",
     "semantic_antimonotonic_quantification",
     #"syntactic_modality_axiomatization",
-    "syntactic_monotonic_quantification"
+    #"syntactic_monotonic_quantification"
     #"syntactic_antimonotonic_quantification"
 ]
 

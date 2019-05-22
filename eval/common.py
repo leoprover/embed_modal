@@ -100,11 +100,14 @@ def create_dict_from_problems(problem_list):
     for p in problem_list:
         if not p.filename in ret:
             ret[p.filename] = {}
-        if not p.system in ret[p.filename]:
-            ret[p.filename][p.system] = {}
-        if not p.quantification in ret[p.filename][p.system]:
-            ret[p.filename][p.system][p.quantification] = []
-        ret[p.filename][p.system][p.quantification].append(p)
+        system = p.system
+        if system == "$modal_system_S5U":
+            system = "$modal_system_S5"
+        if not system in ret[p.filename]:
+            ret[p.filename][system] = {}
+        if not p.quantification in ret[p.filename][system]:
+            ret[p.filename][system][p.quantification] = []
+        ret[p.filename][system][p.quantification].append(p)
     return ret
 
 def iterate_dict(problem_dict, callback, *callback_args):
