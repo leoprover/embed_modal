@@ -207,11 +207,11 @@ system_list = [
     #"$modal_system_D",
     #"$modal_system_T",
     #"$modal_system_S4",
-    #"$modal_system_S5",
-    "$modal_system_S5U"
+    "$modal_system_S5",
+    #"$modal_system_S5U"
 ]
 quantification_list = [
-    "$constant",
+    #"$constant",
     "$varying",
     "$cumulative",
     #"$decreasing"
@@ -224,12 +224,12 @@ constants_list = [
     "$rigid"
 ]
 transformation_parameter_list = [
-    #"semantic_modality_axiomatization",
+    "semantic_modality_axiomatization",
     #"semantic_monotonic_quantification",
-    "semantic_antimonotonic_quantification",
-    "syntactic_modality_axiomatization",
+    #"semantic_antimonotonic_quantification",
+    #"syntactic_modality_axiomatization",
     "syntactic_monotonic_quantification"
-    #"syntactic_antimonotonic_quantification"
+    "syntactic_antimonotonic_quantification"
 ]
 #semantic_modality_axiomatization semantic_monotonic_quantification semantic_antimonotonic_quantification
 #transformation_parameter_list = [ # old params
@@ -240,8 +240,8 @@ transformation_parameter_list = [
 # paths
 ###############################################################
 
-save_file = "/home/tg/embed_modal/eval/result_leo_s5u_syn.csv"
-log_file = "/home/tg/embed_modal/eval/result_leo_s5u_syn.log.csv"
+save_file = "/home/tg/embed_modal/eval/result_leo_semm_synq.csv"
+log_file = "/home/tg/embed_modal/eval/result_leo_semm_synq.log.csv"
 qmltp_path = "/home/tg/data/QMLTP/qmltp_thf_no_mml"
 
 

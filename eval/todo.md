@@ -2,9 +2,12 @@
 * CHECK find non-modal problems
 * CHECK implement embedding for non-modal problems 
 * CHECK test embedding for non-modal problems
-* CHECK test syntactic embedding for cumulative
-* implement syntactic embedding for decreasing
-* test barcan for decreasing
+* CHECK implement syntactic embedding for decreasing
+* test vary
+* test syn_cumul
+* test sem_cumul
+* test syn_decr
+* test sem_decr
 * CHECK dataset: find problems with native =/!=
 * dataset: replace =/!= by other symbol for problems with native =
 * dataset: test problems with replaced =/!=
