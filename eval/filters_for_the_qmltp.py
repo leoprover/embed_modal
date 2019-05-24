@@ -84,13 +84,6 @@ qmltp_problems_containing_equality = [
 # found with filter_for_equality_operator.py
 # contains only problems that can be fixed (that contain have an axiomatization of equality)
 qmltp_problems_containing_equality_with_axiomatization = [
-    "SYM052+1.p",
-    "SYM055+1.p",
-    "SYM056+1.p",
-    "SYM057+1.p",
-    "SYM064+1.p",
-    "SYM068+1.p",
-    "SYM085+1.p",
     "GSV060+1.p",
     "GSV061+1.p",
     "GSV062+1.p",
