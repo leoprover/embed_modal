@@ -203,10 +203,10 @@ def already_processed(filename,system,quantification):
 ###############################################################
 
 system_list = [
-    #"$modal_system_K",
-    #"$modal_system_D",
-    #"$modal_system_T",
-    #"$modal_system_S4",
+    "$modal_system_K",
+    "$modal_system_D",
+    "$modal_system_T",
+    "$modal_system_S4",
     "$modal_system_S5",
     #"$modal_system_S5U"
 ]
@@ -228,7 +228,7 @@ transformation_parameter_list = [
     #"semantic_monotonic_quantification",
     #"semantic_antimonotonic_quantification",
     #"syntactic_modality_axiomatization",
-    "syntactic_monotonic_quantification"
+    "syntactic_monotonic_quantification",
     "syntactic_antimonotonic_quantification"
 ]
 #semantic_modality_axiomatization semantic_monotonic_quantification semantic_antimonotonic_quantification
@@ -289,8 +289,8 @@ init(qmltp_path)
 #problem_white_filter = qmltp_problems_without_modal_operators
 #problem_white_filter = cumul_interesting_problems
 problem_white_filter = None
-problem_black_filter = None
-#problem_black_filter = qmltp_problems_containing_equality
+#problem_black_filter = None
+problem_black_filter = qmltp_problems_containing_equality
 
 
 ###############################################################
