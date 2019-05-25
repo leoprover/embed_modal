@@ -28,13 +28,13 @@
 # benchmark
 ## Provers
 (minimum)
-* Leo3 with E
+* Leo3 with E+CVC4
 * Nitpick
 
 (optional)
 * Leo3
 * Leo3 with CVC4
-* Leo3 with E+CVC4
+* Leo3 with E
 * Satallax
 * some TH1 provers?
 
