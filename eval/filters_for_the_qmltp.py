@@ -23,6 +23,15 @@ def get_different_cumul_status():
                     ret[problem_name] = system_dict
     return ret
 
+qmltp_problems_invalid = [
+    "SYM052+1.p",
+    "SYM055+1.p",
+    "SYM056+1.p",
+    "SYM057+1.p",
+    "SYM064+1.p",
+    "SYM068+1.p",
+    "SYM085+1.p"
+]
 # found with filter_for_equality_operator.py
 qmltp_problems_containing_equality = [
     "SYM052+1.p",
@@ -82,6 +91,7 @@ qmltp_problems_containing_equality = [
     "GSV107+1.p"]
 
 # found with filter_for_equality_operator.py
+# not complete !!
 # contains only problems that can be fixed (that contain have an axiomatization of equality)
 qmltp_problems_containing_equality_with_axiomatization = [
     "GSV060+1.p",

@@ -67,8 +67,6 @@ def main():
     problem_white_filter = filters_for_the_qmltp.qmltp_problems_containing_equality_with_axiomatization
     #problem_white_filter = ["SYM052+1.p"]
     problem_black_filter = None
-    problems_with_equalities = []
-    problems_unprocessed = []
 
     for f in problem_file_list:
         if problem_white_filter != None and not f.name in problem_white_filter:
@@ -104,15 +102,6 @@ def main():
             with open(outFilePath,"w+") as fhw:
                 fhw.write(newProblem)
 
-        #if listener.containsEquality():
-        #    problems_with_equalities.append(f.name)
-        #    print("contains equality")
-        #break
-    print("=========================================================")
-    print("Problems containing a binary pair with the equality sign:")
-    print("[\"" + "\",\n\"".join(sorted(problems_with_equalities)) + "\"]")
-    print("Problems that could not be processed due to recurions depth exceeded error:")
-    print("[\"" + "\",\n\"".join(sorted(problems_unprocessed)) + "\"]")
 
 if __name__ == '__main__':
     main()
