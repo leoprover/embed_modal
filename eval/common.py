@@ -74,6 +74,68 @@ class Problem:
     def semantic_antimonotonic_quantification(self):
         return "semantic_antimonotonic_quantification" in self.transformation
 
+class Node:
+    def __init__(self,rule,content):
+        self.rule = rule
+        self.content = content
+        self.children = []
+    def getRule(self):
+        return self.rule
+    def getContent(self):
+        return self.content
+    def setContent(self,newContent):
+        self.content = newContent
+    def setParent(self,parent):
+        self.parent = parent
+    def getParent(self):
+        return self.parent
+    def hasChildren(self):
+        return len(self.children) != 0
+    def getChild(self,n):
+        return self.children[n]
+    def addChildBack(self,childNode):
+        self.children.append(childNode)
+        childNode.setParent(self)
+    def addChildFront(self,childNode):
+        self.children = [childNode] + self.children
+    def childCount(self):
+        return len(self.children)
+    def removeChild(self,n):
+        if self.childCount() <= n:
+            self.children = self.children[:n]
+        else:
+            self.children = self.children[:n] + self.children[n+1:]
+    def replaceChild(self,n,newChild):
+        self.children[n] = newChild
+        newChild.setParent(self)
+    def getFirstTerminal(self):
+        current = self
+        while current.hasChildren():
+            current = current.getChild(0)
+        return current
+    def __str__(self):
+        self.strret = ""
+        self.dfs(Node.string_helper,self)
+        ret = self.strret
+        del self.strret
+        return ret.strip()
+    @staticmethod
+    def string_helper(node,root_node):
+        if node.rule == "tPTP_input":
+            root_node.strret += "\n"
+        if not node.hasChildren():
+            root_node.strret += node.getContent()
+    def __repr__(self):
+        return self.__str__()
+    # callbacks have the form mycallback(node,args)
+    def dfs(self,callback,*callback_args):
+        stack = [self]
+        while len(stack) != 0:
+            current = stack.pop()
+            for child in current.children[::-1]:
+                stack.append(child)
+            callback(current,*callback_args)
+
 def read_csv(filename):
     ret = []
     f = open(filename,'r')

@@ -9,9 +9,10 @@
 * test syn_decr
 * test sem_decr
 * CHECK dataset: find problems with native =/!=
-* dataset: replace =/!= by other symbol for problems with native =
-* dataset: test problems with replaced =/!=
+* CHECK dataset: replace =/!= by other symbol for problems with native =
+* CHECK dataset: test problems with replaced =/!=
 * CHECK test S5U (constant, cumul_sem, cumul_syn, vary)
+* CHECK dataset: create full dataset containing replaced problems and not containing erroneous SYM problems
 
 # another benchmark I (optional)
 * dataset: find problems with axiomatized equality
