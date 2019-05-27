@@ -23,6 +23,7 @@ def get_different_cumul_status():
                     ret[problem_name] = system_dict
     return ret
 
+# found by filtering for "qmltepeq" symbol or "=" symbol and hand curation of these problems
 qmltp_problems_invalid = [
     "APM007+1.p", # symbol "qmltpeq" without axiomatization
     "SYM052+1.p", # symbol "=" without axiomatization
@@ -39,8 +40,10 @@ qmltp_problems_invalid = [
     "SYM072+1.p", # symbol "qmltpeq" without axiomatization
     "SYM085+1.p"  # symbol "=" without axiomatization
 ]
+
+# from filter_for_equality_qmltpeq.py
 qmltp_problems_containing_qmltpeq_symbol = [
-    ["APM007+1.p",
+     "APM007+1.p",
      "GAL014+1.p",
      "GAL015+1.p",
      "GAL016+1.p",
@@ -214,10 +217,14 @@ qmltp_problems_containing_qmltpeq_symbol = [
      "SYM069+1.p",
      "SYM070+1.p",
      "SYM071+1.p",
-     "SYM072+1.p"]
+     "SYM072+1.p"
 ]
+
+# from filter_for_equality_qmltpeq.py
+# removed erroneous problems: contains only problems with axiomatiziation of qmltpeq
+# erroneous problems hand curated
 qmltp_problems_containing_qmltpeq_symbol_with_axiomatization = [
-    ["GAL014+1.p",
+     "GAL014+1.p",
      "GAL015+1.p",
      "GAL016+1.p",
      "GAL017+1.p",
@@ -383,8 +390,9 @@ qmltp_problems_containing_qmltpeq_symbol_with_axiomatization = [
      "SET923+1.p",
      "SET924+1.p",
      "SET925+1.p",
-     "SET926+1.p"]
+     "SET926+1.p"
 ]
+
 # found with filter_for_equality_operator.py
 qmltp_problems_containing_native_equality = [
     "SYM052+1.p",
@@ -441,11 +449,12 @@ qmltp_problems_containing_native_equality = [
     "GSV104+1.p",
     "GSV105+1.p",
     "GSV106+1.p",
-    "GSV107+1.p"]
+    "GSV107+1.p"
+]
 
 # found with filter_for_equality_operator.py
-# not complete !!
-# contains only problems that can be fixed (that contain have an axiomatization of equality)
+# removed erroneous problems: contains only problems that can be fixed (that contain have an axiomatization of equality)
+# erroneous problems found by hand curation
 qmltp_problems_containing_native_equality_with_axiomatization = [
     "GSV060+1.p",
     "GSV061+1.p",

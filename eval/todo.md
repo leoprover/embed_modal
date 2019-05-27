@@ -3,11 +3,7 @@
 * CHECK implement embedding for non-modal problems 
 * CHECK test embedding for non-modal problems
 * CHECK implement syntactic embedding for decreasing
-* test vary
-* test syn_cumul
-* test sem_cumul
-* test syn_decr
-* test sem_decr
+* CHECK test syn/sem quantifications for cumul and vary
 * CHECK dataset: find problems with native =/!=
 * CHECK dataset: replace =/!= by other symbol for problems with native =
 * CHECK dataset: test problems with replaced =/!=
@@ -15,15 +11,20 @@
 * CHECK dataset: create full dataset containing replaced problems and not containing erroneous SYM problems
 
 # another benchmark I (optional)
-* dataset: find problems with axiomatized equality
+* CHECK dataset: find problems with axiomatized equality
 * dataset: find the common axioms
 * dataset: replace problems containing axiomatized equality with native equality
+* dataset: probably remove (common) axioms
 * dataset: test problems with native equality
 
 # another benchmark II (optional)
 * implement TH1
 * find TH1 provers
 * test TH1
+
+# another benchmark III (optional)
+* implement const_syn
+* test const_syn
 
 # benchmark
 ## Provers

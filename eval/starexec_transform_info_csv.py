@@ -62,8 +62,7 @@ def read_starexec_csv(filename):
         print("Warning: Not all problems have been run by star exec")
     return ret
 
-def main():
-    starexec_csv = sys.argv[1]
+def main(starexec_csv):
     problems = read_starexec_csv(starexec_csv)
     new_csv = starexec_csv[:len(starexec_csv)-4] + "_transformed.csv"
     with open(new_csv,"w+") as fh:
@@ -72,4 +71,4 @@ def main():
     print("Wrote " + str(len(problems)) + " entries to " + new_csv)
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1])

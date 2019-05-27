@@ -1,7 +1,5 @@
 import common
-from pathlib import *
 import sys
-
 
 def extract_qmltp_info_from_problem(problem):
     start = problem.find("% Status") + len("% Status")
@@ -52,7 +50,6 @@ def extract_qmltp_info_from_problem_to_dict(problem):
     res = {}
     info = extract_qmltp_info_from_problem(problem)
     for system, s_val in zip(("$modal_system_K","$modal_system_D","$modal_system_T","$modal_system_S4","$modal_system_S5"),info):
-        #print("X",system,s_val)
         if not system in res:
             res[system] = {}
         for quantification, q_val in zip(("$varying","$cumulative","$constant"),s_val):
@@ -69,10 +66,7 @@ def extract_qmltp_info_from_problem_file_list_to_dicts(problem_file_list):
             res[p.name] = extract_qmltp_info_from_problem_to_dict(content)
     return res
 
-
-if __name__ == "__main__":
-    qmltp_path = sys.argv[1]
-    csv_output_path = sys.argv[2]
+def main(qmltp_path, csv_output_path):
     problem_path_list = common.get_problem_file_list(qmltp_path)
     problem_list = extract_qmltp_info_from_problem_file_list_to_problem_list(problem_path_list)
     fh = open(csv_output_path,"w+")
@@ -81,3 +75,7 @@ if __name__ == "__main__":
         fh.write(p.to_csv_line() + "\n")
     fh.flush()
     fh.close()
+
+if __name__ == "__main__":
+    main(sys.argv[1], sys.argv[2])
+

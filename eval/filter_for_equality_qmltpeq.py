@@ -1,9 +1,7 @@
 import common
 import sys
 
-def main():
-    qmltp_path = sys.argv[1]
-    print(qmltp_path)
+def main(qmltp_path):
     problem_file_list = common.get_problem_file_list(qmltp_path)
     problem_white_filter = None
     problem_black_filter = None
@@ -25,4 +23,4 @@ def main():
     print("[\"" + "\",\n\"".join(sorted(problems_containing_symbol_qmltpeq)) + "\"]")
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1])

@@ -6,45 +6,6 @@ import common
 import sys
 import filters_for_the_qmltp
 
-# ctx methods
-"""
-accept
-addChild
-addErrorNode
-addTokenNode
-children
-copyFrom
-depth
-enterRule
-exception
-exitRule
-getAltNumber
-getChild
-getChildCount
-getChildren
-getPayload
-getRuleContext
-getRuleIndex
-getSourceInterval
-getText
-getToken
-getTokens
-getTypedRuleContext
-getTypedRuleContexts
-invokingState
-isEmpty
-parentCtx
-parser
-removeLastChild
-setAltNumber
-start
-stop
-thf_pair_connective
-thf_unitary_formula
-toString
-toStringTree
-"""
-
 class HmfEqualityListener(HmfListener):
     def __init__(self):
         self.containsEqualityInBinaryPair = False
@@ -54,11 +15,9 @@ class HmfEqualityListener(HmfListener):
         if ctx.getChild(1).getText() == "=" or ctx.getChild(1).getText() == "!=":
             self.containsEqualityInBinaryPair = True
 
-def main():
+def main(qmltp_path):
     sys.setrecursionlimit(1500)
-    qmltp_path = sys.argv[1]
     problem_file_list = common.get_problem_file_list(qmltp_path)
-    #problem_white_filter = filters_for_the_qmltp.qmltp_problems_containing_equality
     problem_white_filter = None
     problem_black_filter = None
     problems_with_equalities = []
@@ -91,4 +50,4 @@ def main():
     print("[\"" + "\",\n\"".join(sorted(problems_unprocessed)) + "\"]")
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1])

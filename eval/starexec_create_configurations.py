@@ -41,7 +41,7 @@ def get_transformation_abbreviation(transformation_param):
         return "synconst"
 
 
-def main():
+def main(out_dir):
     consequence_list = [
         "local"#,
         #"$global"
@@ -72,8 +72,7 @@ def main():
     #transformation_param_mod = "semantic_modality_axiomatization"
     transformation_param_mod = "syntactic_modality_axiomatization"
 
-
-    out_dir_path = Path(sys.argv[1])
+    out_dir_path = Path(out_dir)
     for consequence_property in consequence_list:
         for constant_property in constants_list:
             for quantification_property in quantification_list:
@@ -99,6 +98,5 @@ def main():
                     with open(out_file,"w+") as fh:
                         fh.write(configuration)
 
-
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1])

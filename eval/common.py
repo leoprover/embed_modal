@@ -3,7 +3,6 @@ import tempfile
 import subprocess
 from pathlib import Path
 
-
 def get_problem_file_list(problem_directory):
     ret = []
     for dirpath, dirs, files in os.walk(problem_directory):
@@ -12,7 +11,6 @@ def get_problem_file_list(problem_directory):
             if path.is_file() and path.suffix == ".p":
                 ret.append(path)
     return ret
-
 
 class Problem:
     def __init__(self,filename,prover,szs,wc,cpu,system,quantification,consequence,constants,transformation):
@@ -242,8 +240,6 @@ def parse_szs_status(s):
 
 def embed(bin_tree_limited_run, bin_embed,problem,params,semantics,wc_limit,cpu_limit):
     semantics_to_prepend = create_semantics(semantics['system'],semantics['quantification'],semantics['consequence'],semantics['constants'])
-
-
     filecontent =  semantics_to_prepend + "\n" + problem
 
     # create temp files
