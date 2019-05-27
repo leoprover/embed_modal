@@ -29,12 +29,16 @@ def get_transformation_abbreviation(transformation_param):
         return "semdecr"
     if transformation_param == "semantic_modality_axiomatization":
         return "semmod"
+    if transformation_param == "semantic_constant_quantification":
+        return "semconst"
     if transformation_param == "syntactic_monotonic_quantification":
         return "syncumul"
     if transformation_param == "syntactic_antimonotonic_quantification":
         return "syndecr"
     if transformation_param == "syntactic_modality_axiomatization":
         return "synmod"
+    if transformation_param == "syntactic_constant_quantification":
+        return "synconst"
 
 
 def main():
