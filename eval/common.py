@@ -99,13 +99,17 @@ class Node:
     def childCount(self):
         return len(self.children)
     def removeChild(self,n):
-        if self.childCount() <= n:
+        if self.childCount() < n:
+            raise Exception("not enough children")
+        elif self.childCount() == n:
             self.children = self.children[:n]
         else:
             self.children = self.children[:n] + self.children[n+1:]
     def replaceChild(self,n,newChild):
         self.children[n] = newChild
         newChild.setParent(self)
+    def removeChildren(self):
+        self.children = []
     def getFirstTerminal(self):
         current = self
         while current.hasChildren():
@@ -130,9 +134,9 @@ class Node:
         stack = [self]
         while len(stack) != 0:
             current = stack.pop()
+            callback(current,*callback_args)
             for child in current.children[::-1]:
                 stack.append(child)
-            callback(current,*callback_args)
 
 def read_csv(filename):
     ret = []
