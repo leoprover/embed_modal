@@ -14,6 +14,14 @@ def check_consistency_iteration_callback(filename, system, quantification, probl
                                      'problem_list':problem_list})
 
 def main(csv_file_list):
+    print("Checking for consistency of the results.")
+    print("Each run (prover,transformationparameters) of a modal configuration (consequence,constants,quantification,system) "
+          "is cross-verified with any other run of the modal configuration. "
+          "This includes")
+    print("Configurations with SZS status Theorem and Non-Theorem on different runs.")
+    print("Configurations with SZS status Theorem and CounterSatisfiable on different runs.")
+    print("Configurations with SZS status Theorem and ContradictoryAxioms on different runs.")
+    print("")
     problem_list = common.accumulate_csv(csv_file_list)
     problem_dict = common.create_dict_from_problems(problem_list)
     filename_to_issue = {}
@@ -26,6 +34,9 @@ def main(csv_file_list):
         for issue_dict in issue_list:
             print("")
             print(common.representation_of_configuration(issue_dict['system'],issue_dict['quantification'],issue_dict['problem_list']))
+    print("")
+    print("python representation:")
+    print("[\"" + "\",\n\"".join(sorted(filename_to_issue)) + "\"]")
 
 if __name__ == "__main__":
     main(sys.argv[1:])

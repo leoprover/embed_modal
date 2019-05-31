@@ -11,8 +11,11 @@ def check_consistency_iteration_callback(filename, system, quantification, probl
                                    'quantification':quantification,
                                    'problem_list':problem_list})
 
-def main(problem_file_list):
-    problem_list = common.accumulate_csv(problem_file_list)
+def main(csv_file_list):
+    print("Checking for prover input error.")
+    print("Each result is examined if its SZS status is InputError.")
+    print("")
+    problem_list = common.accumulate_csv(csv_file_list)
     problem_dict = common.create_dict_from_problems(problem_list)
     filename_to_issue = {}
     common.iterate_dict(problem_dict, check_consistency_iteration_callback, filename_to_issue)
@@ -24,9 +27,8 @@ def main(problem_file_list):
         for issue_dict in issue_list:
             print("")
             print(common.representation_of_configuration(issue_dict['system'],issue_dict['quantification'],issue_dict['problem_list']))
-    print("###############")
-    print("###############")
-    print("###############")
+    print("")
+    print("python representation:")
     print("[\"" + "\",\n\"".join(sorted(filename_to_issue)) + "\"]")
 
 if __name__ == "__main__":
