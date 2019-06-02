@@ -49,10 +49,9 @@ def get_transformation_abbreviation(transformation_param):
     if transformation_param == "syntactic_constant_quantification":
         return "synconst"
 
-def createConfigurations(outPath, prover:ProverInstance,
+def createConfigurations(outPath:Path, prover:ProverInstance,
         consequence_list, constants_list, quantification_list, system_list,
         transformation_param_cumu_quant,transformation_param_decr_quant,transformation_param_mod):
-    out_dir_path = Path(outPath)
     for consequence_property in consequence_list:
         for constant_property in constants_list:
             for quantification_property in quantification_list:
@@ -73,12 +72,12 @@ def createConfigurations(outPath, prover:ProverInstance,
                                                    get_transformation_abbreviation(transformation_param_decr_quant),
                                                    get_transformation_abbreviation(transformation_param_mod)])
                     configuration_filename = "starexec_run_" + configuration_name
-                    out_file = out_dir_path / configuration_filename
+                    out_file = outPath / configuration_filename
                     print(out_file)
                     with open(out_file,"w+") as fh:
                         fh.write(configuration)
 
-def createAllConfigurations(outPath,prover:ProverInstance):
+def createAllConfigurations(outPath:Path,prover:ProverInstance):
     consequence_list_list = [
         ["local"],["local"],["local"],["local"]
     ]
@@ -115,20 +114,31 @@ def createAllConfigurations(outPath,prover:ProverInstance):
         "semantic_modality_axiomatization",
         "syntactic_modality_axiomatization"
     ]
-    for consequence_list, constants_list, quantification_list, system_list, \
+    enable_configuration = [
+        True,
+        True,
+        True,
+        True
+    ]
+    for enabled, \
+        consequence_list, constants_list, quantification_list, system_list, \
         transformation_param_cumu_quant, transformation_param_decr_quant, \
         transformation_param_mod \
-        in zip(consequence_list_list,constants_list_list,quantification_list_list,system_list_list, \
+        in zip(enable_configuration, \
+               consequence_list_list,constants_list_list,quantification_list_list,system_list_list, \
                transformation_param_cumu_quant_list,transformation_param_decr_quant_list, \
                transformation_param_mod_list):
-        createConfigurations(outPath,prover, \
-                             consequence_list,constants_list,quantification_list,system_list, \
-                             transformation_param_cumu_quant,transformation_param_decr_quant, \
-                             transformation_param_mod)
+        if enabled:
+            createConfigurations(outPath,prover, \
+                                 consequence_list,constants_list,quantification_list,system_list, \
+                                 transformation_param_cumu_quant,transformation_param_decr_quant, \
+                                 transformation_param_mod)
 
 def main(out_dir):
     prover = ProverInstance.SATALLAX_E_PICOMUS
-    createAllConfigurations(out_dir,prover)
+    outPath = Path(out_dir)
+    outPath.mkdir(exist_ok=True)
+    createAllConfigurations(outPath,prover)
 
 if __name__ == '__main__':
     main(sys.argv[1])
