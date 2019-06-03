@@ -3,21 +3,6 @@ import sys
 import filters_for_the_qmltp
 from pathlib import Path
 
-class DefaultTreeListener(HmfListener):
-    def __init__(self,parser):
-        self.root = Node("root",None)
-        self.nodeptr = self.root
-        self.ruleNames = parser.ruleNames
-    def visitTerminal(self, terminalNode):
-        self.nodeptr.addChildBack(Node("terminal",terminalNode.getText()))
-    def enterEveryRule(self,ctx):
-        rule = self.ruleNames[ctx.getRuleIndex()]
-        node = Node(rule,ctx.getText())
-        self.nodeptr.addChildBack(node)
-        self.nodeptr = node
-    def exitEveryRule(self,ctx):
-        self.nodeptr = self.nodeptr.getParent()
-
 # first apply formula has children:  "qmltpeq@op1","@","op2"
 # second apply formula has children: "qmltpeq","@","op1"
 def exchangeQmltpEqualities(node):
