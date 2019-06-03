@@ -1,8 +1,4 @@
-from antlr4 import *
-from HmfLexer import HmfLexer
-from HmfListener import HmfListener
-from HmfParser import HmfParser
-from common import Node, get_problem_file_list
+from common import get_problem_file_list, create_tree
 import sys
 import filters_for_the_qmltp
 from pathlib import Path
@@ -77,14 +73,7 @@ def main(qmltp_dir, out_dir):
         print("now processing",f)
         with open(f,"r") as fh:
             content = fh.read()
-            lexer = HmfLexer(InputStream(content))
-            stream = CommonTokenStream(lexer)
-            parser = HmfParser(stream)
-            tree = parser.tPTP_file()
-            listener = DefaultTreeListener(parser)
-            walker = ParseTreeWalker()
-            walker.walk(listener, tree)
-            root = listener.root
+            root = create_tree(content)
             eqresult = EqualityReplacementResult()
             root.dfs(exchangeEqualities,eqresult)
             newProblem = str(root)

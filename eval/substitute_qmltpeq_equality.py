@@ -1,8 +1,4 @@
-from antlr4 import *
-from HmfLexer import HmfLexer
-from HmfListener import HmfListener
-from HmfParser import HmfParser
-from common import Node, get_problem_file_list
+from common import get_problem_file_list, create_tree
 import sys
 import filters_for_the_qmltp
 from pathlib import Path
@@ -26,15 +22,11 @@ class DefaultTreeListener(HmfListener):
 # second apply formula has children: "qmltpeq","@","op1"
 def exchangeQmltpEqualities(node):
     if node.getRule() == "thf_apply_formula":
-        #print(node.children)
         qmltpeq_at_op1_node = node.getChild(0)
         if node.childCount() == 1: # "qmltpeq" and "@" were already removed
             return
         at_operator_node = node.getChild(1)
-        op2_node = node.getChild(2)
-        #print("0",qmltpeq_at_op1_node)
-        #print("1",at_operator_node)
-        #print("2",op2_node)
+        #op2_node = node.getChild(2)
         if "qmltpeq" != qmltpeq_at_op1_node.getContent() and "qmltpeq" in qmltpeq_at_op1_node.getContent():
             at_operator_node.getFirstTerminal().setContent("=")
             qmltpeq_at_op1_node.removeChild(1) # @
@@ -68,7 +60,7 @@ def main(qmltp_dir,out_dir):
         outFilePath = outFileDir / f.name
         if outFilePath.exists():
             print(f,"already exists.")
-            #continue
+            continue
         print("now processing",f)
         with open(f,"r") as fh:
             content = fh.read()
@@ -76,16 +68,7 @@ def main(qmltp_dir,out_dir):
             content = content.replace("customqmltpeq","qmltpeq")
             # replace symbol "customqmltpeqfromineq" with "qmltpeq" for conformity
             content = content.replace("customqmltpeqfromineq","qmltpeq")
-            #content = "\nthf(typedecl_qmltpeq,type,qmltpeq: ($i > $i > $o)).\nthf(defuse,axiom,($box@(~(($box@((qmltpeq@def@use)))))))."
-            #content = "thf(defuse,axiom,(qmltpeq@def@use))." + "\nthf(typedecl_qmltpeq,type,qmltpeq: ($i > $i > $o))." + "\nthf(qmltpeq_type,type,(qmltpeq : ($i>$i>$o)))."
-            lexer = HmfLexer(InputStream(content))
-            stream = CommonTokenStream(lexer)
-            parser = HmfParser(stream)
-            tree = parser.tPTP_file()
-            listener = DefaultTreeListener(parser)
-            walker = ParseTreeWalker()
-            walker.walk(listener, tree)
-            root = listener.root
+            root = create_tree(content)
 
             # replace all (qmltpeq @ a @ b) by (a = b)
             root.dfs(exchangeQmltpEqualities)

@@ -1,3 +1,7 @@
+from antlr4 import *
+from HmfLexer import HmfLexer
+from HmfListener import HmfListener
+from HmfParser import HmfParser
 import os
 import tempfile
 import subprocess
@@ -137,6 +141,31 @@ class Node:
             callback(current,*callback_args)
             for child in current.children[::-1]:
                 stack.append(child)
+
+class DefaultTreeListener(HmfListener):
+    def __init__(self,parser):
+        self.root = Node("root",None)
+        self.nodeptr = self.root
+        self.ruleNames = parser.ruleNames
+    def visitTerminal(self, terminalNode):
+        self.nodeptr.addChildBack(Node("terminal",terminalNode.getText()))
+    def enterEveryRule(self,ctx):
+        rule = self.ruleNames[ctx.getRuleIndex()]
+        node = Node(rule,ctx.getText())
+        self.nodeptr.addChildBack(node)
+        self.nodeptr = node
+    def exitEveryRule(self,ctx):
+        self.nodeptr = self.nodeptr.getParent()
+
+def create_tree(file_content):
+    lexer = HmfLexer(InputStream(file_content))
+    stream = CommonTokenStream(lexer)
+    parser = HmfParser(stream)
+    tree = parser.tPTP_file()
+    listener = DefaultTreeListener(parser)
+    walker = ParseTreeWalker()
+    walker.walk(listener, tree)
+    return listener.root
 
 def read_csv(filename):
     ret = []
