@@ -7,8 +7,12 @@ import transformation.ModalTransformator;
 import transformation.SemanticsGenerator;
 import transformation.TransformContext;
 import transformation.Wrappers;
+import util.Node;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Optional;
 import java.util.logging.Level;
 
 //import static transformation.Definitions.Common.escapeType;
@@ -179,6 +183,8 @@ public class Quantification {
         //))).
         String converseBarcan = "![P:" + type.getNormalizedType() + ">$o]: (($box @ (![X:" + type.getNormalizedType() + "]: (P @ X))) => (![X:" + type.getNormalizedType() + "]: ($box @ (P @ X)))))";
         String converseBarcanTHF = "thf(" + identifier + ", axiom, (" + converseBarcan + ")).";
+        System.out.println("cbf");
+        System.out.println(converseBarcanTHF);
         String semantics = "thf(simple_s5,logic,(\n" +
                 "    $modal :=\n" +
                 "      [ $constants := $rigid,\n" +
@@ -188,8 +194,20 @@ public class Quantification {
                 "      ] )).";
         try {
             TransformContext tc = Wrappers.convertModalStringToContext(converseBarcanTHF,identifier, null,null,null, semantics);
-            String embeddedConverseBarcanTHF = tc.transformedRoot.toStringWithLinebreaks();
-            return embeddedConverseBarcanTHF;
+            Node thf_formula = tc.transformedRoot.dfsRule("thf_formula").get();
+            thf_formula.delFirstChild(); // remove (mvalid@(
+            thf_formula.getLastChild().setLabel(")"); // replace two closing brackets with one closing bracket
+            Node thf_quantified_formula = thf_formula.dfsRule("thf_quantified_formula").get();
+            Node thf_typed_formula = thf_quantified_formula.getFirstChild().getFirstChild().getFirstChild().getFirstChild();
+            String phi_quantification = thf_typed_formula.getLastChild().getLabel();
+            thf_typed_formula.getLastChild().setLabel(phi_quantification.replace("^","!") + "mvalid@("); // replace lambda by quantifier and surround body with mvalid
+            thf_typed_formula.delFirstChild(); // remove quantifier
+            thf_typed_formula.delFirstChild(); // remove @
+            //String dotIn = tc.transformedRoot.toDot();
+            //Files.write(Paths.get("/home/tg/cumul.dot"), dotIn.getBytes());
+            //String cmd = "dot" + " -Tps " + "/home/tg/cumul.dot" + " -o " + "/home/tg/cumul.dot" + ".ps";
+            //Runtime.getRuntime().exec(cmd);
+            return tc.transformedRoot.toStringWithLinebreaks();
         } catch (ParseException | IOException | AnalysisException e) {
             e.printStackTrace();
             System.out.println(e.getMessage());
@@ -251,8 +269,20 @@ public class Quantification {
                 "      ] )).";
         try {
             TransformContext tc = Wrappers.convertModalStringToContext(barcanTHF,identifier, null,null,null, semantics);
-            String embeddedBarcanTHF = tc.transformedRoot.toStringWithLinebreaks();
-            return embeddedBarcanTHF;
+            Node thf_formula = tc.transformedRoot.dfsRule("thf_formula").get();
+            thf_formula.delFirstChild(); // remove (mvalid@(
+            thf_formula.getLastChild().setLabel(")"); // replace two closing brackets with one closing bracket
+            Node thf_quantified_formula = thf_formula.dfsRule("thf_quantified_formula").get();
+            Node thf_typed_formula = thf_quantified_formula.getFirstChild().getFirstChild().getFirstChild().getFirstChild();
+            String phi_quantification = thf_typed_formula.getLastChild().getLabel();
+            thf_typed_formula.getLastChild().setLabel(phi_quantification.replace("^","!") + "mvalid@("); // replace lambda by quantifier and surround body with mvalid
+            thf_typed_formula.delFirstChild(); // remove quantifier
+            thf_typed_formula.delFirstChild(); // remove @
+            //String dotIn = tc.transformedRoot.toDot();
+            //Files.write(Paths.get("/home/tg/cumul.dot"), dotIn.getBytes());
+            //String cmd = "dot" + " -Tps " + "/home/tg/cumul.dot" + " -o " + "/home/tg/cumul.dot" + ".ps";
+            //Runtime.getRuntime().exec(cmd);
+            return tc.transformedRoot.toStringWithLinebreaks();
         } catch (ParseException | IOException | AnalysisException e) {
             e.printStackTrace();
             System.out.println(e.getMessage());
