@@ -7,7 +7,7 @@ import csv
 import datetime
 import sys
 from extract_qmltp_info import extract_qmltp_info_from_problem_to_dict
-from filters_for_the_qmltp import cumul_interesting_problems,qmltp_problems_containing_equality, init, qmltp_problems_without_modal_operators
+from filters_for_the_qmltp import cumul_interesting_problems, init, qmltp_problems_without_modal_operators
 
 class OutputNotInterpretable(Exception):
     def __init__(self, msg):
@@ -16,7 +16,7 @@ class OutputNotInterpretable(Exception):
         return repr(self.msg)
 
 
-bin_treelimitedrun = "/home/tg/eval/TreeLimitedRun"
+bin_treelimitedrun = "/home/tg/embed_modal/eval/TreeLimitedRun"
 bin_embed = "java -jar /home/tg/embed_modal/embed/target/embed-1.0-SNAPSHOT-shaded.jar"
 
 #-consequences local -constants rigid - systems K -domains varying,cumulative -diroutput joint -i data/QMLTP/qmltp_thf/APM/APM010+1.p -o embed_modal/qmltp_embedded/APM010+1.p
@@ -129,6 +129,8 @@ def debug_print_line(line,e,r):
     problem_status = extract_qmltp_info_from_problem_to_dict(e['problem'])
     system = e['semantics']['system']
     quant = e['semantics']['quantification']
+    if quant == "$decreasing":
+        return
     if system == "$modal_system_S5U":
         qmltp_szs_status = problem_status["$modal_system_S5"][quant]
     else:
@@ -208,13 +210,13 @@ system_list = [
     "$modal_system_T",
     "$modal_system_S4",
     "$modal_system_S5",
-    #"$modal_system_S5U"
+    "$modal_system_S5U"
 ]
 quantification_list = [
-    #"$constant",
+    "$constant",
     "$varying",
     "$cumulative",
-    #"$decreasing"
+    "$decreasing"
 ]
 consequence_list = [
     "$local"#,
@@ -225,11 +227,13 @@ constants_list = [
 ]
 transformation_parameter_list = [
     "semantic_modality_axiomatization",
-    #"semantic_monotonic_quantification",
-    #"semantic_antimonotonic_quantification",
+    "semantic_monotonic_quantification",
+    "semantic_antimonotonic_quantification",
+    "semantic_constant_quantification",
     #"syntactic_modality_axiomatization",
-    "syntactic_monotonic_quantification",
-    "syntactic_antimonotonic_quantification"
+    #"syntactic_monotonic_quantification",
+    #"syntactic_antimonotonic_quantification",
+    #"syntactic_constant_quantification"
 ]
 #semantic_modality_axiomatization semantic_monotonic_quantification semantic_antimonotonic_quantification
 #transformation_parameter_list = [ # old params
@@ -240,9 +244,10 @@ transformation_parameter_list = [
 # paths
 ###############################################################
 
-save_file = "/home/tg/embed_modal/eval/result_leo_semm_synq.csv"
-log_file = "/home/tg/embed_modal/eval/result_leo_semm_synq.log.csv"
-qmltp_path = "/home/tg/data/QMLTP/qmltp_thf_no_mml"
+save_file = "/home/tg/embed_modal/eval/new.csv"
+log_file = "/home/tg/embed_modal/eval/new.log.csv"
+#qmltp_path = "/home/tg/data/QMLTP/qmltp_thf_no_mml"
+qmltp_path = "/home/tg/embed_modal/eval/datasets/qmltp_thf_standard"
 
 
 ###############################################################
@@ -262,15 +267,16 @@ prover_name = "leo3 1.3"
 #                 "--atp-timeout vampire=30 " \
 #                 "--atp-timeout iprover=30 " \
 #                 "--atp-debug "
-prover_command = "java -Xss128m -Xmx4g -Xms1g -jar /home/tg/starexec/uberleo/leo3.jar %s -t %d " \
-                     "--atp e=/home/tg/starexec/uberleo/externals/eprover " \
-                     "--atp cvc4=/home/tg/starexec/uberleo/externals/cvc4-1.7-x86_64-linux-opt " \
+prover_command = "java -Xss128m -Xmx4g -Xms1g -jar /home/tg/embed_modal/eval/provers/leo1.3/leo3.jar %s -t %d " \
+                     "--atp e=/home/tg/embed_modal/eval/provers/leo1.3/externals/eprover " \
+                     "--atp cvc4=/home/tg/embed_modal/eval/provers/leo1.3/externals/cvc4-1.7-x86_64-linux-opt " \
                      "--atp-max-jobs 2 " \
                      "--atp-timeout cvc4=30 " \
                      "--atp-timeout e=30 " \
                      "--atp-debug "
-prover_wc_limit = 120
-prover_cpu_limit = 120
+#prover_command = "/home/tg/embed_modal/eval/provers/Isabelle2018/isabelle/bin/isabelle tptp_nitpick %d %s"
+prover_wc_limit = 30
+prover_cpu_limit = 30
 embedding_wc_limit = 600
 embedding_cpu_limit = 3600
 #prover_wc_limit = 6
@@ -288,9 +294,9 @@ problem_file_list = common.get_problem_file_list(qmltp_path)
 init(qmltp_path)
 #problem_white_filter = qmltp_problems_without_modal_operators
 #problem_white_filter = cumul_interesting_problems
-problem_white_filter = None
-#problem_black_filter = None
-problem_black_filter = qmltp_problems_containing_equality
+problem_white_filter = ["APM001+1.p","APM002+1.p","APM003+1.p","APM004+1.p""APM005+1.p","APM006+1.p","APM008+1.p","APM009+1.p","APM010+1.p"]
+problem_black_filter = None
+#problem_black_filter = qmltp_problems_containing_equality
 
 
 ###############################################################
