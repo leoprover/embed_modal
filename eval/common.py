@@ -65,16 +65,16 @@ class Problem:
         ])
     def syntactic_modality_axiomatization(self):
         return "syntactic_modality_axiomatization" in self.transformation
-    def syntactic_monotonic_quantification(self):
-        return "syntactic_monotonic_quantification" in self.transformation
-    def syntactic_antimonotonic_quantification(self):
-        return "syntactic_antimonotonic_quantification" in self.transformation
+    def syntactic_cumulative_quantification(self):
+        return "syntactic_cumulative_quantification" in self.transformation
+    def syntactic_decreasing_quantification(self):
+        return "syntactic_decreasing_quantification" in self.transformation
     def semantic_modality_axiomatization(self):
         return "semantic_modality_axiomatization" in self.transformation
-    def semantic_monotonic_quantification(self):
-        return "semantic_monotonic_quantification" in self.transformation
-    def semantic_antimonotonic_quantification(self):
-        return "semantic_antimonotonic_quantification" in self.transformation
+    def semantic_cumulative_quantification(self):
+        return "semantic_cumulative_quantification" in self.transformation
+    def semantic_decreasing_quantification(self):
+        return "semantic_decreasing_quantification" in self.transformation
 
 class Node:
     def __init__(self,rule,content):
@@ -171,7 +171,7 @@ def read_csv(filename):
     ret = []
     f = open(filename,'r')
     for r in f.readlines():
-        #APM009+1.p,leo3 1.3,Theorem,2.6,8.8,$modal_system_S4,$cumulative,$local,$rigid,syntactic_modality_axiomatization syntactic_monotonic_quantification semantic_antimonotonic_quantification
+        #APM009+1.p,leo3 1.3,Theorem,2.6,8.8,$modal_system_S4,$cumulative,$local,$rigid,syntactic_modality_axiomatization syntactic_cumulative_quantification semantic_decreasing_quantification
         # empty transformation parameter means valid for all transformation parameters
         if r.strip() == '':
             continue
@@ -194,8 +194,6 @@ def create_dict_from_problems(problem_list):
         if not p.filename in ret:
             ret[p.filename] = {}
         system = p.system
-        if system == "$modal_system_S5U":
-            system = "$modal_system_S5"
         if not system in ret[p.filename]:
             ret[p.filename][system] = {}
         if not p.quantification in ret[p.filename][system]:
@@ -251,6 +249,9 @@ def execute_treelimitedrun(bin_treelimitedrun,cmd,wc_limit,cpu_limit):
     process.wait()
     stdout, stderr = process.communicate()
     return stdout, stderr, process.returncode
+
+def filename_to_path(qmltp_dir,filename):
+    return Path(qmltp_dir) / filename[:3] / filename
 
 def parse_cpu(s):
     cpu_start = s.find("FINAL WATCH:") + 12
