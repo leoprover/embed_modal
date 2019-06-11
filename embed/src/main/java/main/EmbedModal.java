@@ -45,11 +45,9 @@ public class EmbedModal {
     private static Map<String, ModalTransformator.TransformationParameter> cliTransformationParameterNames = new HashMap<>();
     static {
         defaultCliTransformationParameters.add(ModalTransformator.TransformationParameter.SEMANTIC_MODALITY_AXIOMATIZATION);
-        defaultCliTransformationParameters.add(ModalTransformator.TransformationParameter.SEMANTIC_MONOTONIC_QUANTIFICATION);
-        defaultCliTransformationParameters.add(ModalTransformator.TransformationParameter.SEMANTIC_ANTIMONOTONIC_QUANTIFICATION);
-        defaultCliTransformationParameters.add(ModalTransformator.TransformationParameter.SYNTACTIC_MODALITY_AXIOMATIZATION);
-        defaultCliTransformationParameters.add(ModalTransformator.TransformationParameter.SYNTACTIC_MONOTONIC_QUANTIFICATION);
-        defaultCliTransformationParameters.add(ModalTransformator.TransformationParameter.SYNTACTIC_ANTIMONOTONIC_QUANTIFICATION);
+        defaultCliTransformationParameters.add(ModalTransformator.TransformationParameter.SEMANTIC_CUMULATIVE_QUANTIFICATION);
+        defaultCliTransformationParameters.add(ModalTransformator.TransformationParameter.SEMANTIC_DECREASING_QUANTIFICATION);
+        defaultCliTransformationParameters.add(ModalTransformator.TransformationParameter.SEMANTIC_CONSTANT_QUANTIFICATION);
         for (ModalTransformator.TransformationParameter p : ModalTransformator.TransformationParameter.values()) {
             cliTransformationParameterNames.put(p.name().toLowerCase(),p);
         }
