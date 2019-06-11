@@ -16,10 +16,12 @@ public class ModalTransformator {
     public enum TransformationParameter{
         SEMANTIC_MODALITY_AXIOMATIZATION, // frame properties as properties on accessibility relations
         SYNTACTIC_MODALITY_AXIOMATIZATION, // frame properties as axioms about modalities
-        SEMANTIC_MONOTONIC_QUANTIFICATION, // cumulative domain quantification with restriction axiom and varying domains
-        SYNTACTIC_MONOTONIC_QUANTIFICATION, // // cumulative domain quantification with converse barcan formula and varying domains
-        SEMANTIC_ANTIMONOTONIC_QUANTIFICATION, // decreasing domain quantification with restriction axiom and varying domains
-        SYNTACTIC_ANTIMONOTONIC_QUANTIFICATION // decreasing domain quantification with barcan formula and varying domains
+        SEMANTIC_CUMULATIVE_QUANTIFICATION, // cumulative domain quantification with restriction axiom and varying domains
+        SYNTACTIC_CUMULATIVE_QUANTIFICATION, // // cumulative domain quantification with converse barcan formula and varying domains
+        SEMANTIC_DECREASING_QUANTIFICATION, // decreasing domain quantification with restriction axiom and varying domains
+        SYNTACTIC_DECREASING_QUANTIFICATION, // decreasing domain quantification with barcan formula and varying domains
+        SEMANTIC_CONSTANT_QUANTIFICATION, // constant quantification semantically expressed without eiw guard
+        SYNTACTIC_CONSTANT_QUANTIFICATION // constant quantification using varying quantifiers with barcan and converse barcan formula
         }
 
     /*
@@ -33,15 +35,20 @@ public class ModalTransformator {
             //if (!ret.equals("")) ret += "\n";
             ret += "Transformation parameter set cannot contain semantic and syntactic modality axiomatization.";
         }
-        if (params.contains(TransformationParameter.SEMANTIC_MONOTONIC_QUANTIFICATION) &&
-                params.contains(TransformationParameter.SYNTACTIC_MONOTONIC_QUANTIFICATION)) {
+        if (params.contains(TransformationParameter.SEMANTIC_CUMULATIVE_QUANTIFICATION) &&
+                params.contains(TransformationParameter.SYNTACTIC_CUMULATIVE_QUANTIFICATION)) {
             if (!ret.equals("")) ret += "\n";
             ret += "Transformation parameter set cannot contain semantic and syntactic cumulative domain quantification.";
         }
-        if (params.contains(TransformationParameter.SEMANTIC_ANTIMONOTONIC_QUANTIFICATION) &&
-                params.contains(TransformationParameter.SYNTACTIC_ANTIMONOTONIC_QUANTIFICATION)) {
+        if (params.contains(TransformationParameter.SEMANTIC_DECREASING_QUANTIFICATION) &&
+                params.contains(TransformationParameter.SYNTACTIC_DECREASING_QUANTIFICATION)) {
             if (!ret.equals("")) ret += "\n";
             ret += "Transformation parameter set cannot contain semantic and syntactic decreasing domain quantification.";
+        }
+        if (params.contains(TransformationParameter.SEMANTIC_CONSTANT_QUANTIFICATION) &&
+                params.contains(TransformationParameter.SYNTACTIC_CONSTANT_QUANTIFICATION)) {
+            if (!ret.equals("")) ret += "\n";
+            ret += "Transformation parameter set cannot contain semantic and syntactic constant domain quantification.";
         }
         if (!ret.equals("")) return ret;
         return null;
@@ -53,17 +60,21 @@ public class ModalTransformator {
     public static Set<TransformationParameter> completeToDefaultParameterSet(Set<TransformationParameter> params){
         Set<TransformationParameter> newParams = new HashSet<>(params);
         // modality axiomatization
-        if (!newParams.contains(ModalTransformator.TransformationParameter.SEMANTIC_MODALITY_AXIOMATIZATION) &&
-                !params.contains(ModalTransformator.TransformationParameter.SYNTACTIC_MODALITY_AXIOMATIZATION))
+        if (!newParams.contains(TransformationParameter.SEMANTIC_MODALITY_AXIOMATIZATION) &&
+                !params.contains(TransformationParameter.SYNTACTIC_MODALITY_AXIOMATIZATION))
             newParams.add(TransformationParameter.SEMANTIC_MODALITY_AXIOMATIZATION);
         // cumulative domain quantification
-        if (!newParams.contains(ModalTransformator.TransformationParameter.SEMANTIC_MONOTONIC_QUANTIFICATION) &&
-                !params.contains(ModalTransformator.TransformationParameter.SYNTACTIC_MONOTONIC_QUANTIFICATION))
-            newParams.add(TransformationParameter.SEMANTIC_MONOTONIC_QUANTIFICATION);
+        if (!newParams.contains(TransformationParameter.SEMANTIC_CUMULATIVE_QUANTIFICATION) &&
+                !params.contains(TransformationParameter.SYNTACTIC_CUMULATIVE_QUANTIFICATION))
+            newParams.add(TransformationParameter.SEMANTIC_CUMULATIVE_QUANTIFICATION);
         // decreasing domain quantification
-        if (!newParams.contains(ModalTransformator.TransformationParameter.SEMANTIC_ANTIMONOTONIC_QUANTIFICATION) &&
-                !params.contains(ModalTransformator.TransformationParameter.SYNTACTIC_ANTIMONOTONIC_QUANTIFICATION))
-            newParams.add(TransformationParameter.SEMANTIC_ANTIMONOTONIC_QUANTIFICATION);
+        if (!newParams.contains(TransformationParameter.SEMANTIC_DECREASING_QUANTIFICATION) &&
+                !params.contains(TransformationParameter.SYNTACTIC_DECREASING_QUANTIFICATION))
+            newParams.add(TransformationParameter.SEMANTIC_DECREASING_QUANTIFICATION);
+        // constant domain quantification
+        if (!newParams.contains(TransformationParameter.SEMANTIC_CONSTANT_QUANTIFICATION) &&
+                !params.contains(TransformationParameter.SYNTACTIC_CONSTANT_QUANTIFICATION))
+            newParams.add(TransformationParameter.SEMANTIC_CONSTANT_QUANTIFICATION);
         return newParams;
     }
 
@@ -474,16 +485,20 @@ public class ModalTransformator {
                 if (quantifier.equals("!")){
 
                     // constant domain case
-                    if (domainType == SemanticsAnalyzer.DomainType.CONSTANT)
+                    if (domainType == SemanticsAnalyzer.DomainType.CONSTANT && transformationParameters.contains(TransformationParameter.SEMANTIC_CONSTANT_QUANTIFICATION)) {
                         quant = new Node("t_quantifier", Quantification.embedded_forall_const_identifier(type));
 
                     // cumulative/decreasing S5U case for exactly one modality
-                    else if (problemIsMonomodal() && // there is EXACTLY one modality actually in use
-                            theMonomodalProblemIsS5U() && // the modality is S5U
+                    } else if (problemIsMonomodal() && // there is EXACTLY one modality actually in use
+                            transformationParameters.contains(TransformationParameter.SEMANTIC_CONSTANT_QUANTIFICATION) && // constant quantification is semantically embedded
+                            theMonomodalProblemIsS5U() && // the single modality is S5U
                             (domainType == SemanticsAnalyzer.DomainType.CUMULATIVE || domainType == SemanticsAnalyzer.DomainType.DECREASING)){ // domains are either cumulative or decreasing
-                    quant = new Node("t_quantifier", Quantification.embedded_forall_const_identifier(type));
+                        quant = new Node("t_quantifier", Quantification.embedded_forall_const_identifier(type));
 
-                    // varying case and cumulative/decreasing case for non S5U
+                    // varying domain case and
+                    // cumulative/decreasing domain case for non S5U and
+                    // cumulative/decreasing domain case for S5U with SYNTACTIC_CONSTANT_QUANTIFICATION and
+                    // consstant domain case with SYNTACTIC_CONSTANT_QUANTIFICATION
                     } else {
                         quant = new Node("t_quantifier", Quantification.embedded_forall_varying_identifier(type));
                         typesForVaryingQuantifiers.add(type);
@@ -494,16 +509,20 @@ public class ModalTransformator {
                 }else{
 
                     // constant domain case
-                    if (domainType == SemanticsAnalyzer.DomainType.CONSTANT)
+                    if (domainType == SemanticsAnalyzer.DomainType.CONSTANT && transformationParameters.contains(TransformationParameter.SEMANTIC_CONSTANT_QUANTIFICATION)) {
                         quant = new Node("t_quantifier", Quantification.embedded_exists_const_identifier(type));
 
-                    // cumulative/decreasing S5U case for exactly one modality
-                    else if (problemIsMonomodal() && // there is EXACTLY one modality actually in use
-                            normalizedRelationSuffixcontainsS5U(getNormalizedRelationSuffixFromNormalizedModalOperator(usedModalities.stream().findAny().get())) && // the modality is S5U
+                    // cumulative/decreasing domain S5U case for exactly one modality
+                    } else if (problemIsMonomodal() && // there is EXACTLY one modality actually in use
+                            transformationParameters.contains(TransformationParameter.SEMANTIC_CONSTANT_QUANTIFICATION) && // constant quantification is semantically embedded
+                            theMonomodalProblemIsS5U() && // the single modality is S5U
                             (domainType == SemanticsAnalyzer.DomainType.CUMULATIVE || domainType == SemanticsAnalyzer.DomainType.DECREASING)){ // domains are either cumulative or decreasing
                         quant = new Node("t_quantifier", Quantification.embedded_exists_const_identifier(type));
 
-                    // varying case and cumulative/decreasing case for non S5U
+                    // varying domain case and
+                    // cumulative/decreasing domain case for non S5U and
+                    // cumulative/decreasing domain case for S5U with SYNTACTIC_CONSTANT_QUANTIFICATION and
+                    // consstant domain case with SYNTACTIC_CONSTANT_QUANTIFICATION
                     } else {
                         quant = new Node("t_quantifier", Quantification.embedded_exists_varying_identifier(type));
                         typesForVaryingQuantifiers.add(type);
@@ -665,7 +684,6 @@ public class ModalTransformator {
     private String preProblemInsertions() throws TransformationException {
         Set<String> additionalModalitiesFromSyntacticEmbedding = new HashSet<>();
         Set<String> additionalConnectivesFromSyntacticEmbedding = new HashSet<>();
-        Set<Type> additionalConstantForallQuantifiersFromSyntacticEmbedding = new HashSet<>();
         Set<Type> additionalVaryingForallQuantifiersFromSyntacticEmbedding = new HashSet<>();
 
         StringBuilder def = new StringBuilder();
@@ -748,8 +766,9 @@ public class ModalTransformator {
         // introduce mvalid for global consequence
         if (this.semanticsAnalyzer.axiomNameToConsequenceType.values().contains(SemanticsAnalyzer.ConsequenceType.GLOBAL) ||
                 transformationParameters.contains(TransformationParameter.SYNTACTIC_MODALITY_AXIOMATIZATION) ||
-                transformationParameters.contains(TransformationParameter.SYNTACTIC_MONOTONIC_QUANTIFICATION) ||
-                transformationParameters.contains(TransformationParameter.SYNTACTIC_ANTIMONOTONIC_QUANTIFICATION)) {
+                transformationParameters.contains(TransformationParameter.SYNTACTIC_CUMULATIVE_QUANTIFICATION) ||
+                transformationParameters.contains(TransformationParameter.SYNTACTIC_DECREASING_QUANTIFICATION) ||
+                transformationParameters.contains(TransformationParameter.SYNTACTIC_CONSTANT_QUANTIFICATION)) {
             def.append("% define valid operator\n");
             def.append(Common.mvalid);
             def.append("\n\n");
@@ -769,37 +788,50 @@ public class ModalTransformator {
         if (!typesForVaryingQuantifiers.isEmpty()) {
             for (Type type: typesForVaryingQuantifiers) { // insert domain restriction (cumulative etc) if necessary
                 SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(type.getNormalizedType());
-                if (problemIsMonomodal() && theMonomodalProblemIsS5U()){
-                    // do not impose restrictions
-                } else {
-                    if (domainType == SemanticsAnalyzer.DomainType.CUMULATIVE) {
-                        if (transformationParameters.contains(TransformationParameter.SEMANTIC_MONOTONIC_QUANTIFICATION)) {
-                            domRestr.add(Quantification.cumulative_semantic_axiom_th0(type));
-                        }
-                        else if (transformationParameters.contains(TransformationParameter.SYNTACTIC_MONOTONIC_QUANTIFICATION)) {
-                            // prerequisites for converse barcan formula
-                            additionalConnectivesFromSyntacticEmbedding.add("mimplies"); // implication operator
-                            additionalModalitiesFromSyntacticEmbedding.add(Connectives.box_unimodal); // box operator
-                            additionalVaryingForallQuantifiersFromSyntacticEmbedding.add(Type.getType(type.getliftedNormalizedType())); // varying forall quantifier for (type)
-                            additionalConstantForallQuantifiersFromSyntacticEmbedding.add(Type.getType(type.getNormalizedType()+">$o")); // constant forall quantifier for (type > bool)
-                            // converse barcan formula
-                            domRestr.add(Quantification.cumulative_syntactic_axiom_th0(type)); // the converse barcan formula for this type
-                        }
-                    } else if (domainType == SemanticsAnalyzer.DomainType.DECREASING) {
-                        if (transformationParameters.contains(TransformationParameter.SEMANTIC_ANTIMONOTONIC_QUANTIFICATION)) {
-                            domRestr.add(Quantification.decreasing_semantic_axiom_th0(type));
-                        }
-                        else if (transformationParameters.contains(TransformationParameter.SYNTACTIC_ANTIMONOTONIC_QUANTIFICATION)) {
-                            // prerequisites for barcan formula
-                            additionalConnectivesFromSyntacticEmbedding.add("mimplies"); // implication operator
-                            additionalModalitiesFromSyntacticEmbedding.add(Connectives.box_unimodal); // box operator
-                            additionalVaryingForallQuantifiersFromSyntacticEmbedding.add(Type.getType(type.getliftedNormalizedType())); // varying forall quantifier for (type)
-                            additionalConstantForallQuantifiersFromSyntacticEmbedding.add(Type.getType(type.getNormalizedType()+">$o")); // constant forall quantifier for (type > bool)
-                            // barcan formula
-                            domRestr.add(Quantification.decreasing_syntactic_axiom_th0(type)); // the converse barcan formula for this type
-                        }
+                boolean synS5UcumulOrDecr = false;
+                if (problemIsMonomodal() &&
+                        theMonomodalProblemIsS5U() &&
+                        (domainType == SemanticsAnalyzer.DomainType.CUMULATIVE || domainType == SemanticsAnalyzer.DomainType.DECREASING) &&
+                        transformationParameters.contains(TransformationParameter.SYNTACTIC_CONSTANT_QUANTIFICATION)) {
+                    synS5UcumulOrDecr = true;
+                }
 
-                    } // else nothing, since either constant or unrestricted varying
+                // cumulative semantic embedding
+                if (domainType == SemanticsAnalyzer.DomainType.CUMULATIVE && transformationParameters.contains(TransformationParameter.SEMANTIC_CUMULATIVE_QUANTIFICATION) && !synS5UcumulOrDecr) {
+                    domRestr.add(Quantification.cumulative_semantic_axiom_th0(type));
+                }
+
+                // decreasing semantic embedding
+                if (domainType == SemanticsAnalyzer.DomainType.DECREASING && transformationParameters.contains(TransformationParameter.SEMANTIC_DECREASING_QUANTIFICATION) && !synS5UcumulOrDecr) {
+                    domRestr.add(Quantification.decreasing_semantic_axiom_th0(type));
+                }
+
+                // cumulative syntactic or
+                // constant syntactic embedding or
+                // cumulative S5U with syntactic constant quantification
+                if (( domainType == SemanticsAnalyzer.DomainType.CUMULATIVE && transformationParameters.contains(TransformationParameter.SYNTACTIC_CUMULATIVE_QUANTIFICATION)) ||
+                        (domainType == SemanticsAnalyzer.DomainType.CONSTANT && transformationParameters.contains(TransformationParameter.SYNTACTIC_CONSTANT_QUANTIFICATION)) ||
+                        (synS5UcumulOrDecr)) {
+                    // prerequisites for converse barcan formula
+                    additionalConnectivesFromSyntacticEmbedding.add("mimplies"); // implication operator
+                    additionalModalitiesFromSyntacticEmbedding.add(Connectives.box_unimodal); // box operator
+                    additionalVaryingForallQuantifiersFromSyntacticEmbedding.add(Type.getType(type.getliftedNormalizedType())); // varying forall quantifier for (type)
+                    // converse barcan formula
+                    domRestr.add(Quantification.cumulative_syntactic_axiom_th0(type)); // the converse barcan formula for this type
+                }
+
+                // decreasing syntactic or
+                // constant syntactic embedding or
+                // decreasing S5U with syntactic constant
+                if ((domainType == SemanticsAnalyzer.DomainType.DECREASING && transformationParameters.contains(TransformationParameter.SYNTACTIC_DECREASING_QUANTIFICATION)) ||
+                        (domainType == SemanticsAnalyzer.DomainType.CONSTANT && transformationParameters.contains(TransformationParameter.SYNTACTIC_CONSTANT_QUANTIFICATION)) ||
+                        synS5UcumulOrDecr) {
+                    // prerequisites for barcan formula
+                    additionalConnectivesFromSyntacticEmbedding.add("mimplies"); // implication operator
+                    additionalModalitiesFromSyntacticEmbedding.add(Connectives.box_unimodal); // box operator
+                    additionalVaryingForallQuantifiersFromSyntacticEmbedding.add(Type.getType(type.getliftedNormalizedType())); // varying forall quantifier for (type)
+                    // barcan formula
+                    domRestr.add(Quantification.decreasing_syntactic_axiom_th0(type)); // the converse barcan formula for this type
                 }
             }
         }
@@ -850,19 +882,23 @@ public class ModalTransformator {
             for (Type type : typesExistsQuantifiers) {
                 SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(type.getNormalizedType());
 
-                // constant domain case
-                if (domainType == SemanticsAnalyzer.DomainType.CONSTANT) {
+                // constant semantic domain case
+                if (domainType == SemanticsAnalyzer.DomainType.CONSTANT && transformationParameters.contains(TransformationParameter.SEMANTIC_CONSTANT_QUANTIFICATION)) {
                     def.append(Quantification.mexists_const_th0(type));
                 }
 
                 // cumulative/decreasing S5U case for exactly one modality
                 else if (problemIsMonomodal() && // there is EXACTLY one modality actually in use
+                        transformationParameters.contains(TransformationParameter.SEMANTIC_CONSTANT_QUANTIFICATION) && // constant quantification is semantically embedded
                         theMonomodalProblemIsS5U() && // the modality is S5U
                         (domainType == SemanticsAnalyzer.DomainType.CUMULATIVE || domainType == SemanticsAnalyzer.DomainType.DECREASING)) { // domains are either cumulative or decreasing
                     def.append(Quantification.mexists_const_th0(type));
                 }
 
-                // varying case and cumulative/decreasing case for non S5U
+                // varying domain case and
+                // cumulative/decreasing domain case for non S5U and
+                // cumulative/decreasing domain case for S5U with SYNTACTIC_CONSTANT_QUANTIFICATION and
+                // constant domain case with SYNTACTIC_CONSTANT_QUANTIFICATION
                 else {
                     def.append(Quantification.mexists_varying_th0(type));
                 }
@@ -873,7 +909,8 @@ public class ModalTransformator {
 
         // introduce forall quantifiers
         Set<Type> typesForAllQuantifiersToDefine = new HashSet<>(typesForAllQuantifiers);
-        if (!typesForAllQuantifiersToDefine.isEmpty() || !additionalVaryingForallQuantifiersFromSyntacticEmbedding.isEmpty() || !additionalConstantForallQuantifiersFromSyntacticEmbedding.isEmpty()) {
+        Set<Type> typesForallVaryQuantifiersAlreadyDefined = new HashSet<>();
+        if (!typesForAllQuantifiersToDefine.isEmpty() || !additionalVaryingForallQuantifiersFromSyntacticEmbedding.isEmpty()) {
             def.append("% define for all quantifiers\n");
 
             // quantifiers for the problem
@@ -881,53 +918,37 @@ public class ModalTransformator {
                 SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(type.getNormalizedType());
 
                 // constant domain case
-                if (domainType == SemanticsAnalyzer.DomainType.CONSTANT) {
+                if (domainType == SemanticsAnalyzer.DomainType.CONSTANT && transformationParameters.contains(TransformationParameter.SEMANTIC_CONSTANT_QUANTIFICATION)) {
                     def.append(Quantification.mforall_const_th0(type));
                 }
 
                 // cumulative/decreasing S5U case for exactly one modality
                 else if (problemIsMonomodal() && // there is EXACTLY one modality actually in use
+                        transformationParameters.contains(TransformationParameter.SEMANTIC_CONSTANT_QUANTIFICATION) && // constant quantification is semantically embedded
                         theMonomodalProblemIsS5U() && // the modality is S5U
                         (domainType == SemanticsAnalyzer.DomainType.CUMULATIVE || domainType == SemanticsAnalyzer.DomainType.DECREASING)) { // domains are either cumulative or decreasing
                     def.append(Quantification.mforall_const_th0(type));
                 }
 
-                // varying case and cumulative/decreasing case for non S5U
+                // varying domain case and
+                // cumulative/decreasing domain case for non S5U and
+                // cumulative/decreasing domain case for S5U with SYNTACTIC_CONSTANT_QUANTIFICATION and
+                // constant domain case with SYNTACTIC_CONSTANT_QUANTIFICATION
                 else {
                     def.append(Quantification.mforall_varying_th0(type));
+                    typesForallVaryQuantifiersAlreadyDefined.add(type);
                 }
                 def.append("\n");
             }
 
-            // additional quantifiers needed for syntactic quantification embedding (varying quantifiers)
-            for (Type type : additionalVaryingForallQuantifiersFromSyntacticEmbedding) { // vary forall from syntactic embedding
-                if (typesForAllQuantifiers.contains(type)){
-                    SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(type.getNormalizedType());
-                    if (
-                            domainType != SemanticsAnalyzer.DomainType.VARYING &&
-                            domainType != SemanticsAnalyzer.DomainType.CUMULATIVE &&
-                            domainType != SemanticsAnalyzer.DomainType.DECREASING
-                    ) {
-                        def.append(Quantification.mforall_varying_th0(type));
-                    }
-                } else {
+            // additional quantifiers needed for syntactic cumul/decr/const quantification embedding (varying quantifiers)
+            for (Type type : additionalVaryingForallQuantifiersFromSyntacticEmbedding) {
+                if (!typesForallVaryQuantifiersAlreadyDefined.contains(type)) { // only vary quantifiers that have not been already defined above
                     def.append(Quantification.mforall_varying_th0(type));
                 }
                 def.append("\n");
             }
 
-            // additional quantifiers needed for syntactic quantification embedding (constant quantifiers)
-            for (Type type : additionalConstantForallQuantifiersFromSyntacticEmbedding) { // constant forall from syntactic embedding
-                if (typesForAllQuantifiers.contains(type)){
-                    SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(type.getNormalizedType());
-                    if (domainType != SemanticsAnalyzer.DomainType.CONSTANT) {
-                        def.append(Quantification.mforall_const_th0(type));
-                    }
-                } else {
-                    def.append(Quantification.mforall_const_th0(type));
-                }
-                def.append("\n");
-            }
             def.append("\n");
         }
 
