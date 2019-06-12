@@ -152,7 +152,7 @@ public class Quantification {
         StringBuilder sb = new StringBuilder();
         // cumulative axiom for each relation r
         // thf( eiw_cumul , axiom , (
-        // ! [W:" + w + ", V:" + w + ", C: T]: ((rel_r @ W @ V) => ((eiw @ C @ W) => (eiw @ C @ V)))
+        // ! [W:" + w + ", V:" + w + ", C: T]: (((eiw @ C @ V) & (rel_r @ V @ W)) => (eiw @ C @ W))
         // )).
         sb.append("thf( cumul_domain_");
         sb.append(type.getLiftedEscapedType());
@@ -160,14 +160,27 @@ public class Quantification {
         sb.append("r");
         //sb.append(normalizedRelation);
         sb.append(" , axiom , (");
-        sb.append("! [W:" + w + ",V:" + w + ",C:" + type.getliftedNormalizedType() + "]: ( (");
+        sb.append("! [W:" + w + ",V:" + w + ",C:" + type.getliftedNormalizedType() + "]: ((");
+
+        // (eiw @ C @ V)
+        sb.append("(eiw_");
+        sb.append(type.getLiftedEscapedType());
+        sb.append("@C@V)");
+        // &
+        sb.append(" & ");
+        // (rel_r @ V @ W)
+        sb.append("(");
         sb.append(AccessibilityRelation.accessibility_relation_prefix); // default, will be changed later
-        sb.append(" @ W @ V) => ((eiw_");
+        sb.append("@V@W)");
+        // ) => (
+        sb.append(") => (");
+        // (eiw @ C @ W)
+        sb.append("eiw_");
         sb.append(type.getLiftedEscapedType());
-        sb.append(" @ C @ W) => (eiw_");
-        sb.append(type.getLiftedEscapedType());
-        sb.append(" @ C @ V)) ");
-        sb.append("))).");
+        sb.append("@C@W");
+
+        sb.append(")))).");
+
         return sb.toString();
     }
 
@@ -227,24 +240,34 @@ public class Quantification {
         StringBuilder sb = new StringBuilder();
         // decreasing axiom for each relation r
         // thf( eiw_decre , axiom , (
-        // ! [W:" + w + ", V:" + w + ", C: T]: ((rel_r @ W @ V) => ((eiw @ C @ V) => (eiw @ C @ W)))
+        // ! [W:" + w + ", V:" + w + ", C: T]: (((eiw @ C @ W) & (rel_r @ V @ W)) => (eiw @ C @ V))
         // )).
-//        for (String relation : relation_symbols) {
         sb.append("thf( decr_domain_");
         sb.append(type.getLiftedEscapedType());
         sb.append("_");
         sb.append("r"); // sb.append(relation);
         sb.append(" , axiom , (");
-        sb.append("! [W:" + w + ",V:" + w + ",C:" + type.getliftedNormalizedType() + "]: ( (");
-        sb.append(AccessibilityRelation.accessibility_relation_prefix);
-        // sb.append(relation_postfix);
-        sb.append(" @ W @ V) => ((eiw_");
+        sb.append("! [W:" + w + ",V:" + w + ",C:" + type.getliftedNormalizedType() + "]: ((");
+
+        // (eiw @ C @ W)
+        sb.append("(eiw_");
         sb.append(type.getLiftedEscapedType());
-        sb.append(" @ C @ V) => (eiw_");
+        sb.append("@C@W)");
+        // &
+        sb.append(" & ");
+        // (rel_r @ V @ W)
+        sb.append("(");
+        sb.append(AccessibilityRelation.accessibility_relation_prefix); // default, will be changed later
+        sb.append("@V@W)");
+        // ) => (
+        sb.append(") => (");
+        // (eiw @ C @ V)
+        sb.append("eiw_");
         sb.append(type.getLiftedEscapedType());
-        sb.append(" @ C @ W)) ");
-        sb.append("))).");
-//        }
+        sb.append("@C@V");
+
+        sb.append(")))).");
+
         return sb.toString();
     }
 
