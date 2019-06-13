@@ -82,52 +82,59 @@ def createConfigurations(outPath:Path, prover:ProverInstance,
 
 def createAllConfigurations(outPath:Path,prover:ProverInstance):
     consequence_list_list = [
-        ["local"],["local"],["local"],["local"]
+        ["local"],["local"],["local"],["local"],["local"]
     ]
     constants_list_list = [
-        ["rigid"],["rigid"],["rigid"],["rigid"]
+        ["rigid"],["rigid"],["rigid"],["rigid"],["rigid"]
     ]
     quantification_list_list = [
         ["constant","varying","cumulative","decreasing"],
         ["constant","varying","cumulative","decreasing"],
         ["constant","cumulative","decreasing"],
-        ["constant","cumulative","decreasing"]
+        ["constant","cumulative","decreasing"],
+        ["cumulative"]
     ]
     system_list_list = [
         ["K","D","T","S4","S5","S5U"],
         ["K","D","T","S4","S5","S5U"],
         ["K","D","T","S4","S5","S5U"],
-        ["K","D","T","S4","S5","S5U"]
+        ["K","D","T","S4","S5","S5U"],
+        ["D","T","S4","S5"]
     ]
     transformation_param_cumu_quant_list = [
         "semantic_cumulative_quantification",
         "semantic_cumulative_quantification",
         "syntactic_cumulative_quantification",
-        "syntactic_cumulative_quantification"
+        "syntactic_cumulative_quantification",
+        "semantic_cumulative_quantification"
     ]
     transformation_param_decr_quant_list = [
         "semantic_decreasing_quantification",
         "semantic_decreasing_quantification",
         "syntactic_decreasing_quantification",
-        "syntactic_decreasing_quantification"
+        "syntactic_decreasing_quantification",
+        "semantic_decreasing_quantification"
     ]
     transformation_param_const_quant_list = [
         "semantic_constant_quantification",
         "semantic_constant_quantification",
         "syntactic_constant_quantification",
-        "syntactic_constant_quantification"
+        "syntactic_constant_quantification",
+        "semantic_constant_quantification"
     ]
     transformation_param_mod_list = [
         "semantic_modality_axiomatization",
         "syntactic_modality_axiomatization",
         "semantic_modality_axiomatization",
-        "syntactic_modality_axiomatization"
+        "syntactic_modality_axiomatization",
+        "semantic_modality_axiomatization"
     ]
     enable_configuration = [
-        True,
         False,
-        True,
-        False
+        False,
+        False,
+        False,
+        True
     ]
     for enabled, \
         consequence_list, constants_list, quantification_list, system_list, \
@@ -144,7 +151,7 @@ def createAllConfigurations(outPath:Path,prover:ProverInstance):
                                  transformation_param_mod)
 
 def main(out_dir):
-    prover = ProverInstance.NITPICK
+    prover = ProverInstance.LEO_E_CVC4
     outPath = Path(out_dir)
     outPath.mkdir(exist_ok=True)
     createAllConfigurations(outPath,prover)
