@@ -14,6 +14,7 @@ def main(qmltp_dir,out_dir,csv_file_list):
     filename_to_issue = {}
     iterate_dict(problem_dict, check_consistency_iteration_callback, filename_to_issue)
     Path(out_dir).mkdir(exist_ok=True)
+    model_lines = {}
     for filename in filename_to_issue:
         issue_list = filename_to_issue[filename]
         for issue_dict in issue_list:
@@ -35,6 +36,8 @@ def main(qmltp_dir,out_dir,csv_file_list):
             outpathmodel = Path(out_dir) / (filename + "_" + system.replace("$modal_system","") + "_" + quantification.replace("$","") + "_model.p")
             if outpathmodel.exists():
                 print(str(outpathmodel) + " already exists. Skip.")
+                with open (outpathmodel,"r") as readfh:
+                    model_lines[outpathmodel.name] = readfh.read().count("\n")
                 continue
             print("currently processing",problemfile,system,quantification)
             with open(problemfile,"r") as fh:
@@ -55,6 +58,14 @@ def main(qmltp_dir,out_dir,csv_file_list):
                 model = r['raw'][modelstart:]
                 with open(outpathmodel,"w+")as fw:
                     fw.write(model)
+
+    outpathsummary = Path(out_dir) / "summary"
+    with open(outpathsummary,"w+") as sfh:
+        sorted_model_lines = sorted(model_lines.items(), key=lambda kv: kv[1])
+        for tupl in sorted_model_lines:
+            line = tupl[0] + "   lines: " + str(tupl[1])
+            sfh.write(line + "\n")
+            print(line)
 
 if __name__ == "__main__":
     main(sys.argv[1],sys.argv[2],sys.argv[3:])
