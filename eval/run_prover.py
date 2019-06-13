@@ -22,46 +22,7 @@ bin_embed = "java -jar /home/tg/embed_modal/embed/target/embed-1.0-SNAPSHOT-shad
 #-consequences local -constants rigid - systems K -domains varying,cumulative -diroutput joint -i data/QMLTP/qmltp_thf/APM/APM010+1.p -o embed_modal/qmltp_embedded/APM010+1.p
 
 
-def run_local_prover_helper(prover_command, problem, wc_limit, cpu_limit):
-    # create temp file
-    filename = common.create_temp_file(problem)
 
-    #  execute prover command with tree limited run on temp file
-    cmd = prover_command.replace("%s",filename).replace("%d",str(wc_limit))
-    stdout,stderr,returncode = common.execute_treelimitedrun(bin_treelimitedrun,cmd, wc_limit, cpu_limit)
-
-    # delete temp file
-    try:
-        os.remove(filename)
-    except:
-        pass
-
-    # extract information from prover result
-    str_stdout = stdout.decode('utf-8')
-    str_err = stderr.decode('utf-8')
-    str_returncode = str(returncode)
-    #print(stdout)
-    #print(stderr)
-
-    try:
-        szs_status = common.parse_szs_status(str_stdout)
-        wc = common.parse_wc(str_stdout)
-        cpu = common.parse_cpu(str_stdout)
-    except:
-        szs_status = "TimeoutExecution"
-        wc = str(prover_wc_limit)
-        cpu = str(prover_cpu_limit)
-
-    # success data
-    send_data = {}
-    send_data['status'] = 'ok'
-    send_data['problem'] = problem
-    send_data['szs_status'] = szs_status
-    send_data['wc'] = wc
-    send_data['cpu'] = cpu
-    send_data['raw'] = str_stdout + "\n" + str_err
-    send_data['return_code'] = str_returncode
-    return send_data
 
 
 
@@ -80,7 +41,7 @@ def run_embedding_and_prover(problem,embedding_parameters, embedding_semantics, 
                              prover_command, prover_wc_limit, prover_cpu_limit):
     embedding_ret = common.embed(bin_treelimitedrun, bin_embed,problem, embedding_parameters, embedding_semantics, embedding_wc_limit, embedding_cpu_limit)
     #print(embedding_ret)
-    prover_ret = run_local_prover_helper(prover_command, embedding_ret['embedded_problem'],prover_wc_limit, prover_cpu_limit)
+    prover_ret = common.run_local_prover(bin_treelimitedrun,prover_command, embedding_ret['embedded_problem'],prover_wc_limit, prover_cpu_limit)
     #print(prover_ret)
     return embedding_ret, prover_ret
 
