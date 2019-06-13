@@ -9,14 +9,6 @@ def main(qmltp_dir,out_dir,csv_file_list):
     bin_embed = "java -jar /home/tg/embed_modal/embed/target/embed-1.0-SNAPSHOT-shaded.jar" # dev
     bin_solver = "/home/tg/embed_modal/eval/provers/isabelle2018/isabelle/bin/isabelle tptp_nitpick %d %s"
 
-    #quantification = "$varying"
-    #system = "$modal_system_S4"
-    #sem = {"system":system,"quantification":quantification,"consequence":"$local","constants":"$rigid"}
-    #params = ["semantic_constant_quantification","semantic_cumulative_quantification","semantic_decreasing_quantification","semantic_modality_axiomatization"]
-    #params_old = ["semantic_monotonic_quantification","semantic_antimonotonic_quantification","semantic_modality_axiomatization"]
-    #params_very_old = []
-    #problemfile = "/home/tg/embed_modal/eval/datasets/qmltp_thf_standard/GLC/GLC414+1.p"
-
     problem_list = accumulate_csv(csv_file_list)
     problem_dict = create_dict_from_problems(problem_list)
     filename_to_issue = {}
@@ -38,17 +30,15 @@ def main(qmltp_dir,out_dir,csv_file_list):
                 continue
 
             problemfile = filename_to_path(qmltp_dir,filename)
+            outpathembedding = Path(out_dir) / (filename + "_" + system.replace("$modal_system","") + "_" + quantification.replace("$","") + ".p")
+            outpathoriginal = Path(out_dir) / (filename + "_" + system.replace("$modal_system","") + "_" + quantification.replace("$","") + "_original.p")
+            outpathmodel = Path(out_dir) / (filename + "_" + system.replace("$modal_system","") + "_" + quantification.replace("$","") + "_model.p")
+            if outpathmodel.exists():
+                print(str(outpathmodel) + " already exists. Skip.")
+                continue
             print("currently processing",problemfile,system,quantification)
             with open(problemfile,"r") as fh:
                 problem = fh.read()
-                if not "GSY364+1.p" in str(problemfile):
-                    continue
-                outpathembedding = Path(out_dir) / (filename + "_" + system.replace("$modal_system","") + "_" + quantification.replace("$","") + ".p")
-                outpathoriginal = Path(out_dir) / (filename + "_" + system.replace("$modal_system","") + "_" + quantification.replace("$","") + "_original.p")
-                outpathmodel = Path(out_dir) / (filename + "_" + system.replace("$modal_system","") + "_" + quantification.replace("$","") + "_model.p")
-                if outpathmodel.exists():
-                    print(str(outpathmodel) + " already exists. Skip.")
-                    continue
 
                 e = embed(bin_treelimitedrun, bin_embed,problem,params,sem,120,120)
                 with open(outpathembedding,"w+")as fw:
