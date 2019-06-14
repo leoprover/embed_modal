@@ -16,6 +16,7 @@ def extract_qmltp_info_from_problem(problem):
         .replace("S4 ","   ")\
         .replace("S5 ","   ")\
         .replace("%","")\
+        .replace("Non-Theorem","CounterSatisfiable")\
         .strip()\
         .split("\n")
     info = list(map(lambda e: e.strip(),info))
@@ -32,6 +33,8 @@ def extract_qmltp_info_from_problem_file_list(problem_file_list):
             info = extract_qmltp_info_from_problem(content)
             for system, s_val in zip(("$modal_system_K","$modal_system_D","$modal_system_T","$modal_system_S4","$modal_system_S5"),info): # s_val is an inner list
                 for quantification, q_val in zip(("$varying","$cumulative","$constant"),s_val):
+                    #if q_val == "Non-Theorem":
+                    #    q_val = "CounterSatisfiable"
                     line = [p.name, "QMLTP", q_val, "0", "0",
                               system, quantification, "$local", "$rigid",
                               ""]
