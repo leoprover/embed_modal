@@ -18,6 +18,7 @@ def resolve_transformation_abbreviation(transformation_param):
         return "syntactic_modality_axiomatization"
     if transformation_param == "synconst":
         return "syntactic_constant_quantification"
+    return ""
 
 # pair       id,benchmark,                      benchmark id, solver, solver id, configuration,
 # 445515705, qmltp_thf_standard/GSE/GSE044+1.p, 9126303,      leo3,   23515,     local_rigid_constant_D_semdecr_semcumul_semconst_semmod,
