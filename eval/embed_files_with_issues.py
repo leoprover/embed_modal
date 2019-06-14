@@ -32,10 +32,10 @@ def main(qmltp_dir,out_dir,csv_file_list):
             sem = {"system":system,"quantification":quantification,"consequence":"$local","constants":"$rigid"}
             params = []
             params.append(["semantic_constant_quantification","semantic_cumulative_quantification","semantic_decreasing_quantification","semantic_modality_axiomatization"])
-            params.append(["semantic_monotonic_quantification","semantic_antimonotonic_quantification","semantic_modality_axiomatization"])
             params.append([])
-            #if quantification != "$varying":
-            #    continue
+            #params.append(["semantic_monotonic_quantification","semantic_antimonotonic_quantification","semantic_modality_axiomatization"])
+            if quantification != "$varying":
+                continue
             if system == "$modal_system_K":
                 continue
 
@@ -45,7 +45,6 @@ def main(qmltp_dir,out_dir,csv_file_list):
                 problem = fh.read()
 
                 for i in range(len(bin_embed)):
-
                     outfile = Path(out_dir) / (filename + "_" + system.replace("$modal_system","") + "_" + quantification.replace("$","") + "_" + str(i) + ".p")
                     if outfile.exists():
                         print(str(outfile) + " already exists.")
@@ -53,7 +52,7 @@ def main(qmltp_dir,out_dir,csv_file_list):
                     e = embed(bin_treelimitedrun, bin_embed[i],problem,params[i],sem,120,120)
                     with open(outfile,"w+")as fw:
                         fw.write(e['embedded_problem'])
-                    outOriginal = Path(out_dir) / (filename + "_" + system.replace("$modal_system","") + "_" + quantification.replace("$","") + "_" + str(i) + ".p")
+                    outOriginal = Path(out_dir) / (filename + "_" + system.replace("$modal_system","") + "_" + quantification.replace("$","") + "_" + str(i) + "_original" + ".p")
                     with open(outOriginal,"w+")as fw:
                         fw.write("% " + str(sem))
                         fw.write(problem)
