@@ -82,30 +82,39 @@ def createConfigurations(outPath:Path, prover:ProverInstance,
 
 def createAllConfigurations(outPath:Path,prover:ProverInstance):
     consequence_list_list = [
-        ["local"],["local"],["local"],["local"],["local"]
+        ["local"],["local"],["local"],["local"],["local"],["local"],["local"],["local"]
     ]
     constants_list_list = [
-        ["rigid"],["rigid"],["rigid"],["rigid"],["rigid"]
+        ["rigid"],["rigid"],["rigid"],["rigid"],["rigid"],["rigid"],["rigid"],["rigid"]
     ]
     quantification_list_list = [
         ["constant","varying","cumulative","decreasing"],
         ["constant","varying","cumulative","decreasing"],
         ["constant","cumulative","decreasing"],
         ["constant","cumulative","decreasing"],
-        ["cumulative"]
+        ["cumulative"], # debug cumul
+        ["constant"], # debug native equality
+        ["constant"], # debug native equality
+        ["constant"] # debug const_syn
     ]
     system_list_list = [
         ["K","D","T","S4","S5","S5U"],
         ["K","D","T","S4","S5","S5U"],
         ["K","D","T","S4","S5","S5U"],
         ["K","D","T","S4","S5","S5U"],
-        ["D","T","S4","S5"]
+        ["D","T","S4","S5"],
+        ["K","D","T","S4","S5","S5U"],
+        ["K","D","T","S4","S5","S5U"],
+        ["K","D","T","S4","S5","S5U"]
     ]
     transformation_param_cumu_quant_list = [
         "semantic_cumulative_quantification",
         "semantic_cumulative_quantification",
         "syntactic_cumulative_quantification",
         "syntactic_cumulative_quantification",
+        "semantic_cumulative_quantification",
+        "semantic_cumulative_quantification",
+        "semantic_cumulative_quantification",
         "semantic_cumulative_quantification"
     ]
     transformation_param_decr_quant_list = [
@@ -113,6 +122,9 @@ def createAllConfigurations(outPath:Path,prover:ProverInstance):
         "semantic_decreasing_quantification",
         "syntactic_decreasing_quantification",
         "syntactic_decreasing_quantification",
+        "semantic_decreasing_quantification",
+        "semantic_decreasing_quantification",
+        "semantic_decreasing_quantification",
         "semantic_decreasing_quantification"
     ]
     transformation_param_const_quant_list = [
@@ -120,16 +132,25 @@ def createAllConfigurations(outPath:Path,prover:ProverInstance):
         "semantic_constant_quantification",
         "syntactic_constant_quantification",
         "syntactic_constant_quantification",
-        "semantic_constant_quantification"
+        "semantic_constant_quantification",
+        "semantic_constant_quantification",
+        "semantic_constant_quantification",
+        "syntactic_constant_quantification"
     ]
     transformation_param_mod_list = [
         "semantic_modality_axiomatization",
         "syntactic_modality_axiomatization",
         "semantic_modality_axiomatization",
         "syntactic_modality_axiomatization",
+        "semantic_modality_axiomatization",
+        "syntactic_modality_axiomatization",
+        "semantic_modality_axiomatization",
         "semantic_modality_axiomatization"
     ]
     enable_configuration = [
+        False,
+        False,
+        False,
         False,
         False,
         False,
@@ -196,11 +217,11 @@ def createAllMLeanCopConfigurations(outPath):
                 fh.write(configuration)
 
 def main(out_dir):
-    prover = ProverInstance.LEO_E_CVC4
+    prover = ProverInstance.NITPICK
     outPath = Path(out_dir)
     outPath.mkdir(exist_ok=True)
-    #createAllConfigurations(outPath,prover)
-    createAllMLeanCopConfigurations(outPath)
+    createAllConfigurations(outPath,prover)
+    #createAllMLeanCopConfigurations(outPath)
 
 if __name__ == '__main__':
     main(sys.argv[1])

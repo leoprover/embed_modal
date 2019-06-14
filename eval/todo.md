@@ -12,48 +12,43 @@
 
 # another benchmark I (optional)
 * CHECK dataset: find problems with axiomatized equality
-* dataset: find the common axioms
-* dataset: replace problems containing axiomatized equality with native equality
-* dataset: probably remove (common) axioms
+* CHECK dataset: find the common axioms
+* CHECK dataset: replace problems containing axiomatized equality with native equality
+* CHECK dataset: probably remove (common) axioms
 * dataset: test problems with native equality
 
 # another benchmark II (optional)
 * implement TH1
-* find TH1 provers
+* CHECK find TH1 provers
 * test TH1
 
 # another benchmark III (optional)
-* implement const_syn
+* CHECK implement const_syn
 * test const_syn
 
 # benchmark
 ## Provers
-(minimum)
 * Leo3 with E+CVC4
 * Nitpick
+* Satallax
 
 (optional)
 * Leo3
 * Leo3 with CVC4
 * Leo3 with E
-* Satallax
-* some TH1 provers?
+* HolyHammer
 
 ## Configurations
-(minimum)
 K_syn,D_syn,T_syn,S4_syn,S5_syn,
 K_sem,D_sem,T_sem,S4_sem,S5_sem,
-S5U (can we optimize here?)
-x local x constant,vary,cumul_sem,cumul_syn
-
-(optional)
-global, decreasing
+S5U (can we optimize here?) x 
+local x 
+rigid x 
+const_sem,const_syn,vary,cumul_sem,cumul_syn
 
 ## Data Sets
 (minimum)
 * default: contains problems without =/!= symbols that were replaced by a fresh constant, 
            seven SYM problems containing inadequate equality problems are removed
-
-(optional)
-* native_equality_set: contains all equality problems with native equality (remove axioms?)
+* native_equality: contains all equality problems with native equality and equality axioms removed
 
