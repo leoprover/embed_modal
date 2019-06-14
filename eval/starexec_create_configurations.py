@@ -150,11 +150,57 @@ def createAllConfigurations(outPath:Path,prover:ProverInstance):
                                  transformation_param_cumu_quant,transformation_param_decr_quant, transformation_param_const_quant, \
                                  transformation_param_mod)
 
+def createMLeanCopConfiguration(system,quantification):
+    mleansystem = system[len("modal_system_"):].lower()
+    if quantification == "cumulative":
+        mleanquantification = "cumul"
+    elif quantification == "varying":
+        mleanquantification = "vary"
+    else:
+        mleanquantification = "const"
+    sb = []
+    print(mleanquantification,mleansystem)
+    sb.append("#!/bin/bash")
+    sb.append("")
+    sb.append("export LOGIC=" + mleansystem)
+    sb.append("export DOMAIN=" + mleanquantification)
+    sb.append("RESULT=$(./mleancop.sh $1 $STAREXEC_CPU_LIMIT $LOGIC $DOMAIN 2>/dev/null)")
+    sb.append("if echo $RESULT | grep --quiet \"Non-Theorem\"; then")
+    sb.append("echo \"% SZS status CounterSatisfiable\"")
+    sb.append("else")
+    sb.append("if echo $RESULT | grep --quiet \"Theorem\"; then")
+    sb.append("echo \"% SZS status Theorem\"")
+    sb.append("else")
+    sb.append("echo \"% SZS status Unknown\"")
+    sb.append("fi")
+    sb.append("fi")
+    return "\n".join(sb)
+
+def createAllMLeanCopConfigurations(outPath):
+    consequence_property = "local"
+    constant_property = "rigid"
+    quantification_list = ["cumulative","varying","constant"]
+    system_list = ["modal_system_D","modal_system_T","modal_system_S4","modal_system_S5"]
+    for quantification_property in quantification_list:
+        for system_property in system_list:
+            configuration = createMLeanCopConfiguration(system_property,quantification_property)
+            configuration_name = "_".join([consequence_property,
+                                           constant_property,
+                                           quantification_property,
+                                           system_property,
+                                           "none"])
+            configuration_filename = "starexec_run_" + configuration_name
+            out_file = outPath / configuration_filename
+            print(out_file)
+            with open(out_file,"w+") as fh:
+                fh.write(configuration)
+
 def main(out_dir):
     prover = ProverInstance.LEO_E_CVC4
     outPath = Path(out_dir)
     outPath.mkdir(exist_ok=True)
-    createAllConfigurations(outPath,prover)
+    #createAllConfigurations(outPath,prover)
+    createAllMLeanCopConfigurations(outPath)
 
 if __name__ == '__main__':
     main(sys.argv[1])
