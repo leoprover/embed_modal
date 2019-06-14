@@ -81,6 +81,7 @@ class Node:
         self.rule = rule
         self.content = content
         self.children = []
+        self.parent = None
     def getRule(self):
         return self.rule
     def getContent(self):
@@ -118,6 +119,11 @@ class Node:
         current = self
         while current.hasChildren():
             current = current.getChild(0)
+        return current
+    def getRoot(self):
+        current = self
+        while current.getParent() != None:
+            current = current.getParent()
         return current
     def __str__(self):
         self.strret = ""
@@ -370,6 +376,44 @@ def embed(bin_tree_limited_run, bin_embed,problem,params,semantics,wc_limit,cpu_
     send_data['semantics'] = semantics
     send_data['embedded_problem'] = problem_embedded
     return send_data
+
+def getRoleFromThfAnnotated(node:Node):
+    return node.getChild(4)
+
+def getNameFromThfAnnotated(node:Node):
+    return node.getChild(2)
+
+def check_theorem_helper(node:Node, axiom_name, thf_formulas):
+    if node.rule == "thf_annotated":
+        role_node = getRoleFromThfAnnotated(node)
+        name_node = getNameFromThfAnnotated(node)
+        if role_node.getContent() == "axiom":
+            if name_node.getContent() == axiom_name:
+                terminal = role_node.getFirstTerminal()
+                terminal.setContent("conjecture")
+                thf_formulas.append(str(node))
+                terminal.setContent("axiom")
+        elif role_node.getContent() == "conjecture":
+            pass
+        else:
+            thf_formulas.append(str(node))
+
+def check_axiom_szs(bin_treelimitedrun,bin_prover,root:Node,axiom_name, wc_limit, cpu_limit):
+    semantics = """thf(simple_s5,logic,(
+    $modal :=
+        [ $constants := $rigid,
+            $quantification := $varying,
+            $consequence := $local,
+            $modalities := $modal_system_K
+        ]
+)).
+"""
+    thf_formulas = []
+    root.dfs(check_theorem_helper, axiom_name, thf_formulas)
+    problem = semantics + "\n".join(thf_formulas)
+    r = run_local_prover(bin_treelimitedrun,bin_prover,problem,wc_limit,cpu_limit)
+    #print(str(r).replace("\\n","\n"))
+    return r['szs_status']
 
 def get_embedding_results_from_problem_file_list(callback, bin_treelimitedrun, bin_embed,
                                                  problem_white_filter, problem_black_filter,
