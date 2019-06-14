@@ -35,6 +35,8 @@ def main(csv_file_list):
         print("=================================================================================================================================")
         print(filename)
         for issue_dict in issue_list:
+            if issue_dict['system'] == "$modal_system_K":
+                continue
             if issue_dict['quantification'] == "$cumulative":
                 cumulative_files.add(filename)
             if issue_dict['quantification'] == "$varying":
