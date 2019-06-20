@@ -1,19 +1,29 @@
 import sys
 import common
 
-def check_consistency_iteration_callback(filename, system, quantification, problem_list, *callback_args):
+def check_soundness_iteration_callback(filename, system, quantification, problem_list, *callback_args):
     ret_dict = callback_args[0]
     reference_prover_name_list = callback_args[1]
     szs_dict = common.create_szs_dict_of_configuration(problem_list)
     # check for consistency
-    if ("Theorem" in szs_dict and "Non-Theorem" in szs_dict) or \
+    if      ("Theorem" in szs_dict and "Non-Theorem" in szs_dict) or \
             ("Theorem" in szs_dict and "CounterSatisfiable" in szs_dict) or \
-            ("Theorem" in szs_dict and "ContradictoryAxioms" in szs_dict):
-        if not filename in ret_dict:
-            ret_dict[filename] = []
-        # check if any of the reference provers contain the SZS status Theorem
-        for problem in szs_dict['Theorem']:
+            ("Theorem" in szs_dict and "ContradictoryAxioms" in szs_dict) or \
+            ("ContradictoryAxioms" in szs_dict and "Satisfiable" in szs_dict):
+
+        # check if any of the reference provers contain the SZS status Non-Theorem, CounterSatisfiable or Contradictory Axioms
+
+        negative_result_problem_list = []
+        if 'Non-Theorem' in szs_dict:
+            negative_result_problem_list += szs_dict['Non-Theorem']
+        if 'CounterSatisfiable' in szs_dict:
+            negative_result_problem_list += szs_dict['CounterSatisfiable']
+        if 'ContradictoryAxioms' in szs_dict:
+            negative_result_problem_list += szs_dict['ContradictoryAxioms']
+        for problem in negative_result_problem_list:
             if problem.prover in reference_prover_name_list:
+                if not filename in ret_dict:
+                    ret_dict[filename] = []
                 ret_dict[filename].append({'system':system,
                                            'quantification':quantification,
                                            'problem_list':problem_list})
@@ -31,7 +41,7 @@ def main(reference_prover_name_list,csv_file_list):
     problem_list = common.accumulate_csv(csv_file_list)
     problem_dict = common.create_dict_from_problems(problem_list)
     filename_to_issue = {}
-    common.iterate_dict(problem_dict, check_consistency_iteration_callback, filename_to_issue, reference_prover_name_list)
+    common.iterate_dict(problem_dict, check_soundness_iteration_callback, filename_to_issue, reference_prover_name_list)
     print("files with issues:",len(filename_to_issue))
     varying_files = set()
     cumulative_files = set()

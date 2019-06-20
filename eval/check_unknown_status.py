@@ -10,7 +10,6 @@ def check_unknown_status_iteration_callback(filename, system, quantification, pr
         if status in szs_status_set:
             szs_status_set.remove(status)
     if len(szs_status_set) != 0:
-        print("not empty",szs_status_set)
         if not filename in ret_dict:
             ret_dict[filename] = []
         ret_dict[filename].append({'system':system,
