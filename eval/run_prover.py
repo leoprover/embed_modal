@@ -95,7 +95,10 @@ def debug_print_line(line,e,r):
     if system == "$modal_system_S5U":
         qmltp_szs_status = problem_status["$modal_system_S5"][quant]
     else:
-        qmltp_szs_status = problem_status[system][quant]
+        try:
+            qmltp_szs_status = problem_status[system][quant]
+        except:
+            qmltp_szs_status = "keyerror"
     prove_status = r['szs_status']
     log("qmltp szs:  ",qmltp_szs_status)
     log("prover szs: ",prove_status)
@@ -166,18 +169,18 @@ def already_processed(filename,system,quantification):
 ###############################################################
 
 system_list = [
-    "$modal_system_K",
+    #"$modal_system_K",
     "$modal_system_D",
-    "$modal_system_T",
-    "$modal_system_S4",
-    "$modal_system_S5",
-    "$modal_system_S5U"
+    #"$modal_system_T",
+    #"$modal_system_S4",
+    #"$modal_system_S5",
+    #"$modal_system_S5U"
 ]
 quantification_list = [
     "$constant",
-    "$varying",
-    "$cumulative",
-    "$decreasing"
+    #"$varying",
+    #"$cumulative",
+    #"$decreasing"
 ]
 consequence_list = [
     "$local"#,
@@ -188,12 +191,12 @@ constants_list = [
 ]
 transformation_parameter_list = [
     "semantic_modality_axiomatization",
-    "semantic_monotonic_quantification",
-    "semantic_antimonotonic_quantification",
+    "semantic_cumulative_quantification",
+    "semantic_decreasing_quantification",
     "semantic_constant_quantification",
     #"syntactic_modality_axiomatization",
-    #"syntactic_monotonic_quantification",
-    #"syntactic_antimonotonic_quantification",
+    #"syntactic_cumulative_quantification",
+    #"syntactic_decreasing_quantification",
     #"syntactic_constant_quantification"
 ]
 #semantic_modality_axiomatization semantic_monotonic_quantification semantic_antimonotonic_quantification
@@ -205,10 +208,11 @@ transformation_parameter_list = [
 # paths
 ###############################################################
 
-save_file = "/home/tg/embed_modal/eval/new.csv"
-log_file = "/home/tg/embed_modal/eval/new.log.csv"
+save_file = "/home/tg/embed_modal/eval/neweqnit.csv"
+log_file = "/home/tg/embed_modal/eval/neweqnit.log.csv"
 #qmltp_path = "/home/tg/data/QMLTP/qmltp_thf_no_mml"
 qmltp_path = "/home/tg/embed_modal/eval/datasets/qmltp_thf_standard"
+qmltp_path_eq = "/home/tg/embed_modal/eval/datasets/qmltp_thf_native_eq_only"
 
 
 ###############################################################
@@ -220,7 +224,7 @@ prover_name = "leo3 1.3"
 #prover_command = "java -Xss128m -Xmx4g -Xms1g -jar /home/tg/starexec/uberleo/leo3.jar %s -t %d " \
 #                 "--atp iprover=/home/tg/starexec/uberleo/externals/iprover " \
 #                 "--atp e=/home/tg/starexec/uberleo/externals/eprover " \
-#                 "--atp cvc4=/home/tg/starexec/uberleo/externals/cvc4-1.7-x86_64-linux-opt " \
+#                 "--atp cvc4=/home/tg/starexec/uberleo/externals/cvc4 " \
 #                 "--atp vampire=/home/tg/starexec/uberleo/externals/vampire " \
 #                 "--atp-max-jobs 2 " \
 #                 "--atp-timeout cvc4=30 " \
@@ -230,14 +234,14 @@ prover_name = "leo3 1.3"
 #                 "--atp-debug "
 prover_command = "java -Xss128m -Xmx4g -Xms1g -jar /home/tg/embed_modal/eval/provers/leo1.3/leo3.jar %s -t %d " \
                      "--atp e=/home/tg/embed_modal/eval/provers/leo1.3/externals/eprover " \
-                     "--atp cvc4=/home/tg/embed_modal/eval/provers/leo1.3/externals/cvc4-1.7-x86_64-linux-opt " \
+                     "--atp cvc4=/home/tg/embed_modal/eval/provers/leo1.3/externals/cvc4 " \
                      "--atp-max-jobs 2 " \
                      "--atp-timeout cvc4=30 " \
                      "--atp-timeout e=30 " \
                      "--atp-debug "
-#prover_command = "/home/tg/embed_modal/eval/provers/Isabelle2018/isabelle/bin/isabelle tptp_nitpick %d %s"
-prover_wc_limit = 30
-prover_cpu_limit = 30
+prover_command = "/home/tg/embed_modal/eval/provers/isabelle2018/isabelle/bin/isabelle tptp_nitpick %d %s"
+prover_wc_limit = 500
+prover_cpu_limit = 500
 embedding_wc_limit = 600
 embedding_cpu_limit = 3600
 #prover_wc_limit = 6
@@ -246,6 +250,7 @@ embedding_cpu_limit = 3600
 #embedding_cpu_limit = 6
 #problem_file_list = common.get_problem_file_list(common.problem_directory)[:1]
 problem_file_list = common.get_problem_file_list(qmltp_path)
+#problem_file_list = common.get_problem_file_list(qmltp_path_eq)
 
 
 ###############################################################
@@ -255,7 +260,11 @@ problem_file_list = common.get_problem_file_list(qmltp_path)
 init(qmltp_path)
 #problem_white_filter = qmltp_problems_without_modal_operators
 #problem_white_filter = cumul_interesting_problems
-problem_white_filter = ["APM001+1.p","APM002+1.p","APM003+1.p","APM004+1.p""APM005+1.p","APM006+1.p","APM008+1.p","APM009+1.p","APM010+1.p"]
+problem_white_filter = ["GAL014+1.p",
+                        "GAL016+1.p",
+                        "GAL017+1.p",
+                        "GAL020+1.p",
+                        "GSE002+3.p"]
 problem_black_filter = None
 #problem_black_filter = qmltp_problems_containing_equality
 
