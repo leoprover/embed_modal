@@ -1,16 +1,10 @@
 import sys
 import common
 
-def check_unknown_status_iteration_callback(filename, system, quantification, problem_list, *callback_args):
+def check_consistency_iteration_callback(filename, system, quantification, problem_list, *callback_args):
     ret_dict = callback_args[0]
     szs_dict = common.create_szs_dict_of_configuration(problem_list)
-    szs_status_set = set(szs_dict.keys())
-    allowed_status_list = ["Theorem", "CounterSatisfiable", "Timeout", "Unsolved", "GaveUp", "Unknown", "Satisfiable"]
-    for status in allowed_status_list:
-        if status in szs_status_set:
-            szs_status_set.remove(status)
-    if len(szs_status_set) != 0:
-        print("not empty",szs_status_set)
+    if ("ContradictoryAxioms" in szs_dict and "Satisfiable" in szs_dict):
         if not filename in ret_dict:
             ret_dict[filename] = []
         ret_dict[filename].append({'system':system,
@@ -18,13 +12,16 @@ def check_unknown_status_iteration_callback(filename, system, quantification, pr
                                    'problem_list':problem_list})
 
 def main(csv_file_list):
-    print("Checking for unknown SZS status of the results.")
-    print("Known SZS status are: Theorem, CounterSatisfiable, Satisfiable, InputError, Timeout, Unsolved, GaveUp, Unknown")
+    print("Checking for issues if the SZS status Satisfiable occurs in of the results.")
+    print("Each run (prover,transformationparameters) of a modal configuration (consequence,constants,quantification,system) "
+          "is cross-verified with any other run of the modal configuration. "
+          "This includes")
+    print("Configurations with SZS status ContradictoryAxioms and Satisfiable on different runs.")
     print("")
     problem_list = common.accumulate_csv(csv_file_list)
     problem_dict = common.create_dict_from_problems(problem_list)
     filename_to_issue = {}
-    common.iterate_dict(problem_dict, check_unknown_status_iteration_callback, filename_to_issue)
+    common.iterate_dict(problem_dict, check_consistency_iteration_callback, filename_to_issue)
     print("files with issues:",len(filename_to_issue))
     varying_files = set()
     cumulative_files = set()

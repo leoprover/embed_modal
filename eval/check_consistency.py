@@ -4,9 +4,10 @@ import common
 def check_consistency_iteration_callback(filename, system, quantification, problem_list, *callback_args):
     ret_dict = callback_args[0]
     szs_dict = common.create_szs_dict_of_configuration(problem_list)
-    if ("Theorem" in szs_dict and "Non-Theorem" in szs_dict) or \
-        ("Theorem" in szs_dict and "CounterSatisfiable" in szs_dict) or \
-            ("Theorem" in szs_dict and "ContradictoryAxioms" in szs_dict):
+    if      ("Theorem" in szs_dict and "Non-Theorem" in szs_dict) or \
+            ("Theorem" in szs_dict and "CounterSatisfiable" in szs_dict) or \
+            ("Theorem" in szs_dict and "ContradictoryAxioms" in szs_dict) or \
+            ("ContradictoryAxioms" in szs_dict and "Satisfiable" in szs_dict):
         if not filename in ret_dict:
             ret_dict[filename] = []
         ret_dict[filename].append({'system':system,
@@ -21,6 +22,7 @@ def main(csv_file_list):
     print("Configurations with SZS status Theorem and Non-Theorem on different runs.")
     print("Configurations with SZS status Theorem and CounterSatisfiable on different runs.")
     print("Configurations with SZS status Theorem and ContradictoryAxioms on different runs.")
+    print("Configurations with SZS status ContradictoryAxioms and Satisfiable on different runs.")
     print("")
     problem_list = common.accumulate_csv(csv_file_list)
     problem_dict = common.create_dict_from_problems(problem_list)
