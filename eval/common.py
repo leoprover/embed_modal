@@ -7,6 +7,9 @@ import tempfile
 import subprocess
 from pathlib import Path
 
+class OutputNotInterpretable(Exception):
+    pass
+
 def get_problem_file_list(problem_directory):
     ret = []
     for dirpath, dirs, files in os.walk(problem_directory):
@@ -272,7 +275,8 @@ def parse_wc(s):
 def parse_szs_status(s):
     status_start = s.find("SZS status")
     if status_start == -1:
-        raise OutputNotInterpretable("status_start == -1")
+        print(s)
+        raise OutputNotInterpretable("status_start == -1.\n"+s)
     status_start += 10
     s = s[status_start:].strip()
     status_end = s.find(" ")
@@ -305,8 +309,8 @@ def run_local_prover(bin_treelimitedrun,prover_command, problem, wc_limit, cpu_l
         cpu = parse_cpu(str_stdout)
     except:
         szs_status = "TimeoutExecution"
-        wc = str(prover_wc_limit)
-        cpu = str(prover_cpu_limit)
+        wc = str(wc_limit)
+        cpu = str(cpu_limit)
 
     # success data
     send_data = {}
