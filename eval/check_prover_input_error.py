@@ -1,7 +1,7 @@
 import sys
 import common
 
-def check_consistency_iteration_callback(filename, system, quantification, problem_list, *callback_args):
+def check_input_error_iteration_callback(filename, system, quantification, problem_list, *callback_args):
     ret_dict = callback_args[0]
     szs_dict = common.create_szs_dict_of_configuration(problem_list)
     if ("InputError" in szs_dict):
@@ -18,7 +18,7 @@ def main(csv_file_list):
     problem_list = common.accumulate_csv(csv_file_list)
     problem_dict = common.create_dict_from_problems(problem_list)
     filename_to_issue = {}
-    common.iterate_dict(problem_dict, check_consistency_iteration_callback, filename_to_issue)
+    common.iterate_dict(problem_dict, check_input_error_iteration_callback, filename_to_issue)
     print("files with issues:",len(filename_to_issue))
     for filename in sorted(filename_to_issue):
         issue_list = filename_to_issue[filename]
