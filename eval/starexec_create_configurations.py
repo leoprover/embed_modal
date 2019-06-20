@@ -82,26 +82,33 @@ def createConfigurations(outPath:Path, prover:ProverInstance,
 
 def createAllConfigurations(outPath:Path,prover:ProverInstance):
     consequence_list_list = [
-        ["local"],["local"],["local"],["local"],["local"],["local"],["local"],["local"]
+        ["local"],["local"],["local"],["local"],["local"],["local"],["local"],["local"],["local"],["local"]
     ]
     constants_list_list = [
-        ["rigid"],["rigid"],["rigid"],["rigid"],["rigid"],["rigid"],["rigid"],["rigid"]
+        ["rigid"],["rigid"],["rigid"],["rigid"],["rigid"],["rigid"],["rigid"],["rigid"],["rigid"],["rigid"]
     ]
     quantification_list_list = [
-        ["constant","varying","cumulative","decreasing"],
-        ["constant","varying","cumulative","decreasing"],
-        ["constant","cumulative","decreasing"],
-        ["constant","cumulative","decreasing"],
-        ["cumulative"], # debug cumul
-        ["constant"], # debug native equality
-        ["constant"], # debug native equality
-        ["constant"] # debug const_syn
+        ["constant","varying","cumulative","decreasing"], # THM prover, semmod semquant
+        ["constant","varying","cumulative","decreasing"], # THM prover, synmod semquant
+        ["constant","cumulative","decreasing"],           # THM prover, semmod synquant
+        ["constant","cumulative","decreasing"],           # THM prover, synmod synquant
+        ["constant"],                                     # Model finder, semmod semquant
+        ["constant"],                                     # Model finder, synmod semquant
+        ["constant","cumulative","decreasing"],           # THM prover and model finder S5U semmod
+        ["cumulative"],                                   # debug cumul
+        ["constant"],                                     # debug native equality
+        ["constant"],                                     # debug native equality
+        ["constant"]                                      # debug const_syn
     ]
     system_list_list = [
-        ["K","D","T","S4","S5","S5U"],
-        ["K","D","T","S4","S5","S5U"],
-        ["K","D","T","S4","S5","S5U"],
-        ["K","D","T","S4","S5","S5U"],
+        ["K","D","T","S4","S5"],
+        ["K","D","T","S4","S5"],
+        ["K","D","T","S4","S5"],
+        ["K","D","T","S4","S5"],
+        ["K","D","T","S4","S5"],
+        ["K","D","T","S4","S5"],
+        ["S5U"],
+        ["S5U"],
         ["D","T","S4","S5"],
         ["K","D","T","S4","S5","S5U"],
         ["K","D","T","S4","S5","S5U"],
@@ -115,6 +122,9 @@ def createAllConfigurations(outPath:Path,prover:ProverInstance):
         "semantic_cumulative_quantification",
         "semantic_cumulative_quantification",
         "semantic_cumulative_quantification",
+        "semantic_cumulative_quantification",
+        "semantic_cumulative_quantification",
+        "semantic_cumulative_quantification",
         "semantic_cumulative_quantification"
     ]
     transformation_param_decr_quant_list = [
@@ -122,6 +132,9 @@ def createAllConfigurations(outPath:Path,prover:ProverInstance):
         "semantic_decreasing_quantification",
         "syntactic_decreasing_quantification",
         "syntactic_decreasing_quantification",
+        "semantic_decreasing_quantification",
+        "semantic_decreasing_quantification",
+        "semantic_decreasing_quantification",
         "semantic_decreasing_quantification",
         "semantic_decreasing_quantification",
         "semantic_decreasing_quantification",
@@ -135,6 +148,9 @@ def createAllConfigurations(outPath:Path,prover:ProverInstance):
         "semantic_constant_quantification",
         "semantic_constant_quantification",
         "semantic_constant_quantification",
+        "semantic_constant_quantification",
+        "semantic_constant_quantification",
+        "semantic_constant_quantification",
         "syntactic_constant_quantification"
     ]
     transformation_param_mod_list = [
@@ -145,17 +161,23 @@ def createAllConfigurations(outPath:Path,prover:ProverInstance):
         "semantic_modality_axiomatization",
         "syntactic_modality_axiomatization",
         "semantic_modality_axiomatization",
+        "semantic_modality_axiomatization",
+        "syntactic_modality_axiomatization",
+        "semantic_modality_axiomatization",
         "semantic_modality_axiomatization"
     ]
     enable_configuration = [
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        False,
-        True
+        False, # THM
+        False, # THM
+        False, # THM
+        False, # THM
+        False, # CSA
+        False, # CSA
+        True, # S5U
+        False, # debug cumul
+        False, # debug native equality
+        False, # debug native equality
+        False # debug const_syn
     ]
     for enabled, \
         consequence_list, constants_list, quantification_list, system_list, \
