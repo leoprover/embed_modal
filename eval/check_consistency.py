@@ -25,7 +25,7 @@ def main(csv_file_list):
     print("Configurations with SZS status ContradictoryAxioms and Satisfiable on different runs.")
     print("")
     problem_list = common.accumulate_csv(csv_file_list)
-    problem_dict = common.create_dict_from_problems(problem_list)
+    problem_dict = common.create_dict_from_problems(problem_list,replaceS5U=True)
     filename_to_issue = {}
     common.iterate_dict(problem_dict, check_consistency_iteration_callback, filename_to_issue)
     print("files with issues:",len(filename_to_issue))

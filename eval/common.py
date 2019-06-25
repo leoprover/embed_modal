@@ -195,26 +195,11 @@ def accumulate_csv(filenames):
         ret = ret + read_csv(f)
     return ret
 
-# nested dict with
-# filename -> system -> quantification
-def create_dict_from_problems(problem_list):
-    ret = {}
-    for p in problem_list:
-        if not p.filename in ret:
-            ret[p.filename] = {}
-        system = p.system
-        if not system in ret[p.filename]:
-            ret[p.filename][system] = {}
-        if not p.quantification in ret[p.filename][system]:
-            ret[p.filename][system][p.quantification] = []
-        ret[p.filename][system][p.quantification].append(p)
-    return ret
-
-def iterate_dict(problem_dict, callback, *callback_args):
+def iterate_dict(problem_dict, callback, *callback_args, **callback_kwargs):
     for filename, system_dict in problem_dict.items():
         for system, quantification_dict in system_dict.items():
             for quantification, problem_list in quantification_dict.items():
-                callback(filename, system, quantification, problem_list, *callback_args)
+                callback(filename, system, quantification, problem_list, *callback_args, **callback_kwargs)
 
 def representation_of_problem_list(problem_list):
     return "\n".join(map(lambda p: p.to_string_important(),problem_list ))
@@ -223,9 +208,28 @@ def representation_of_configuration(system,quantification,problem_list):
     ret = system + " " + quantification + "\n"
     ret += "-"*(len(system+quantification)+1) + "\n"
     for p in problem_list:
-        ret += "{: <15} {: <15} {: <40}".format(p.prover,p.szs," ".join(p.transformation)) + "\n"
+        ret += "{: <40} {: <22} {: <20} {: <60}".format(p.prover,p.szs,p.system," ".join(p.transformation)) + "\n"
     return ret
 
+# nested dict with
+# filename -> system -> quantification -> problem list
+def create_dict_from_problems(problem_list,replaceS5U=False):
+    ret = {}
+    for p in problem_list:
+        if not p.filename in ret:
+            ret[p.filename] = {}
+        system = p.system
+        if replaceS5U and system == "$modal_system_S5U":
+            system = "$modal_system_S5"
+        if not system in ret[p.filename]:
+            ret[p.filename][system] = {}
+        if not p.quantification in ret[p.filename][system]:
+            ret[p.filename][system][p.quantification] = []
+        ret[p.filename][system][p.quantification].append(p)
+    return ret
+
+# nested dict with
+# status -> problem list
 def create_szs_dict_of_configuration(problem_list):
     ret = {}
     for p in problem_list:
@@ -233,6 +237,33 @@ def create_szs_dict_of_configuration(problem_list):
             ret[p.szs] = []
         ret[p.szs].append(p)
     return ret
+
+# nested dict with
+# prover -> problem list
+def getProverToProblemListDict(problem_list):
+    ret = {}
+    for p in problem_list:
+        if not p.prover in ret:
+            ret[p.prover] = []
+        ret[p.prover].append(p)
+    return ret
+
+# nested dict with
+# quantification -> prover -> problem list
+def getQuantificationToProverToProblemListDict(problem_list, whitefilter=None, blackfilter=None):
+    ret = {}
+    for p in problem_list:
+        if whitefilter and not whitefilter(p):
+            continue
+        if blackfilter and blackfilter(p):
+            continue
+        if not p.quantification in ret:
+            ret[p.quantification] = {}
+        if not p.prover in ret[p.quantification]:
+            ret[p.quantification][p.prover] = []
+        ret[p.quantification][p.prover].append(p)
+    return ret
+
 
 def create_temp_file(content):
     fd, filename = tempfile.mkstemp()

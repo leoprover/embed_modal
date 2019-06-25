@@ -39,7 +39,7 @@ def main(reference_prover_name_list,csv_file_list):
     print("")
     print("The reference provers are:",reference_prover_name_list)
     problem_list = common.accumulate_csv(csv_file_list)
-    problem_dict = common.create_dict_from_problems(problem_list)
+    problem_dict = common.create_dict_from_problems(problem_list,replaceS5U=True)
     filename_to_issue = {}
     common.iterate_dict(problem_dict, check_soundness_iteration_callback, filename_to_issue, reference_prover_name_list)
     print("files with issues:",len(filename_to_issue))
