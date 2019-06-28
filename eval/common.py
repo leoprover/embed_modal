@@ -24,8 +24,8 @@ class Problem:
         self.filename=filename
         self.prover=prover
         self.szs = szs
-        self.wc = wc
-        self.cpu = cpu
+        self.wc = float(wc)
+        self.cpu = float(cpu)
         self.system = system
         self.quantification = quantification
         self.consequence = consequence
@@ -66,18 +66,33 @@ class Problem:
             self.constants,
             " ".join([self.transformation])
         ])
+    def returnCopy(self):
+        return Problem(self.filename,self.prover,self.szs,self.wc,self.cpu,self.system,self.quantification,self.consequence,self.constants,self.transformation)
+    # semantics + filename
+    def __eq__(self, other):
+        return self.filename == other.filename and self.system == other.system and self.quantification == other.quantification and self.constants == other.constants and self.consequence == other.consequence
+
+    # semantics + filename
+    def __hash__(self):
+        return hash(self.filename + self.prover + self.system + self.quantification + self.constants + self.consequence)
+
     def syntactic_modality_axiomatization(self):
         return "syntactic_modality_axiomatization" in self.transformation
     def syntactic_cumulative_quantification(self):
         return "syntactic_cumulative_quantification" in self.transformation
     def syntactic_decreasing_quantification(self):
         return "syntactic_decreasing_quantification" in self.transformation
+    def syntactic_constant_quantification(self):
+        return "syntactic_constant_quantification" in self.transformation
     def semantic_modality_axiomatization(self):
         return "semantic_modality_axiomatization" in self.transformation
     def semantic_cumulative_quantification(self):
         return "semantic_cumulative_quantification" in self.transformation
     def semantic_decreasing_quantification(self):
         return "semantic_decreasing_quantification" in self.transformation
+    def semantic_constant_quantification(self):
+        return "semantic_constant_quantification" in self.transformation
+
 
 class Node:
     def __init__(self,rule,content):

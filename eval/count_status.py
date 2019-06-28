@@ -14,15 +14,15 @@ def count_iteration_callback(filename, system, quantification, problem_list, *ca
             continue
         if blackfilter and blackfilter(p):
             continue
-        if not quantification in res:
-            res[quantification] = {}
-        if not system in res[quantification]:
-            res[quantification][system] = {}
-        if not p.prover in res[quantification][system]:
-            res[quantification][system][p.prover] = {}
-        if p.szs not in res[quantification][system][p.prover]:
-            res[quantification][system][p.prover][p.szs] = 0
-        res[quantification][system][p.prover][p.szs] += 1
+        if not system in res:
+            res[system] = {}
+        if not quantification in res[system]:
+            res[system][quantification] = {}
+        if not p.prover in res[system][quantification]:
+            res[system][quantification][p.prover] = {}
+        if p.szs not in res[system][quantification][p.prover]:
+            res[system][quantification][p.prover][p.szs] = []
+        res[system][quantification][p.prover][p.szs].append(p)
 
 def isS5orS5U(p):
     if p.system in ["$modal_system_S5U","$modal_system_S5"]:
@@ -35,14 +35,14 @@ def main(csv_file_list):
     problem_dict = common.create_dict_from_problems(problem_list)
     #quant_dict = common.getQuantificationToProverToProblemListDict(problem_list)
 
-    result_dict = {} # quantification -> system -> prover -> SZS -> (sum)
+    result_dict = {} # system -> quantification -> prover -> SZS -> (sum)
 
-    common.iterate_dict(problem_dict, count_iteration_callback, result_dict,whitefilter=isS5orS5U)
-    for quant,vq in result_dict.items():
-        for system,vs in vq.items():
-            for prover,vszs in vs.items():
-                for szs,numberofitems in vszs.items():
-                 print(quant,system,prover,szs,numberofitems)
+    common.iterate_dict(problem_dict, count_iteration_callback, result_dict)
+    for system,vs in result_dict.items():
+        for quant,vq in vs.items():
+            for prover,vszs in vq.items():
+                for szs,itemlist in vszs.items():
+                 print(system,quant,prover,szs,len(itemlist))
 
 
 if __name__ == "__main__":

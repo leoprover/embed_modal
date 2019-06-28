@@ -22,11 +22,17 @@
 * `starexec_create_configurations.py` creates run configurations for StarExec
 * `starexec_transform_info_csv.py` transforms a StarExec benchmark info (the csv file) to the csv format described above and used by the evaluation
 
-# Evaluation Files
+# Evaluation Files for Sanity Checks
+* `check_embedding_error.py` embeds modal problems for different configurations and examines the cli output for runtime errors or exceptions.
 * `check_consistency.py` takes multiple csv inputs and examines inconsistencies between run configurations of the same modal problem.
-* `check_embedding_error.py` embeds modal problems for different configurations and examines the output for runtime errors or exceptions.
 * `check_prover_input_error.py` takes multiple csv inputs and examines if any run configuration contains the SZS status Inputerror.
-* `check_all.py` applies check_consistency.py and check_prover_input_error.py on run configurations
+* `check_satisfiable_consistency.py`takes multiple csv inputs and examines inconsistencies between run configurations of the same modal problem that contain the SZS status satisfiable.
+* `check_soundness.py` takes a comma-separated list of reference prover names and multiple csv inputs and examines if the run configurations deliver a sound result with respect to the results of the reference provers.
+* `check_unknown_status.py` takes multiple csv inputs and reports all configurations with an SZS status that is not accounted for.
+* `check_all.py` applies all checks except for check_embedding_error.py on run configurations
+
+# Evaluation Files for Statistics
+
 
 # Debugging
 * `embed_file.py` embeds a file and allows easy configuration
