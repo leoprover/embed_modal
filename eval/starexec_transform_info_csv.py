@@ -51,7 +51,7 @@ def read_starexec_csv(filename):
         constants = "$" + config[1]
         quantification = "$" + config[2]
         system = "$modal_system_" + config[3]
-        transparams = " ".join(list(map(resolve_transformation_abbreviation, config[4:])))
+        transparams = (list(map(resolve_transformation_abbreviation, config[4:])))
         szs = row[11]
         if  "timeout" in row[7] or szs == "--":
             szs = "Timeout"

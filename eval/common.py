@@ -58,23 +58,41 @@ class Problem:
             self.filename,
             self.prover,
             self.szs,
-            self.wc,
-            self.cpu,
+            str(self.wc),
+            str(self.cpu),
             self.system,
             self.quantification,
             self.consequence,
             self.constants,
-            " ".join([self.transformation])
+            " ".join(self.transformation)
         ])
     def returnCopy(self):
         return Problem(self.filename,self.prover,self.szs,self.wc,self.cpu,self.system,self.quantification,self.consequence,self.constants,self.transformation)
     # semantics + filename
     def __eq__(self, other):
-        return self.filename == other.filename and self.system == other.system and self.quantification == other.quantification and self.constants == other.constants and self.consequence == other.consequence
+        mysystem = self.system
+        if mysystem.endswith("all") or mysystem.endswith("sem") or mysystem.endswith("syn"):
+            mysystem = mysystem[:len(mysystem)-3]
+        othersystem = other.system
+        if othersystem.endswith("all") or othersystem.endswith("sem") or othersystem.endswith("syn"):
+            othersystem = othersystem[:len(othersystem)-3]
+        myquant = self.quantification
+        if myquant.endswith("all") or myquant.endswith("sem") or myquant.endswith("syn"):
+            myquant = myquant[:len(myquant)-3]
+        otherquant = other.quantification
+        if otherquant.endswith("all") or otherquant.endswith("sem") or otherquant.endswith("syn"):
+            otherquant = otherquant[:len(otherquant)-3]
+        return self.filename == other.filename and mysystem == othersystem and myquant == otherquant and self.constants == other.constants and self.consequence == other.consequence
 
     # semantics + filename
     def __hash__(self):
-        return hash(self.filename + self.prover + self.system + self.quantification + self.constants + self.consequence)
+        mysystem = self.system
+        if mysystem.endswith("all") or mysystem.endswith("sem") or mysystem.endswith("syn"):
+            mysystem = mysystem[:len(mysystem)-3]
+        myquant = self.quantification
+        if myquant.endswith("all") or myquant.endswith("sem") or myquant.endswith("syn"):
+            myquant = myquant[:len(myquant)-3]
+        return hash(self.filename + mysystem + myquant + self.constants + self.consequence)
 
     def syntactic_modality_axiomatization(self):
         return "syntactic_modality_axiomatization" in self.transformation
