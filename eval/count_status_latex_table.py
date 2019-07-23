@@ -388,7 +388,7 @@ def sortQuantification(item):
         raise Exception("nosynsem")
     return precedence
 
-def getEmbeddingProverTable(single_prover_dict):
+def getEmbeddingProverTable(prover,single_prover_dict):
     """
     Returns the table contents of the performance of a single embedding prover
     :param status:
@@ -428,6 +428,8 @@ $\Sigma$ & THM & \multicolumn{1}{c}{CSA} \ \
                 sb.append(quantificationprefix)
             elif quantification == "varyall":
                 sb.append(quantificationprefix)
+            elif prover == "nitpick":
+                sb.append(quantificationprefix + "\\textsubscript{" + "sem" + "}")
             else:
                 sb.append(quantificationprefix + "\\textsubscript{" + quantificationsuffix + "}")
             sb.append("} & ")
@@ -448,7 +450,8 @@ $\Sigma$ & THM & \multicolumn{1}{c}{CSA} \ \
             elif quantification == "constall":
                 # CSA_sem
                 sb.append(len(set(qlist["constsem"]["csa_single"])))
-                sb.append("\\textsuperscript{" + SEMANTICS_WITH_CONSTSEM + "}")
+                if prover != "nitpick":
+                    sb.append("\\textsuperscript{" + SEMANTICS_WITH_CONSTSEM + "}")
             else:
                 sb.append(SEMANTICS_N_A)
             sb.append(" & ")
@@ -478,7 +481,8 @@ $\Sigma$ & THM & \multicolumn{1}{c}{CSA} \ \
             elif quantification == "constall":
                 # CSA_sem
                 sb.append(len(set(qlist["constsem"]["csa_unique_compared_to_other_embedding_provers"])))
-                sb.append("\\textsuperscript{" + SEMANTICS_WITH_CONSTSEM + "}")
+                if prover != "nitpick":
+                    sb.append("\\textsuperscript{" + SEMANTICS_WITH_CONSTSEM + "}")
             else:
                 sb.append(SEMANTICS_N_A)
             sb.append("} & ")
@@ -499,7 +503,8 @@ $\Sigma$ & THM & \multicolumn{1}{c}{CSA} \ \
             elif quantification == "constall":
                 # CSA_sem
                 sb.append(len(set(qlist["constsem"]["csa_unique_compared_to_mleancop"])))
-                sb.append("\\textsuperscript{" + SEMANTICS_WITH_CONSTSEM + "}")
+                if prover != "nitpick":
+                    sb.append("\\textsuperscript{" + SEMANTICS_WITH_CONSTSEM + "}")
             else:
                 sb.append(SEMANTICS_N_A)
             sb.append("} \\\\")
@@ -515,7 +520,7 @@ def main(csv_file_list):
         outpath = outdir / (prover+"_single")
         if prover in ["leo","satallax","nitpick"]:
             with open(outpath,"w+") as fh:
-                fh.write(getEmbeddingProverTable(system_list))
+                fh.write(getEmbeddingProverTable(prover,system_list))
         #if prover == "nitpick":
         #    with open(outpath,"w+") as fh:
         #        fh.write(getCounterModelFinderProverTable(system_list))
