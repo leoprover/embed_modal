@@ -3,17 +3,17 @@ import sys
 
 def resolve_transformation_abbreviation(transformation_param):
     if transformation_param == "semcumul" :
-        return "semantic_monotonic_quantification"
+        return "semantic_cumulative_quantification"
     if transformation_param == "semdecr":
-        return "semantic_antimonotonic_quantification"
+        return "semantic_decreasing_quantification"
     if transformation_param == "semmod":
         return "semantic_modality_axiomatization"
     if transformation_param == "semconst":
         return "semantic_constant_quantification"
     if transformation_param == "syncumul":
-        return "syntactic_monotonic_quantification"
+        return "syntactic_cumulative_quantification"
     if transformation_param == "syndecr":
-        return "syntactic_antimonotonic_quantification"
+        return "syntactic_decreasing_quantification"
     if transformation_param == "synmod":
         return "syntactic_modality_axiomatization"
     if transformation_param == "synconst":
