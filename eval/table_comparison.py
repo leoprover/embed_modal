@@ -23,37 +23,62 @@ def createComparisonTable(embedding_prover_list,prover_dict,szs):
             sb.append(quantificationprefix)
             sb.append("} &")
             sb.append("\n")
+            numbers = []
             for prover in embedding_prover_list:
                 if quantificationprefix == "vary":
-                    sb.append(len(set(prover_dict[prover][systemprefix+"sem"][quantificationprefix+"all"][szs+"_single"])))
+                    numbers.append(len(set(prover_dict[prover][systemprefix+"sem"][quantificationprefix+"all"][szs+"_single"])))
                 elif systemprefix == "S5U":
-                    sb.append(len(set(prover_dict[prover][systemprefix+"sem"][quantificationprefix+"sem"][szs+"_single"])))
+                    numbers.append(len(set(prover_dict[prover][systemprefix+"sem"][quantificationprefix+"sem"][szs+"_single"])))
                 else:
-                    sb.append(len(set(prover_dict[prover][systemprefix+"sem"][quantificationprefix+"sem"][szs+"_single"])))
-                sb.append(" & ")
+                    numbers.append(len(set(prover_dict[prover][systemprefix+"sem"][quantificationprefix+"sem"][szs+"_single"])))
+
                 if quantificationprefix == "vary":
                     # vary can only be sem
-                    sb.append(table_single_provers.SEMANTICS_NON_EXISTENT)
+                    numbers.append(-1)
                 elif systemprefix == "S5U":
-                    sb.append(table_single_provers.SEMANTICS_NON_EXISTENT)
+                    numbers.append(-1)
                 else:
-                    sb.append(len(set(prover_dict[prover][systemprefix+"sem"][quantificationprefix+"syn"][szs+"_single"])))
-                sb.append(" & ")
+                    numbers.append(len(set(prover_dict[prover][systemprefix+"sem"][quantificationprefix+"syn"][szs+"_single"])))
+
+
                 if quantificationprefix == "vary":
-                    sb.append(len(set(prover_dict[prover][systemprefix+"syn"][quantificationprefix+"all"][szs+"_single"])))
+                    numbers.append(len(set(prover_dict[prover][systemprefix+"syn"][quantificationprefix+"all"][szs+"_single"])))
                 elif systemprefix == "S5U":
-                    sb.append(table_single_provers.SEMANTICS_NON_EXISTENT)
+                    numbers.append(-1)
                 else:
-                    sb.append(len(set(prover_dict[prover][systemprefix+"syn"][quantificationprefix+"sem"][szs+"_single"])))
-                sb.append(" & \\multicolumn{1}{c|}{")
+                    numbers.append(len(set(prover_dict[prover][systemprefix+"syn"][quantificationprefix+"sem"][szs+"_single"])))
+
+
                 if quantificationprefix == "vary":
                     # vary can only be sem
-                    sb.append(table_single_provers.SEMANTICS_NON_EXISTENT)
+                    numbers.append(-1)
                 elif systemprefix == "S5U":
-                    sb.append(table_single_provers.SEMANTICS_NON_EXISTENT)
+                    numbers.append(-1)
                 else:
-                    sb.append(len(set(prover_dict[prover][systemprefix+"syn"][quantificationprefix+"syn"][szs+"_single"])))
-                sb.append("}\n &")
+                    numbers.append(len(set(prover_dict[prover][systemprefix+"syn"][quantificationprefix+"syn"][szs+"_single"])))
+
+            maximum = max(numbers)
+            numbers = (map(lambda n: "\\textbf{"+str(n)+"}" if n==maximum else str(n), numbers))
+            numbers = list(map(lambda n: table_single_provers.SEMANTICS_NON_EXISTENT if n=="-1" else n, numbers))
+
+            sb.append(numbers[0])
+            sb.append(" & ")
+            sb.append(numbers[1])
+            sb.append(" & ")
+            sb.append(numbers[2])
+            sb.append(" & \\multicolumn{1}{c|}{")
+            sb.append(numbers[3])
+            sb.append("}\n &")
+            sb.append(numbers[4])
+            sb.append(" & ")
+            sb.append(numbers[5])
+            sb.append(" & ")
+            sb.append(numbers[6])
+            sb.append(" & \\multicolumn{1}{c|}{")
+            sb.append(numbers[7])
+            sb.append("}\n &")
+
+
             sb.append("\\multicolumn{1}{c}{")
             sb.append(len(set(prover_dict["mleancop"][systemprefix+"all"][quantificationprefix+"all"][szs+"_single"])))
             sb.append("} \\\\")
@@ -79,18 +104,26 @@ def createComparisonNitpickTable(prover_dict):
             if systemprefix != "S5U" and quantificationprefix == "cumul":
                 continue
 
+
             sb.append(systemprefix)
             sb.append(" & \\multicolumn{1}{l|}{")
             sb.append(quantificationprefix)
             sb.append("} &")
             sb.append("\n")
 
-            sb.append(len(set(prover_dict["nitpick"][systemprefix+"sem"][quantificationprefix+"sem"]["csa_single"])))
-            sb.append(" & \\multicolumn{1}{c|}{")
+            numbers = []
+            numbers.append(len(set(prover_dict["nitpick"][systemprefix+"sem"][quantificationprefix+"sem"]["csa_single"])))
             if systemprefix != "S5U":
-                sb.append(len(set(prover_dict["nitpick"][systemprefix+"syn"][quantificationprefix+"sem"]["csa_single"])))
+                numbers.append(len(set(prover_dict["nitpick"][systemprefix+"syn"][quantificationprefix+"sem"]["csa_single"])))
             else:
-                sb.append("-")
+                numbers.append(-1)
+
+            maximum = max(numbers)
+            numbers = (map(lambda n: "\\textbf{"+str(n)+"}" if n==maximum else str(n), numbers))
+            numbers = list(map(lambda n: table_single_provers.SEMANTICS_NON_EXISTENT if n=="-1" else n, numbers))
+            sb.append(numbers[0])
+            sb.append(" & \\multicolumn{1}{c|}{")
+            sb.append(numbers[1])
             sb.append("}\n &")
 
             sb.append("\\multicolumn{1}{c}{")
