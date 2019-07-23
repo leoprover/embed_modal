@@ -6,6 +6,7 @@ from pathlib import *
 
 SEMANTICS_N_A = "$\\dagger$"
 SEMANTICS_WITH_CONSTSEM = "$\\ddagger$"
+SEMANTICS_NON_EXISTENT = "-"
 
 def prettifySystem(system):
     if system.startswith("$modal_system_"):
@@ -326,6 +327,8 @@ def getMLeanCopTable(single_prover_dict):
             quantificationsuffix = quantification[len(quantification)-3:]
             if (quantificationsuffix == "all" and systemsuffix != "all") or (quantificationsuffix != "all" and systemsuffix == "all"):
                 continue
+            if systemprefix == "S5U":
+                continue
             sb.append(systemprefix)
             sb.append(" & \\multicolumn{1}{l|}{")
             sb.append(quantificationprefix)
@@ -335,6 +338,7 @@ def getMLeanCopTable(single_prover_dict):
             sb.append(" & ")
             sb.append(len(set(statlist['thm_single'])))
             sb.append(" & ")
+            sb.append(len(set(statlist['csa_single'])))
             sb.append(" & ")
             sb.append(len(set(statlist['gup_single'])))
             sb.append(" & \\multicolumn{1}{c|}{")
