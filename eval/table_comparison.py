@@ -15,10 +15,14 @@ def createComparisonTable(embedding_prover_list,prover_dict,szs):
             # filter
             if systemprefix == "S5U" and quantificationprefix == "vary":
                 continue
-            if systemprefix == "S5":
+            if systemprefix == "S5" and (quantificationprefix == "const" or quantificationprefix == "cumul"):
                 continue
+            print(system,quantification)
 
-            sb.append(systemprefix)
+            if systemprefix == "S5U":
+                sb.append("S5")
+            else:
+                sb.append(systemprefix)
             sb.append(" & \\multicolumn{1}{l|}{")
             sb.append(quantificationprefix)
             sb.append("} &")

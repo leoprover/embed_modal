@@ -68,29 +68,30 @@ for i in range(2):
         showlegend=showLegend,
         legend_orientation="h",
         xaxis=dict(
-            tickfont_size=12, # font size of T/cumul
+            tickfont_size=26, # font size of T/cumul
             tickfont_color="black"
         ),
         yaxis=dict(
             title='Number of counter models',
-            titlefont_size=12, # font size of Number of theorems
-            tickfont_size=12, # font size of numbers
+            titlefont_size=26, # font size of Number of theorems
+            tickfont_size=26, # font size of numbers
             titlefont_color="black",
             tickfont_color="black"
         ),
         legend=dict(
             font_color="black",
-            font_size=12
-        #    x=0,
-        #    y=1.0,
-        #    bgcolor='rgba(255, 255, 255, 0)',
-        #    bordercolor='rgba(255, 255, 255, 0)'
+            font_size=26
+            #    x=0,
+            #    y=1.0,
+            #    bgcolor='rgba(255, 255, 255, 0)',
+            #    bordercolor='rgba(255, 255, 255, 0)'
         ),
         barmode='group',
         bargroupgap=0 # gap between bars of the same location coordinate.
     )
     path="/home/tg/master_thesis/thesis/plots/csa_comparison_"+str(i)+".png"
-    fig.write_image(path)
+    fig.write_image(path,width=1400,height=800)
+
 #fig.show()
 
 
