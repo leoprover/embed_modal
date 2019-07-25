@@ -307,6 +307,49 @@ def getPreparedProblems(problem_list,whitefilter=None,blackfilter=None):
 
     return ret
 
+def copyHelperS5U(p):
+    pnew = p.returnCopy()
+    pnew.system = "S5all"
+    return pnew
+
+def createOptHo(prover_dict):
+    # sem/sem on leo is always optho
+    # sem/sem on nitpick ist always optho except for Tsyn/sem
+    prover_dict["optho"] = {}
+    for system,quant_dict in prover_dict["mleancop"].items():
+        if system == "S5Uall":
+            continue
+        if system not in prover_dict["optho"]:
+            prover_dict["optho"][system] = {}
+        for quant, szs_dict in quant_dict.items():
+            if quant not in prover_dict["optho"][system]:
+                prover_dict["optho"][system][quant] = {}
+            embsystem = system[:len(system)-3]+"sem"
+            embquant = quant
+            if not quant.startswith("vary"):
+                embquant = quant[:len(quant)-3]+"sem"
+            if system == "S5all" and not quant.startswith("vary"):
+                embsystem = "S5Usem"
+            prover_dict["optho"][system][quant]["thm_single"] = prover_dict["leo"][embsystem][embquant]["thm_single"] + prover_dict["satallax"][embsystem][embquant]["thm_single"]
+            if embquant == "constsem" or (system == "S5all" and quant == "cumulall"):
+                prover_dict["optho"][system][quant]["csa_single"] = prover_dict["nitpick"][embsystem][embquant]["csa_single"]
+                if system == "Tall":
+                    prover_dict["optho"][system][quant]["csa_single"] = prover_dict["nitpick"]["Tsyn"][embquant]["csa_single"]
+            else:
+                prover_dict["optho"][system][quant]["csa_single"] = []
+            prover_dict["optho"][system][quant]["sum_single"] = prover_dict["optho"][system][quant]["thm_single"] + prover_dict["optho"][system][quant]["csa_single"]
+
+            if system == "S5all" and quant in ["constall","cumulall"]:
+                prover_dict["optho"][system][quant]["thm_single"] = list(map(lambda p: copyHelperS5U(p),prover_dict["optho"][system][quant]["thm_single"]))
+                prover_dict["optho"][system][quant]["csa_single"] = list(map(lambda p: copyHelperS5U(p),prover_dict["optho"][system][quant]["csa_single"]))
+                prover_dict["optho"][system][quant]["sum_single"] = list(map(lambda p: copyHelperS5U(p),prover_dict["optho"][system][quant]["sum_single"]))
+
+            prover_dict["mleancop"][system][quant]["thm_unique_compared_to_optho"] = \
+                set(prover_dict["mleancop"][system][quant]['thm_single']).difference(set(prover_dict["optho"][system][quant]['thm_single']))
+            prover_dict["mleancop"][system][quant]["csa_unique_compared_to_optho"] = \
+                set(prover_dict["mleancop"][system][quant]['csa_single']).difference(set(prover_dict["optho"][system][quant]['csa_single']))
+            prover_dict["mleancop"][system][quant]["sum_unique_compared_to_optho"] = \
+                set(prover_dict["mleancop"][system][quant]['sum_single']).difference(set(prover_dict["optho"][system][quant]['sum_single']))
 def getTableData(problem_list,whitefilter=None,blackfilter=None):
     prepared_problem_list = getPreparedProblems(problem_list,whitefilter,blackfilter)
     #for p in prepared_problem_list:
@@ -317,7 +360,7 @@ def getTableData(problem_list,whitefilter=None,blackfilter=None):
     #compareAllEmbeddingProversWithQMLTP(prover_dict,['leo','satallax','nitpick'])
     return prover_dict
 
-def getMLeanCopTable(single_prover_dict):
+def getMLeanCopTable(single_prover_dict,optho_dict):
     sb = []
     for system,qlist in single_prover_dict.items():
         for quantification,statlist in qlist.items():
@@ -348,6 +391,16 @@ def getMLeanCopTable(single_prover_dict):
             sb.append("{0:.1f}".format(round(statlist['avg_cpu_single'],1)))
             sb.append(" & \\multicolumn{1}{c}{")
             sb.append("{0:.1f}".format(round(statlist['avg_wc_single'],1)))
+            sb.append("} &")
+            sb.append("\n")
+            #sb.append(len(set(statlist['sum_single']).difference(set(optho_dict[system][quantification]['sum_single']))))
+            sb.append(len(set(statlist['sum_unique_compared_to_optho'])))
+            sb.append(" & ")
+            #sb.append(len(set(statlist['thm_single']).difference(set(optho_dict[system][quantification]['thm_single']))))
+            sb.append(len(set(statlist['thm_unique_compared_to_optho'])))
+            sb.append(" & \\multicolumn{1}{c|}{")
+            #sb.append(len(set(statlist['csa_single']).difference(set(optho_dict[system][quantification]['csa_single']))))
+            sb.append(len(set(statlist['csa_unique_compared_to_optho'])))
             sb.append("} ")
             sb.append("\\\\")
             sb.append("\n\n")
@@ -518,6 +571,7 @@ $\Sigma$ & THM & \multicolumn{1}{c}{CSA} \ \
 def main(csv_file_list):
     problem_list = common.accumulate_csv(csv_file_list)
     prover_dict = getTableData(problem_list)
+    createOptHo(prover_dict)
 
     outdir = Path("/home/tg/master_thesis/thesis/tables")
     for prover,system_list in prover_dict.items():
@@ -530,7 +584,7 @@ def main(csv_file_list):
         #        fh.write(getCounterModelFinderProverTable(system_list))
         if prover == "mleancop":
             with open(outpath,"w+") as fh:
-                fh.write(getMLeanCopTable(system_list))
+                fh.write(getMLeanCopTable(system_list,prover_dict['optho']))
 
 
     """

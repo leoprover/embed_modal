@@ -1,6 +1,4 @@
-import plotly.express as px
 import plotly.graph_objects as go
-from pandas import DataFrame
 import sys
 import common
 import table_single_provers
@@ -8,10 +6,9 @@ import table_single_provers
 def main(csv_file_list):
     problem_list = common.accumulate_csv(csv_file_list)
     prover_dict = table_single_provers.getTableData(problem_list)
-    #systems=  ["T/const","T/cumul","T/vary"]
-    systems=  ["D/const","D/cumul","D/vary","T/const","T/cumul","T/vary"] + ["S4/const","S4/cumul","S4/vary","S5/const","S5/cumul","S5/vary"]
-    #systems=  ["D/const","T/const","S4/const","S5/const"]
+    table_single_provers.createOptHo(prover_dict)
 
+    systems=  ["D/const","D/cumul","D/vary","T/const","T/cumul","T/vary"] + ["S4/const","S4/cumul","S4/vary","S5/const","S5/cumul","S5/vary"]
 
     data_mleanTotal = [25,35,45,55,66,77]*2
     data_mleanUniqueVsOptho = [15,25,35,45,55,65]*2
@@ -24,7 +21,6 @@ def main(csv_file_list):
     data_leoUniqueVsMlean = [9,10,11,12,13,14]*2
     data_satallaxUniqueVsMlean = [7,8,9,10,11,12]*2
 
-    #data_mleanTotal[0] = prover_dict['mleancop']["Dall"]["constall"]["thm_single"]
     data_mleanTotal[0] = len(set(prover_dict['mleancop']["Dall"]["constall"]["thm_single"]))
     data_mleanTotal[1] = len(set(prover_dict['mleancop']["Dall"]["cumulall"]["thm_single"]))
     data_mleanTotal[2] = len(set(prover_dict['mleancop']["Dall"]["varyall"]["thm_single"]))
@@ -37,6 +33,19 @@ def main(csv_file_list):
     data_mleanTotal[9] = len(set(prover_dict['mleancop']["S5all"]["constall"]["thm_single"]))
     data_mleanTotal[10] = len(set(prover_dict['mleancop']["S5all"]["cumulall"]["thm_single"]))
     data_mleanTotal[11] = len(set(prover_dict['mleancop']["S5all"]["varyall"]["thm_single"]))
+
+    data_mleanUniqueVsOptho[0] = len(set(prover_dict['mleancop']["Dall"]["constall"]["thm_unique_compared_to_optho"]))
+    data_mleanUniqueVsOptho[1] = len(set(prover_dict['mleancop']["Dall"]["cumulall"]["thm_unique_compared_to_optho"]))
+    data_mleanUniqueVsOptho[2] = len(set(prover_dict['mleancop']["Dall"]["varyall"]["thm_unique_compared_to_optho"]))
+    data_mleanUniqueVsOptho[3] = len(set(prover_dict['mleancop']["Tall"]["constall"]["thm_unique_compared_to_optho"]))
+    data_mleanUniqueVsOptho[4] = len(set(prover_dict['mleancop']["Tall"]["cumulall"]["thm_unique_compared_to_optho"]))
+    data_mleanUniqueVsOptho[5] = len(set(prover_dict['mleancop']["Tall"]["varyall"]["thm_unique_compared_to_optho"]))
+    data_mleanUniqueVsOptho[6] = len(set(prover_dict['mleancop']["S4all"]["constall"]["thm_unique_compared_to_optho"]))
+    data_mleanUniqueVsOptho[7] = len(set(prover_dict['mleancop']["S4all"]["cumulall"]["thm_unique_compared_to_optho"]))
+    data_mleanUniqueVsOptho[8] = len(set(prover_dict['mleancop']["S4all"]["varyall"]["thm_unique_compared_to_optho"]))
+    data_mleanUniqueVsOptho[9] = len(set(prover_dict['mleancop']["S5all"]["constall"]["thm_unique_compared_to_optho"]))
+    data_mleanUniqueVsOptho[10] = len(set(prover_dict['mleancop']["S5all"]["cumulall"]["thm_unique_compared_to_optho"]))
+    data_mleanUniqueVsOptho[11] = len(set(prover_dict['mleancop']["S5all"]["varyall"]["thm_unique_compared_to_optho"]))
 
     data_leoTotal[0] = len(set(prover_dict['leo']["Dsem"]["constsem"]["thm_single"]))
     data_leoTotal[1] = len(set(prover_dict['leo']["Dsem"]["cumulsem"]["thm_single"]))

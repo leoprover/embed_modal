@@ -1,29 +1,82 @@
-import plotly.express as px
 import plotly.graph_objects as go
-from pandas import DataFrame
+import sys
+import common
+import table_single_provers
 
-#systems=  ["T/const","T/cumul","T/vary"]
-systems=  ["D/const","D/cumul","D/vary","T/const","T/cumul","T/vary"] + ["S4/const","S4/cumul","S4/vary","S5/const","S5/cumul","S5/vary"]
-#systems=  ["D/const","T/const","S4/const","S5/const"]
+def main(csv_file_list):
+    problem_list = common.accumulate_csv(csv_file_list)
+    prover_dict = table_single_provers.getTableData(problem_list)
+    table_single_provers.createOptHo(prover_dict)
 
+    #systems=  ["D/const","D/cumul","D/vary","T/const","T/cumul","T/vary"] + ["S4/const","S4/cumul","S4/vary","S5/const","S5/cumul","S5/vary"]
+    systems = ["D/const","T/const","S4/const","S5/const","S5/cumul"]
+    #data_mleanTotal = [25,35,45,55,66,77]*2
+    #data_mleanUniqueVsOptho = [15,25,35,45,55,65]*2 #here only nitpick#
 
-data_mleanTotal = [25,35,45,55,66,77]*2
-data_mleanUniqueVsOptho = [15,25,35,45,55,65]*2 #here only nitpick
+    #data_nitpickTotal = [60,62,64,65,73,85]*2
+    #data_nitpickUniqueVsMlean = [14,13,17,18,19,19]*2
 
-data_nitpickTotal = [60,62,64,65,73,85]*2
-data_nitpickUniqueVsMlean = [14,13,17,18,19,19]*2
+    data_mleanTotal = [-1]*5
+    data_mleanUniqueVsOptho = [-1]*5 #here only nitpick
+    data_nitpickTotal = [-1]*5
+    data_nitpickUniqueVsMlean = [-1]*5
 
-WIDTH = 0.24
-for i in range(2):
+    data_mleanTotal[0] = len(set(prover_dict['mleancop']["Dall"]["constall"]["csa_single"]))
+    #data_mleanTotal[1] = len(set(prover_dict['mleancop']["Dall"]["cumulall"]["csa_single"]))
+    #data_mleanTotal[2] = len(set(prover_dict['mleancop']["Dall"]["varyall"]["csa_single"]))
+    data_mleanTotal[1] = len(set(prover_dict['mleancop']["Tall"]["constall"]["csa_single"]))
+    #data_mleanTotal[4] = len(set(prover_dict['mleancop']["Tall"]["cumulall"]["csa_single"]))
+    #data_mleanTotal[5] = len(set(prover_dict['mleancop']["Tall"]["varyall"]["csa_single"]))
+    data_mleanTotal[2] = len(set(prover_dict['mleancop']["S4all"]["constall"]["csa_single"]))
+    #data_mleanTotal[7] = len(set(prover_dict['mleancop']["S4all"]["cumulall"]["csa_single"]))
+    #data_mleanTotal[8] = len(set(prover_dict['mleancop']["S4all"]["varyall"]["csa_single"]))
+    data_mleanTotal[3] = len(set(prover_dict['mleancop']["S5all"]["constall"]["csa_single"]))
+    data_mleanTotal[4] = len(set(prover_dict['mleancop']["S5all"]["cumulall"]["csa_single"]))
+    #data_mleanTotal[11] = len(set(prover_dict['mleancop']["S5all"]["varyall"]["csa_single"]))
 
-    if i==0:
-        start = 0
-        end = 6
-        showLegend=False
-    else:
-        start=6
-        end=12
-        showLegend=True
+    data_mleanUniqueVsOptho[0] = len(set(prover_dict['mleancop']["Dall"]["constall"]["csa_unique_compared_to_optho"]))
+    #data_mleanUniqueVsOptho[1] = len(set(prover_dict['mleancop']["Dall"]["cumulall"]["csa_unique_compared_to_optho"]))
+    #data_mleanUniqueVsOptho[2] = len(set(prover_dict['mleancop']["Dall"]["varyall"]["csa_unique_compared_to_optho"]))
+    data_mleanUniqueVsOptho[1] = len(set(prover_dict['mleancop']["Tall"]["constall"]["csa_unique_compared_to_optho"]))
+    #data_mleanUniqueVsOptho[4] = len(set(prover_dict['mleancop']["Tall"]["cumulall"]["csa_unique_compared_to_optho"]))
+    #data_mleanUniqueVsOptho[5] = len(set(prover_dict['mleancop']["Tall"]["varyall"]["csa_unique_compared_to_optho"]))
+    data_mleanUniqueVsOptho[2] = len(set(prover_dict['mleancop']["S4all"]["constall"]["csa_unique_compared_to_optho"]))
+    #data_mleanUniqueVsOptho[7] = len(set(prover_dict['mleancop']["S4all"]["cumulall"]["csa_unique_compared_to_optho"]))
+    #data_mleanUniqueVsOptho[8] = len(set(prover_dict['mleancop']["S4all"]["varyall"]["csa_unique_compared_to_optho"]))
+    data_mleanUniqueVsOptho[3] = len(set(prover_dict['mleancop']["S5all"]["constall"]["csa_unique_compared_to_optho"]))
+    data_mleanUniqueVsOptho[4] = len(set(prover_dict['mleancop']["S5all"]["cumulall"]["csa_unique_compared_to_optho"]))
+    #data_mleanUniqueVsOptho[11] = len(set(prover_dict['mleancop']["S5all"]["varyall"]["csa_unique_compared_to_optho"]))
+
+    data_nitpickTotal[0] = len(set(prover_dict['nitpick']["Dsem"]["constsem"]["csa_single"]))
+    #data_nitpickTotal[1] = len(set(prover_dict['nitpick']["Dsem"]["cumulsem"]["csa_single"]))
+    #data_nitpickTotal[2] = len(set(prover_dict['nitpick']["Dsem"]["varyall"]["csa_single"]))
+    data_nitpickTotal[1] = len(set(prover_dict['nitpick']["Tsem"]["constsem"]["csa_single"]))
+    #data_nitpickTotal[4] = len(set(prover_dict['nitpick']["Tsem"]["cumulsem"]["csa_single"]))
+    #data_nitpickTotal[5] = len(set(prover_dict['nitpick']["Tsem"]["varyall"]["csa_single"]))
+    data_nitpickTotal[2] = len(set(prover_dict['nitpick']["S4sem"]["constsem"]["csa_single"]))
+    #data_nitpickTotal[7] = len(set(prover_dict['nitpick']["S4sem"]["cumulsem"]["csa_single"]))
+    #data_nitpickTotal[8] = len(set(prover_dict['nitpick']["S4sem"]["varyall"]["csa_single"]))
+    data_nitpickTotal[3] = len(set(prover_dict['nitpick']["S5Usem"]["constsem"]["csa_single"]))
+    data_nitpickTotal[4] = len(set(prover_dict['nitpick']["S5Usem"]["cumulsem"]["csa_single"]))
+    #data_nitpickTotal[11] = len(set(prover_dict['nitpick']["S5sem"]["varyall"]["csa_single"]))
+
+    data_nitpickUniqueVsMlean[0] = len(set(prover_dict['nitpick']["Dsem"]["constsem"]["csa_unique_compared_to_mleancop"]))
+    #data_nitpickUniqueVsMlean[1] = len(set(prover_dict['nitpick']["Dsem"]["cumulsem"]["csa_unique_compared_to_mleancop"]))
+    #data_nitpickUniqueVsMlean[2] = len(set(prover_dict['nitpick']["Dsem"]["varyall"]["csa_unique_compared_to_mleancop"]))
+    data_nitpickUniqueVsMlean[1] = len(set(prover_dict['nitpick']["Tsem"]["constsem"]["csa_unique_compared_to_mleancop"]))
+    #data_nitpickUniqueVsMlean[4] = len(set(prover_dict['nitpick']["Tsem"]["cumulsem"]["csa_unique_compared_to_mleancop"]))
+    #data_nitpickUniqueVsMlean[5] = len(set(prover_dict['nitpick']["Tsem"]["varyall"]["csa_unique_compared_to_mleancop"]))
+    data_nitpickUniqueVsMlean[2] = len(set(prover_dict['nitpick']["S4sem"]["constsem"]["csa_unique_compared_to_mleancop"]))
+    #data_nitpickUniqueVsMlean[7] = len(set(prover_dict['nitpick']["S4sem"]["cumulsem"]["csa_unique_compared_to_mleancop"]))
+    #data_nitpickUniqueVsMlean[8] = len(set(prover_dict['nitpick']["S4sem"]["varyall"]["csa_unique_compared_to_mleancop"]))
+    data_nitpickUniqueVsMlean[3] = len(set(prover_dict['nitpick']["S5Usem"]["constsem"]["csa_unique_compared_to_mleancop"]))
+    data_nitpickUniqueVsMlean[4] = len(set(prover_dict['nitpick']["S5Usem"]["cumulsem"]["csa_unique_compared_to_mleancop"]))
+    #data_nitpickUniqueVsMlean[11] = len(set(prover_dict['nitpick']["S5sem"]["varyall"]["csa_unique_compared_to_mleancop"]))
+
+    WIDTH = 0.24 * 5.0/6.0
+    start = 0
+    end = 5
+    showLegend = True
     mleanTotal = go.Bar(
         name="mleanTotal",
         x=systems[start:end],
@@ -89,14 +142,10 @@ for i in range(2):
         barmode='group',
         bargroupgap=0 # gap between bars of the same location coordinate.
     )
-    path="/home/tg/master_thesis/thesis/plots/csa_comparison_"+str(i)+".png"
+    path="/home/tg/master_thesis/thesis/plots/csa_comparison.png"
     fig.write_image(path,width=1400,height=800)
 
-#fig.show()
 
+if __name__ == "__main__":
+    main(sys.argv[1:])
 
-
-#df = DataFrame(datadict)
-#fig = px.bar(df, x="systems", y="total_bill", color='time')
-#fig = px.bar(tips, x="sex", y="total_bill", color='time')
-#fig.show()
