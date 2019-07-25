@@ -80,9 +80,19 @@ def createComparisonTable(embedding_prover_list,prover_dict,szs):
             sb.append(numbers[6])
             sb.append(" & \\multicolumn{1}{c|}{")
             sb.append(numbers[7])
-            sb.append("}\n &")
+            sb.append("} & ")
+            sb.append("\n")
 
+            #optho
+            sb.append("\\multicolumn{1}{c|}{")
+            if systemprefix == "S5U":
+                sb.append(len(set(prover_dict["optho"]["S5"+"all"][quantificationprefix+"all"][szs+"_single"])))
+            else:
+                sb.append(len(set(prover_dict["optho"][systemprefix+"all"][quantificationprefix+"all"][szs+"_single"])))
+            sb.append("} & ")
+            sb.append("\n")
 
+            #mlean
             sb.append("\\multicolumn{1}{c}{")
             sb.append(len(set(prover_dict["mleancop"][systemprefix+"all"][quantificationprefix+"all"][szs+"_single"])))
             sb.append("} \\\\")
@@ -140,6 +150,7 @@ def createComparisonNitpickTable(prover_dict):
 def main(csv_file_list):
     problem_list = common.accumulate_csv(csv_file_list)
     prover_dict = table_single_provers.getTableData(problem_list)
+    table_single_provers.createOptHo(prover_dict)
 
     outdir = Path("/home/tg/master_thesis/thesis/tables")
 

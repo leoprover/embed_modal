@@ -71,6 +71,7 @@ def getProverPrimaryValues(problem_list):
                 prover_dict[prover][system][quant]['thm_single']            = szs_dict.get('Theorem',[])
                 prover_dict[prover][system][quant]['csa_single']            = szs_dict.get('CounterSatisfiable',[])
                 prover_dict[prover][system][quant]['sum_single']            = prover_dict[prover][system][quant]['thm_single'] + prover_dict[prover][system][quant]['csa_single']
+                # sum
                 if prover_dict[prover][system][quant]['sum_single']:
                     prover_dict[prover][system][quant]['avg_cpu_single']    = sum(map(lambda p: p.cpu,prover_dict[prover][system][quant]['sum_single'])) \
                                                                               / len(prover_dict[prover][system][quant]['sum_single'])
@@ -81,6 +82,29 @@ def getProverPrimaryValues(problem_list):
                                                                               / len(prover_dict[prover][system][quant]['sum_single'])
                 else:
                     prover_dict[prover][system][quant]['avg_wc_single']     = 0.0
+                # thm
+                if prover_dict[prover][system][quant]['thm_single']:
+                    prover_dict[prover][system][quant]['avg_cpu_single_thm']    = sum(map(lambda p: p.cpu,prover_dict[prover][system][quant]['thm_single'])) \
+                                                                              / len(prover_dict[prover][system][quant]['thm_single'])
+                else:
+                    prover_dict[prover][system][quant]['avg_cpu_single_thm']    = 0.0
+                if prover_dict[prover][system][quant]['thm_single']:
+                    prover_dict[prover][system][quant]['avg_wc_single_thm']     = sum(map(lambda p: p.wc,prover_dict[prover][system][quant]['thm_single'])) \
+                                                                              / len(prover_dict[prover][system][quant]['thm_single'])
+                else:
+                    prover_dict[prover][system][quant]['avg_wc_single_thm']     = 0.0
+                # csa
+                if prover_dict[prover][system][quant]['csa_single']:
+                    prover_dict[prover][system][quant]['avg_cpu_single_csa']    = sum(map(lambda p: p.cpu,prover_dict[prover][system][quant]['csa_single'])) \
+                                                                              / len(prover_dict[prover][system][quant]['csa_single'])
+                else:
+                    prover_dict[prover][system][quant]['avg_cpu_singl_csae']    = 0.0
+                if prover_dict[prover][system][quant]['csa_single']:
+                    prover_dict[prover][system][quant]['avg_wc_single_csa']     = sum(map(lambda p: p.wc,prover_dict[prover][system][quant]['csa_single'])) \
+                                                                              / len(prover_dict[prover][system][quant]['csa_single'])
+                else:
+                    prover_dict[prover][system][quant]['avg_wc_single_csa']     = 0.0
+
                 #prover_dict[prover][system][quant]['sat_single']        = szs_dict.get("Satisfiable",[])
                 prover_dict[prover][system][quant]['gup_single']        = szs_dict.get('GaveUp',[])
                 prover_dict[prover][system][quant]['tmo_single']        = szs_dict.get('Timeout',[]) + szs_dict.get('Unknown',[])
@@ -389,7 +413,7 @@ def getMLeanCopTable(single_prover_dict,optho_dict):
             sb.append("} & ")
             sb.append("\n")
             sb.append("{0:.1f}".format(round(statlist['avg_cpu_single'],1)))
-            sb.append(" & \\multicolumn{1}{c}{")
+            sb.append(" & \\multicolumn{1}{c|}{")
             sb.append("{0:.1f}".format(round(statlist['avg_wc_single'],1)))
             sb.append("} &")
             sb.append("\n")
@@ -398,7 +422,7 @@ def getMLeanCopTable(single_prover_dict,optho_dict):
             sb.append(" & ")
             #sb.append(len(set(statlist['thm_single']).difference(set(optho_dict[system][quantification]['thm_single']))))
             sb.append(len(set(statlist['thm_unique_compared_to_optho'])))
-            sb.append(" & \\multicolumn{1}{c|}{")
+            sb.append(" & \\multicolumn{1}{c}{")
             #sb.append(len(set(statlist['csa_single']).difference(set(optho_dict[system][quantification]['csa_single']))))
             sb.append(len(set(statlist['csa_unique_compared_to_optho'])))
             sb.append("} ")
