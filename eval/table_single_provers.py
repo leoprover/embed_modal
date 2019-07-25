@@ -368,12 +368,50 @@ def createOptHo(prover_dict):
                 prover_dict["optho"][system][quant]["csa_single"] = list(map(lambda p: copyHelperS5U(p),prover_dict["optho"][system][quant]["csa_single"]))
                 prover_dict["optho"][system][quant]["sum_single"] = list(map(lambda p: copyHelperS5U(p),prover_dict["optho"][system][quant]["sum_single"]))
 
+            # uniques of mleancop compared to optho
             prover_dict["mleancop"][system][quant]["thm_unique_compared_to_optho"] = \
                 set(prover_dict["mleancop"][system][quant]['thm_single']).difference(set(prover_dict["optho"][system][quant]['thm_single']))
             prover_dict["mleancop"][system][quant]["csa_unique_compared_to_optho"] = \
                 set(prover_dict["mleancop"][system][quant]['csa_single']).difference(set(prover_dict["optho"][system][quant]['csa_single']))
             prover_dict["mleancop"][system][quant]["sum_unique_compared_to_optho"] = \
                 set(prover_dict["mleancop"][system][quant]['sum_single']).difference(set(prover_dict["optho"][system][quant]['sum_single']))
+
+            ##### time optho
+            # sum
+            if prover_dict["optho"][system][quant]['sum_single']:
+                prover_dict["optho"][system][quant]['avg_cpu_single']    = sum(map(lambda p: p.cpu,prover_dict["optho"][system][quant]['sum_single'])) \
+                                                                          / len(prover_dict["optho"][system][quant]['sum_single'])
+            else:
+                prover_dict["optho"][system][quant]['avg_cpu_single']    = 0.0
+            if prover_dict["optho"][system][quant]['sum_single']:
+                prover_dict["optho"][system][quant]['avg_wc_single']     = sum(map(lambda p: p.wc,prover_dict["optho"][system][quant]['sum_single'])) \
+                                                                          / len(prover_dict["optho"][system][quant]['sum_single'])
+            else:
+                prover_dict["optho"][system][quant]['avg_wc_single']     = 0.0
+            # thm
+            if prover_dict["optho"][system][quant]['thm_single']:
+                prover_dict["optho"][system][quant]['avg_cpu_single_thm']    = sum(map(lambda p: p.cpu,prover_dict["optho"][system][quant]['thm_single'])) \
+                                                                              / len(prover_dict["optho"][system][quant]['thm_single'])
+            else:
+                prover_dict["optho"][system][quant]['avg_cpu_single_thm']    = 0.0
+            if prover_dict["optho"][system][quant]['thm_single']:
+                prover_dict["optho"][system][quant]['avg_wc_single_thm']     = sum(map(lambda p: p.wc,prover_dict["optho"][system][quant]['thm_single'])) \
+                                                                              / len(prover_dict["optho"][system][quant]['thm_single'])
+            else:
+                prover_dict["optho"][system][quant]['avg_wc_single_thm']     = 0.0
+            # csa
+            if prover_dict["optho"][system][quant]['csa_single']:
+                prover_dict["optho"][system][quant]['avg_cpu_single_csa']    = sum(map(lambda p: p.cpu,prover_dict["optho"][system][quant]['csa_single'])) \
+                                                                              / len(prover_dict["optho"][system][quant]['csa_single'])
+            else:
+                prover_dict["optho"][system][quant]['avg_cpu_singl_csae']    = 0.0
+            if prover_dict["optho"][system][quant]['csa_single']:
+                prover_dict["optho"][system][quant]['avg_wc_single_csa']     = sum(map(lambda p: p.wc,prover_dict["optho"][system][quant]['csa_single'])) \
+                                                                              / len(prover_dict["optho"][system][quant]['csa_single'])
+            else:
+                prover_dict["optho"][system][quant]['avg_wc_single_csa']     = 0.0
+
+
 def getTableData(problem_list,whitefilter=None,blackfilter=None):
     prepared_problem_list = getPreparedProblems(problem_list,whitefilter,blackfilter)
     #for p in prepared_problem_list:
