@@ -3,10 +3,8 @@ import sys
 import common
 import table_single_provers
 
-def main(csv_file_list):
-    problem_list = common.accumulate_csv(csv_file_list)
-    prover_dict = table_single_provers.getTableData(problem_list)
-    table_single_provers.createOptHo(prover_dict)
+FONTSIZE=30
+def main_helper(prover_dict):
 
     systems=  ["D/const","D/cumul","D/vary","T/const","T/cumul","T/vary"] + ["S4/const","S4/cumul","S4/vary","S5/const","S5/cumul","S5/vary"]
 
@@ -221,19 +219,19 @@ def main(csv_file_list):
             showlegend=showLegend,
             legend_orientation="h",
             xaxis=dict(
-                tickfont_size=26, # font size of T/cumul
+                tickfont_size=FONTSIZE, # font size of T/cumul
                 tickfont_color="black"
             ),
             yaxis=dict(
                 title='Number of theorems',
-                titlefont_size=26, # font size of Number of theorems
-                tickfont_size=26, # font size of numbers
+                titlefont_size=FONTSIZE, # font size of Number of theorems
+                tickfont_size=FONTSIZE, # font size of numbers
                 titlefont_color="black",
                 tickfont_color="black"
             ),
             legend=dict(
                 font_color="black",
-                font_size=26
+                font_size=FONTSIZE
             #    x=0,
             #    y=1.0,
             #    bgcolor='rgba(255, 255, 255, 0)',
@@ -243,9 +241,13 @@ def main(csv_file_list):
             bargroupgap=0 # gap between bars of the same location coordinate.
         )
         path="/home/tg/master_thesis/thesis/plots/thm_comparison_"+str(i)+".png"
-        fig.write_image(path,width=1400,height=800)
+        fig.write_image(path,width=1600,height=900)
 
-
+def main(csv_file_list):
+    problem_list = common.accumulate_csv(csv_file_list)
+    prover_dict = table_single_provers.getTableData(problem_list)
+    table_single_provers.createOptHo(prover_dict)
+    main_helper(prover_dict)
 
 if __name__ == "__main__":
     main(sys.argv[1:])
