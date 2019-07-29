@@ -2,7 +2,7 @@ import plotly.graph_objects as go
 import sys
 import common
 import table_single_provers
-import figure_thm_comparison
+import figure_createall
 
 def main_helper(prover_dict):
 
@@ -81,7 +81,7 @@ def main_helper(prover_dict):
         y=data_mleanTotal[start:end],
         width = WIDTH,
         offset = -1*WIDTH,
-        marker_color = "#1DD300"
+        marker_color = figure_createall.COL_MLEANCOP_PRIMARY
     )
 
     mleanUniqueVsOptho = go.Bar(
@@ -90,7 +90,8 @@ def main_helper(prover_dict):
         y=data_mleanUniqueVsOptho[start:end],
         width = WIDTH,
         offset = -1*WIDTH,
-        marker_color = "#69DE56")
+        marker_color = figure_createall.COL_MLEANCOP_SECONDARY
+    )
 
     nitpickTotal = go.Bar(
         name="nitpickTotal",
@@ -98,8 +99,7 @@ def main_helper(prover_dict):
         y=data_nitpickTotal[start:end],
         width = WIDTH,
         offset = 0*WIDTH,
-        marker_color = "#FFCD00"
-        #marker_color = "#FF6C00"
+        marker_color = figure_createall.COL_NITPICK_PRIMARY
     )
 
     nitpickUniqueVsMlean = go.Bar(
@@ -108,8 +108,7 @@ def main_helper(prover_dict):
         y=data_nitpickUniqueVsMlean[start:end],
         width = WIDTH,
         offset = 0*WIDTH,
-        marker_color = "#FFE063"
-        #marker_color = "#FFA563"
+        marker_color = figure_createall.COL_NITPICK_SECONDARY
     )
 
     fig = go.Figure([mleanTotal,mleanUniqueVsOptho,
@@ -119,19 +118,19 @@ def main_helper(prover_dict):
         showlegend=showLegend,
         legend_orientation="h",
         xaxis=dict(
-            tickfont_size=figure_thm_comparison.FONTSIZE, # font size of T/cumul
+            tickfont_size=figure_createall.SIZE_FONT, # font size of T/cumul
             tickfont_color="black"
         ),
         yaxis=dict(
             title='Number of counter models',
-            titlefont_size=figure_thm_comparison.FONTSIZE, # font size of Number of theorems
-            tickfont_size=figure_thm_comparison.FONTSIZE, # font size of numbers
+            titlefont_size=figure_createall.SIZE_FONT, # font size of Number of theorems
+            tickfont_size=figure_createall.SIZE_FONT, # font size of numbers
             titlefont_color="black",
             tickfont_color="black"
         ),
         legend=dict(
             font_color="black",
-            font_size=figure_thm_comparison.FONTSIZE
+            font_size=figure_createall.SIZE_FONT
             #    x=0,
             #    y=1.0,
             #    bgcolor='rgba(255, 255, 255, 0)',

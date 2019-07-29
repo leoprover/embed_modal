@@ -2,8 +2,8 @@ import plotly.graph_objects as go
 import sys
 import common
 import table_single_provers
+import figure_createall
 
-FONTSIZE=30
 def main_helper(prover_dict):
 
     systems=  ["D/const","D/cumul","D/vary","T/const","T/cumul","T/vary"] + ["S4/const","S4/cumul","S4/vary","S5/const","S5/cumul","S5/vary"]
@@ -142,7 +142,7 @@ def main_helper(prover_dict):
             y=data_mleanTotal[start:end],
             width = WIDTH,
             offset = -1.5*WIDTH,
-            marker_color = "#1DD300"
+            marker_color = figure_createall.COL_MLEANCOP_PRIMARY
         )
 
         mleanUniqueVsOptho = go.Bar(
@@ -151,7 +151,8 @@ def main_helper(prover_dict):
             y=data_mleanUniqueVsOptho[start:end],
             width = WIDTH,
             offset = -1.5*WIDTH,
-            marker_color = "#69DE56")
+            marker_color = figure_createall.COL_MLEANCOP_SECONDARY
+        )
 
         leoTotal = go.Bar(
             name="leoTotal",
@@ -159,7 +160,7 @@ def main_helper(prover_dict):
             y=data_leoTotal[start:end],
             width = WIDTH,
             offset = -0.5*WIDTH,
-            marker_color = "#009E8E"
+            marker_color = figure_createall.COL_LEO_PRIMARY
         )
 
         leoUniqueVsMlean = go.Bar(
@@ -168,7 +169,7 @@ def main_helper(prover_dict):
             y=data_leoUniqueVsMlean[start:end],
             width = WIDTH,
             offset = -0.5*WIDTH,
-            marker_color = "#47B7AB"
+            marker_color = figure_createall.COL_LEO_SECONDARY
         )
 
         satallaxTotal = go.Bar(
@@ -177,8 +178,7 @@ def main_helper(prover_dict):
             y=data_satallaxTotal[start:end],
             width = WIDTH,
             offset = 0.5*WIDTH,
-            marker_color = "#FFCD00"
-            #marker_color = "#FF6C00"
+            marker_color = figure_createall.COL_SATALLAX_PRIMARY
         )
 
         satallaxUniqueVsMlean = go.Bar(
@@ -187,8 +187,7 @@ def main_helper(prover_dict):
             y=data_satallaxUniqueVsMlean[start:end],
             width = WIDTH,
             offset = 0.5*WIDTH,
-            marker_color = "#FFE063"
-            #marker_color = "#FFA563"
+            marker_color = figure_createall.COL_SATALLAX_SECONDARY
         )
 
         opthoTotal = go.Bar(
@@ -197,7 +196,7 @@ def main_helper(prover_dict):
             y=data_opthoTotal[start:end],
             width = 2*WIDTH,
             offset = -0.5*WIDTH,
-            marker_color = "#F80012"
+            marker_color = figure_createall.COL_OPTHO_PRIMARY
         )
 
         opthoUniqueVsMLean = go.Bar(
@@ -206,7 +205,7 @@ def main_helper(prover_dict):
             y=data_opthoUniqueVsMLean[start:end],
             width = 2*WIDTH,
             offset = -0.5*WIDTH,
-            marker_color = "#FA616D"
+            marker_color = figure_createall.COL_OPTHO_SECONDARY
         )
 
         fig = go.Figure([mleanTotal,mleanUniqueVsOptho,
@@ -219,19 +218,19 @@ def main_helper(prover_dict):
             showlegend=showLegend,
             legend_orientation="h",
             xaxis=dict(
-                tickfont_size=FONTSIZE, # font size of T/cumul
+                tickfont_size=figure_createall.SIZE_FONT, # font size of T/cumul
                 tickfont_color="black"
             ),
             yaxis=dict(
                 title='Number of theorems',
-                titlefont_size=FONTSIZE, # font size of Number of theorems
-                tickfont_size=FONTSIZE, # font size of numbers
+                titlefont_size=figure_createall.SIZE_FONT, # font size of Number of theorems
+                tickfont_size=figure_createall.SIZE_FONT, # font size of numbers
                 titlefont_color="black",
                 tickfont_color="black"
             ),
             legend=dict(
                 font_color="black",
-                font_size=FONTSIZE
+                font_size=figure_createall.SIZE_FONT
             #    x=0,
             #    y=1.0,
             #    bgcolor='rgba(255, 255, 255, 0)',
