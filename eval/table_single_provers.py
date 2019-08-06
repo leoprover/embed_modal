@@ -580,7 +580,7 @@ $\Sigma$ & THM & \multicolumn{1}{c}{CSA} \ \
             sb.append("} & ")
             sb.append("\n")
             sb.append("{0:.1f}".format(round(statlist['avg_cpu_single'],1)))
-            sb.append(" & \\multicolumn{1}{c|}{")
+            sb.append(" & \\multicolumn{1}{D{.}{.}{2.1}|}{")
             sb.append("{0:.1f}".format(round(statlist['avg_wc_single'],1)))
             sb.append("} & ")
             sb.append("\n")

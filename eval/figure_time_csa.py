@@ -44,7 +44,7 @@ def plot(prover_dict):
                 nitpick_quant = quant+"all"
             if sys == "S5" and quant != "vary":
                 nitpick_sys = "S5Usem"
-            if sys == "T" and quant == "const":
+            if sys == "D" and quant == "const":
                 nitpick_sys = "Tsyn"
             nitpick_t_cpu = sorted(list(map(lambda p: p.cpu,prover_dict["nitpick"][nitpick_sys][nitpick_quant]['csa_single'])))
             nitpick_t_wc = sorted(list(map(lambda p: p.wc,prover_dict["nitpick"][nitpick_sys][nitpick_quant]['csa_single'])))

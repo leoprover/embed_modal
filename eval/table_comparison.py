@@ -17,7 +17,7 @@ def createComparisonTable(embedding_prover_list,prover_dict,szs):
                 continue
             if systemprefix == "S5" and (quantificationprefix == "const" or quantificationprefix == "cumul"):
                 continue
-            print(system,quantification)
+            #print(system,quantification)
 
             if systemprefix == "S5U":
                 sb.append("S5")
@@ -62,8 +62,8 @@ def createComparisonTable(embedding_prover_list,prover_dict,szs):
                     numbers.append(len(set(prover_dict[prover][systemprefix+"syn"][quantificationprefix+"syn"][szs+"_single"])))
 
             maximum = max(numbers)
-            numbers = (map(lambda n: "\\textbf{"+str(n)+"}" if n==maximum else str(n), numbers))
-            numbers = list(map(lambda n: table_single_provers.SEMANTICS_NON_EXISTENT if n=="-1" else n, numbers))
+            #numbers = (map(lambda n: "\\textbf{"+str(n)+"}" if n==maximum else str(n), numbers))
+            numbers = list(map(lambda n: table_single_provers.SEMANTICS_NON_EXISTENT if n==-1 else n, numbers))
 
             sb.append(numbers[0])
             sb.append(" & ")
@@ -133,8 +133,8 @@ def createComparisonNitpickTable(prover_dict):
                 numbers.append(-1)
 
             maximum = max(numbers)
-            numbers = (map(lambda n: "\\textbf{"+str(n)+"}" if n==maximum else str(n), numbers))
-            numbers = list(map(lambda n: table_single_provers.SEMANTICS_NON_EXISTENT if n=="-1" else n, numbers))
+            #numbers = (map(lambda n: "\\textbf{"+str(n)+"}" if n==maximum else str(n), numbers))
+            numbers = list(map(lambda n: table_single_provers.SEMANTICS_NON_EXISTENT if n==-1 else n, numbers))
             sb.append(numbers[0])
             sb.append(" & \\multicolumn{1}{c|}{")
             sb.append(numbers[1])
