@@ -118,8 +118,10 @@ def createComparisonNitpickTable(prover_dict):
             if systemprefix != "S5U" and quantificationprefix == "cumul":
                 continue
 
-
-            sb.append(systemprefix)
+            if systemprefix == "S5U":
+                sb.append("S5")
+            else:
+                sb.append(systemprefix)
             sb.append(" & \\multicolumn{1}{l|}{")
             sb.append(quantificationprefix)
             sb.append("} &")

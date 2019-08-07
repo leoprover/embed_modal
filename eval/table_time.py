@@ -121,7 +121,10 @@ def createComparisonNitpickTable(prover_dict,timekind):
                 continue
 
 
-            sb.append(systemprefix)
+            if systemprefix == "S5U":
+                sb.append("S5")
+            else:
+                sb.append(systemprefix)
             sb.append(" & \\multicolumn{1}{l|}{")
             sb.append(quantificationprefix)
             sb.append("} &")
