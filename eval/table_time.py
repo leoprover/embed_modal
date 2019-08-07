@@ -63,7 +63,8 @@ def createComparisonTable(embedding_prover_list,prover_dict,timekind):
 
             minimum = "{0:.1f}".format(round(min(map(lambda n: 9999 if n==-1 else n,numbers)),1))
             numbers = map(lambda n: "{0:.1f}".format(round(n,1)), numbers)
-            numbers = (map(lambda n: "\\textbf{"+str(n)+"}" if n==minimum else str(n), numbers))
+            #numbers = (map(lambda n: "\\textbf{"+str(n)+"}" if n==minimum else str(n), numbers))
+            numbers = (map(lambda n: str(n), numbers))
             numbers = list(map(lambda n: table_single_provers.SEMANTICS_NON_EXISTENT if n=="-1.0" else n, numbers))
 
             sb.append(numbers[0])
@@ -135,7 +136,8 @@ def createComparisonNitpickTable(prover_dict,timekind):
 
             minimum = "{0:.1f}".format(round(min(map(lambda n: 9999 if n==-1 else n,numbers)),1))
             numbers = map(lambda n: "{0:.1f}".format(round(n,1)), numbers)
-            numbers = (map(lambda n: "\\textbf{"+str(n)+"}" if n==minimum else str(n), numbers))
+            #numbers = (map(lambda n: "\\textbf{"+str(n)+"}" if n==minimum else str(n), numbers))
+            numbers = (map(lambda n: str(n), numbers))
             numbers = list(map(lambda n: table_single_provers.SEMANTICS_NON_EXISTENT if n=="-1.0" else n, numbers))
 
             sb.append(numbers[0])

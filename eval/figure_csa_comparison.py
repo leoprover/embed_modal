@@ -76,7 +76,7 @@ def main_helper(prover_dict):
     end = 5
     showLegend = True
     mleanTotal = go.Bar(
-        name="mleanTotal",
+        name="MLeanCoP",
         x=systems[start:end],
         y=data_mleanTotal[start:end],
         width = WIDTH,
@@ -85,7 +85,7 @@ def main_helper(prover_dict):
     )
 
     mleanUniqueVsOptho = go.Bar(
-        name="mleanUniqueVsOptho",
+        name="MLeanCoP U vs. Nitpick",
         x=systems[start:end],
         y=data_mleanUniqueVsOptho[start:end],
         width = WIDTH,
@@ -94,7 +94,7 @@ def main_helper(prover_dict):
     )
 
     nitpickTotal = go.Bar(
-        name="nitpickTotal",
+        name="Nitpick",
         x=systems[start:end],
         y=data_nitpickTotal[start:end],
         width = WIDTH,
@@ -103,7 +103,7 @@ def main_helper(prover_dict):
     )
 
     nitpickUniqueVsMlean = go.Bar(
-        name="nitpickUniqueVsMlean",
+        name="Nitpick U vs. MLeanCoP",
         x=systems[start:end],
         y=data_nitpickUniqueVsMlean[start:end],
         width = WIDTH,

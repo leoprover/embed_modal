@@ -137,7 +137,7 @@ def main_helper(prover_dict):
             end=12
             showLegend=True
         mleanTotal = go.Bar(
-            name="mleanTotal",
+            name="MLeanCoP",
             x=systems[start:end],
             y=data_mleanTotal[start:end],
             width = WIDTH,
@@ -146,7 +146,7 @@ def main_helper(prover_dict):
         )
 
         mleanUniqueVsOptho = go.Bar(
-            name="mleanUniqueVsOptho",
+            name="MLeanCoP U vs. HOany",
             x=systems[start:end],
             y=data_mleanUniqueVsOptho[start:end],
             width = WIDTH,
@@ -155,7 +155,7 @@ def main_helper(prover_dict):
         )
 
         leoTotal = go.Bar(
-            name="leoTotal",
+            name="Leo",
             x=systems[start:end],
             y=data_leoTotal[start:end],
             width = WIDTH,
@@ -164,7 +164,7 @@ def main_helper(prover_dict):
         )
 
         leoUniqueVsMlean = go.Bar(
-            name="leoUniqueVsMlean",
+            name="Leo U vs. MLeanCoP",
             x=systems[start:end],
             y=data_leoUniqueVsMlean[start:end],
             width = WIDTH,
@@ -173,7 +173,7 @@ def main_helper(prover_dict):
         )
 
         satallaxTotal = go.Bar(
-            name="satallaxTotal",
+            name="Satallax",
             x=systems[start:end],
             y=data_satallaxTotal[start:end],
             width = WIDTH,
@@ -182,7 +182,7 @@ def main_helper(prover_dict):
         )
 
         satallaxUniqueVsMlean = go.Bar(
-            name="satallaxUniqueVsMlean",
+            name="Satallax U vs. MLeanCoP",
             x=systems[start:end],
             y=data_satallaxUniqueVsMlean[start:end],
             width = WIDTH,
@@ -191,7 +191,7 @@ def main_helper(prover_dict):
         )
 
         opthoTotal = go.Bar(
-            name="opthoTotal",
+            name="HOany",
             x=systems[start:end],
             y=data_opthoTotal[start:end],
             width = 2*WIDTH,
@@ -200,7 +200,7 @@ def main_helper(prover_dict):
         )
 
         opthoUniqueVsMLean = go.Bar(
-            name="opthoUniqueVsMLean",
+            name="HOany U vs. MLeanCoP",
             x=systems[start:end],
             y=data_opthoUniqueVsMLean[start:end],
             width = 2*WIDTH,
