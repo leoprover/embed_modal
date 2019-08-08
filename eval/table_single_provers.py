@@ -568,6 +568,7 @@ $\Sigma$ & THM & \multicolumn{1}{c}{CSA} \ \
         quantificationsuffix = quantification[len(quantification)-3:]
 
         # filter
+        if systemsuffix == "all": continue
         if systemsuffix != "all" and quantificationsuffix == "all" and quantificationprefix != "vary":
             continue
         if systemsuffix == "all" and quantificationsuffix != "all":
@@ -590,17 +591,21 @@ $\Sigma$ & THM & \multicolumn{1}{c}{CSA} \ \
             sb.append(quantificationprefix + "\\textsubscript{" + quantificationsuffix + "}")
         sb.append("} & ")
         sb.append("\n")
+        # sum single
+        #if prover == "nitpick" and systemprefix == "all":
+        #    sb.append(sb.append(len(set(statlist['csa_single']))))
         if quantification == "constsem" or system == "S5Usem":
             sb.append(len(set(statlist['sum_single'])))
-        elif quantification == "constall":
+        elif quantification in ["constall","cumulall"]:
             # THM_all + CSA_sem
-            sb.append(len(set(statlist['thm_single'])) + len(set(qlist["constsem"]["csa_single"])))
-            #sb.append("\\textsuperscript{" + SEMANTICS_WITH_CONSTSEM + "}")
+            sb.append(len(set(statlist['thm_single'] + qlist["constsem"]["csa_single"])))
         else:
-            sb.append(len(set(statlist['thm_single'])))
+            sb.append(len(set(statlist['thm_single'] + statlist['csa_single'])))
         sb.append(" & ")
+        # THM single
         sb.append(len(set(statlist['thm_single'])))
         sb.append(" & ")
+        # CSA single
         if quantification == "constsem" or system == "S5Usem":
             sb.append(len(set(statlist['csa_single'])))
         elif quantification == "constall":
