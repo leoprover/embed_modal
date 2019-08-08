@@ -4,9 +4,10 @@ from pathlib import *
 import table_single_provers
 
 def createComparisonTable(embedding_prover_list,prover_dict,timekind):
-    sb = []
+    sbrows = []
     for system,qlist in sorted(prover_dict["mleancop"].items(),key=table_single_provers.sortSystems):
         for quantification,statlist in sorted(qlist.items(), key=table_single_provers.sortQuantification):
+            sb = []
             systemprefix = system[:len(system)-3]
             systemsuffix = system[len(system)-3:]
             quantificationprefix = quantification[:len(quantification)-3]
@@ -99,8 +100,15 @@ def createComparisonTable(embedding_prover_list,prover_dict,timekind):
             sb.append("{0:.1f}".format(round(prover_dict["mleancop"][systemprefix+"all"][quantificationprefix+"all"]["avg_"+timekind+"_single_thm"],1)))
             sb.append("} \\\\")
             sb.append("\n\n")
+            sbrows.append("".join(map(lambda n:str(n),sb)))
 
-    return "".join(map(lambda n:str(n),sb))
+    vary = sbrows[9]
+    const = sbrows[10]
+    cumul = sbrows[11]
+    sbrows[9] = const
+    sbrows[10] = cumul
+    sbrows[11] = vary
+    return "".join(sbrows)
 
 
 def createComparisonNitpickTable(prover_dict,timekind):

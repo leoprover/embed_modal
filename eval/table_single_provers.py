@@ -424,8 +424,8 @@ def getTableData(problem_list,whitefilter=None,blackfilter=None):
 
 def getMLeanCopTable(single_prover_dict,optho_dict):
     sb = []
-    for system,qlist in single_prover_dict.items():
-        for quantification,statlist in qlist.items():
+    for system,qlist in sorted(single_prover_dict.items(),key=sortSystems):
+        for quantification,statlist in sorted(qlist.items(),key=sortQuantification):
             systemprefix = system[:len(system)-3]
             systemsuffix = system[len(system)-3:]
             quantificationprefix = quantification[:len(quantification)-3]
@@ -470,6 +470,8 @@ def getMLeanCopTable(single_prover_dict,optho_dict):
 
 def sortSystems(item):
     key=item[0]
+    #if key.endswith('syn') or key.endswith('sem') or key.endswith('all'):
+    #    key=key[:len(key)-3]
     precedence = 0
     if key.startswith("D"): precedence = 10
     elif key.startswith("T"): precedence = 20
@@ -478,14 +480,14 @@ def sortSystems(item):
     elif key.startswith("S5"): precedence = 40
     else:
         raise Exception("no system")
-    if key.endswith("sem"):
-        precedence +=1
-    elif key.endswith("syn"):
-        precedence +=2
-    elif key.endswith("all"):
-        precedence +=3
-    else:
-        raise Exception("nosynsem")
+    #if key.endswith("sem"):
+    #    precedence +=1
+    #elif key.endswith("syn"):
+    #    precedence +=2
+    #elif key.endswith("all"):
+    #    precedence +=3
+    #else:
+    #    raise Exception("nosynsem")
     return precedence
 
 def sortQuantification(item):
@@ -507,6 +509,34 @@ def sortQuantification(item):
         raise Exception("nosynsem")
     return precedence
 
+def sortSystemAndQuantification(item):
+    system = item[0]
+    quantification = item[1]
+    systemprefix = system[:len(system)-3]
+    systemsuffix = system[len(system)-3:]
+    quantificationprefix = quantification[:len(quantification)-3]
+    quantificationsuffix = quantification[len(quantification)-3:]
+    if system.startswith("D"): precedence = 1000
+    elif system.startswith("T"): precedence = 2000
+    elif system.startswith("S4"): precedence = 3000
+    elif system.startswith("S5U"): precedence = 5000
+    elif system.startswith("S5"): precedence = 4000
+    else: raise Exception("no system")
+    if quantification.startswith("const"): precedence += 100
+    elif quantification.startswith("cumul"): precedence += 200
+    elif quantification.startswith("decr"): precedence += 300
+    elif quantification.startswith("vary"): precedence += 400
+    else: raise Exception("no system")
+    if system.endswith("sem"): precedence +=10
+    elif system.endswith("syn"): precedence +=20
+    elif system.endswith("all"): precedence +=30
+    else: raise Exception("nosynsemonsys")
+    if quantification.endswith("sem"): precedence +=1
+    elif quantification.endswith("syn"): precedence +=2
+    elif quantification.endswith("all"): precedence +=3
+    else: raise Exception("nosynsemonquant")
+    return precedence
+
 def getEmbeddingProverTable(prover,single_prover_dict):
     """
     Returns the table contents of the performance of a single embedding prover
@@ -523,111 +553,118 @@ $\Sigma$ & THM & \multicolumn{1}{c}{CSA} \ \
     \hline
 """
     sb = []
-    for system,qlist in sorted(single_prover_dict.items(),key=sortSystems):
-        for quantification,statlist in sorted(qlist.items(), key=sortQuantification):
-            systemprefix = system[:len(system)-3]
-            systemsuffix = system[len(system)-3:]
-            quantificationprefix = quantification[:len(quantification)-3]
-            quantificationsuffix = quantification[len(quantification)-3:]
+    rows = []
+    for system,qlist in single_prover_dict.items():
+        for quantification,statlist in qlist.items():
+            entry = (system,quantification,statlist)
+            rows.append(entry)
+    for entry in sorted(rows,key=sortSystemAndQuantification):
+        system = entry[0]
+        quantification = entry[1]
+        statlist = entry[2]
+        systemprefix = system[:len(system)-3]
+        systemsuffix = system[len(system)-3:]
+        quantificationprefix = quantification[:len(quantification)-3]
+        quantificationsuffix = quantification[len(quantification)-3:]
 
-            # filter
-            if systemsuffix != "all" and quantificationsuffix == "all" and quantificationprefix != "vary":
-                continue
-            if systemsuffix == "all" and quantificationsuffix != "all":
-                continue
-            if system == "S5Uall":
-                continue
+        # filter
+        if systemsuffix != "all" and quantificationsuffix == "all" and quantificationprefix != "vary":
+            continue
+        if systemsuffix == "all" and quantificationsuffix != "all":
+            continue
+        if system == "S5Uall":
+            continue
 
-            if system == "S5Usem":
-                sb.append("S5U")
-            else:
-                sb.append(systemprefix + "\\textsubscript{" + systemsuffix + "}")
-            sb.append(" & \\multicolumn{1}{l|}{")
-            if system == "S5Usem":
-                sb.append(quantificationprefix)
-            elif quantification == "varyall":
-                sb.append(quantificationprefix)
-            elif prover == "nitpick":
-                sb.append(quantificationprefix + "\\textsubscript{" + "sem" + "}")
-            else:
-                sb.append(quantificationprefix + "\\textsubscript{" + quantificationsuffix + "}")
-            sb.append("} & ")
-            sb.append("\n")
-            if quantification == "constsem" or system == "S5Usem":
-                sb.append(len(set(statlist['sum_single'])))
-            elif quantification == "constall":
-                # THM_all + CSA_sem
-                sb.append(len(set(statlist['thm_single'])) + len(set(qlist["constsem"]["csa_single"])))
-                #sb.append("\\textsuperscript{" + SEMANTICS_WITH_CONSTSEM + "}")
-            else:
-                sb.append(len(set(statlist['thm_single'])))
-            sb.append(" & ")
+        if system == "S5Usem":
+            sb.append("S5U")
+        else:
+            sb.append(systemprefix + "\\textsubscript{" + systemsuffix + "}")
+        sb.append(" & \\multicolumn{1}{l|}{")
+        if system == "S5Usem":
+            sb.append(quantificationprefix)
+        elif quantification == "varyall":
+            sb.append(quantificationprefix)
+        elif prover == "nitpick":
+            sb.append(quantificationprefix + "\\textsubscript{" + "sem" + "}")
+        else:
+            sb.append(quantificationprefix + "\\textsubscript{" + quantificationsuffix + "}")
+        sb.append("} & ")
+        sb.append("\n")
+        if quantification == "constsem" or system == "S5Usem":
+            sb.append(len(set(statlist['sum_single'])))
+        elif quantification == "constall":
+            # THM_all + CSA_sem
+            sb.append(len(set(statlist['thm_single'])) + len(set(qlist["constsem"]["csa_single"])))
+            #sb.append("\\textsuperscript{" + SEMANTICS_WITH_CONSTSEM + "}")
+        else:
             sb.append(len(set(statlist['thm_single'])))
-            sb.append(" & ")
-            if quantification == "constsem" or system == "S5Usem":
-                sb.append(len(set(statlist['csa_single'])))
-            elif quantification == "constall":
-                # CSA_sem
-                sb.append(len(set(qlist["constsem"]["csa_single"])))
-                if prover != "nitpick":
-                    sb.append("\\textsuperscript{" + SEMANTICS_WITH_CONSTSEM + "}")
-            else:
-                sb.append(SEMANTICS_N_A)
-            sb.append(" & ")
-            sb.append(len(set(statlist['gup_single'])))
-            sb.append(" & \\multicolumn{1}{c|}{")
-            sb.append(len(set(statlist['tmo_single'])))
-            sb.append("} & ")
-            sb.append("\n")
-            sb.append("{0:.1f}".format(round(statlist['avg_cpu_single'],1)))
-            sb.append(" & \\multicolumn{1}{D{.}{.}{2.1}|}{")
-            sb.append("{0:.1f}".format(round(statlist['avg_wc_single'],1)))
-            sb.append("} & ")
-            sb.append("\n")
-            if quantification == "constsem" or system == "S5Usem":
-                sb.append(len(set(statlist['sum_unique_compared_to_other_embedding_provers'])))
-            elif quantification == "constall":
-                # THM_all + CSA_sem
-                sb.append(len(set(statlist['thm_unique_compared_to_other_embedding_provers'])) + len(set(qlist["constsem"]["csa_unique_compared_to_other_embedding_provers"])))
-                #sb.append("\\textsuperscript{" + SEMANTICS_WITH_CONSTSEM + "}")
-            else:
-                sb.append(len(set(statlist['thm_unique_compared_to_other_embedding_provers'])))
-            sb.append(" & ")
+        sb.append(" & ")
+        sb.append(len(set(statlist['thm_single'])))
+        sb.append(" & ")
+        if quantification == "constsem" or system == "S5Usem":
+            sb.append(len(set(statlist['csa_single'])))
+        elif quantification == "constall":
+            # CSA_sem
+            sb.append(len(set(qlist["constsem"]["csa_single"])))
+            if prover != "nitpick":
+                sb.append("\\textsuperscript{" + SEMANTICS_WITH_CONSTSEM + "}")
+        else:
+            sb.append(SEMANTICS_N_A)
+        sb.append(" & ")
+        sb.append(len(set(statlist['gup_single'])))
+        sb.append(" & \\multicolumn{1}{c|}{")
+        sb.append(len(set(statlist['tmo_single'])))
+        sb.append("} & ")
+        sb.append("\n")
+        sb.append("{0:.1f}".format(round(statlist['avg_cpu_single'],1)))
+        sb.append(" & \\multicolumn{1}{D{.}{.}{2.1}|}{")
+        sb.append("{0:.1f}".format(round(statlist['avg_wc_single'],1)))
+        sb.append("} & ")
+        sb.append("\n")
+        if quantification == "constsem" or system == "S5Usem":
+            sb.append(len(set(statlist['sum_unique_compared_to_other_embedding_provers'])))
+        elif quantification == "constall":
+            # THM_all + CSA_sem
+            sb.append(len(set(statlist['thm_unique_compared_to_other_embedding_provers'])) + len(set(qlist["constsem"]["csa_unique_compared_to_other_embedding_provers"])))
+            #sb.append("\\textsuperscript{" + SEMANTICS_WITH_CONSTSEM + "}")
+        else:
             sb.append(len(set(statlist['thm_unique_compared_to_other_embedding_provers'])))
-            sb.append(" & \\multicolumn{1}{c|}{")
-            if quantification == "constsem" or system == "S5Usem":
-                sb.append(len(set(statlist['csa_unique_compared_to_other_embedding_provers'])))
-            elif quantification == "constall":
-                # CSA_sem
-                sb.append(len(set(qlist["constsem"]["csa_unique_compared_to_other_embedding_provers"])))
-                if prover != "nitpick":
-                    sb.append("\\textsuperscript{" + SEMANTICS_WITH_CONSTSEM + "}")
-            else:
-                sb.append(SEMANTICS_N_A)
-            sb.append("} & ")
-            sb.append("\n")
-            if quantification == "constsem" or system == "S5Usem":
-                sb.append(len(set(statlist['sum_unique_compared_to_mleancop'])))
-            elif quantification == "constall":
-                # THM_all + CSA_sem
-                sb.append(len(set(statlist['thm_unique_compared_to_mleancop'])) + len(set(qlist["constsem"]["csa_unique_compared_to_mleancop"])))
-                #sb.append("\\textsuperscript{" + SEMANTICS_WITH_CONSTSEM + "}")
-            else:
-                sb.append(len(set(statlist['thm_unique_compared_to_mleancop'])))
-            sb.append(" & ")
+        sb.append(" & ")
+        sb.append(len(set(statlist['thm_unique_compared_to_other_embedding_provers'])))
+        sb.append(" & \\multicolumn{1}{c|}{")
+        if quantification == "constsem" or system == "S5Usem":
+            sb.append(len(set(statlist['csa_unique_compared_to_other_embedding_provers'])))
+        elif quantification == "constall":
+            # CSA_sem
+            sb.append(len(set(qlist["constsem"]["csa_unique_compared_to_other_embedding_provers"])))
+            if prover != "nitpick":
+                sb.append("\\textsuperscript{" + SEMANTICS_WITH_CONSTSEM + "}")
+        else:
+            sb.append(SEMANTICS_N_A)
+        sb.append("} & ")
+        sb.append("\n")
+        if quantification == "constsem" or system == "S5Usem":
+            sb.append(len(set(statlist['sum_unique_compared_to_mleancop'])))
+        elif quantification == "constall":
+            # THM_all + CSA_sem
+            sb.append(len(set(statlist['thm_unique_compared_to_mleancop'])) + len(set(qlist["constsem"]["csa_unique_compared_to_mleancop"])))
+            #sb.append("\\textsuperscript{" + SEMANTICS_WITH_CONSTSEM + "}")
+        else:
             sb.append(len(set(statlist['thm_unique_compared_to_mleancop'])))
-            sb.append(" & \\multicolumn{1}{c}{")
-            if quantification == "constsem" or system == "S5Usem":
-                sb.append(len(set(statlist['csa_unique_compared_to_mleancop'])))
-            elif quantification == "constall":
-                # CSA_sem
-                sb.append(len(set(qlist["constsem"]["csa_unique_compared_to_mleancop"])))
-                if prover != "nitpick":
-                    sb.append("\\textsuperscript{" + SEMANTICS_WITH_CONSTSEM + "}")
-            else:
-                sb.append(SEMANTICS_N_A)
-            sb.append("} \\\\")
-            sb.append("\n\n")
+        sb.append(" & ")
+        sb.append(len(set(statlist['thm_unique_compared_to_mleancop'])))
+        sb.append(" & \\multicolumn{1}{c}{")
+        if quantification == "constsem" or system == "S5Usem":
+            sb.append(len(set(statlist['csa_unique_compared_to_mleancop'])))
+        elif quantification == "constall":
+            # CSA_sem
+            sb.append(len(set(qlist["constsem"]["csa_unique_compared_to_mleancop"])))
+            if prover != "nitpick":
+                sb.append("\\textsuperscript{" + SEMANTICS_WITH_CONSTSEM + "}")
+        else:
+            sb.append(SEMANTICS_N_A)
+        sb.append("} \\\\")
+        sb.append("\n\n")
     return "".join(map(lambda n:str(n),sb))
 
 def main(csv_file_list):

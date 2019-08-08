@@ -4,9 +4,10 @@ import common
 import table_single_provers
 
 def createComparisonTable(embedding_prover_list,prover_dict,szs):
-    sb = []
+    sbrows = []
     for system,qlist in sorted(prover_dict["mleancop"].items(),key=table_single_provers.sortSystems):
         for quantification,statlist in sorted(qlist.items(), key=table_single_provers.sortQuantification):
+            sb = []
             systemprefix = system[:len(system)-3]
             systemsuffix = system[len(system)-3:]
             quantificationprefix = quantification[:len(quantification)-3]
@@ -98,7 +99,15 @@ def createComparisonTable(embedding_prover_list,prover_dict,szs):
             sb.append("} \\\\")
             sb.append("\n\n")
 
-    return "".join(map(lambda n:str(n),sb))
+            sbrows.append("".join(map(lambda n:str(n),sb)))
+
+    vary = sbrows[9]
+    const = sbrows[10]
+    cumul = sbrows[11]
+    sbrows[9] = const
+    sbrows[10] = cumul
+    sbrows[11] = vary
+    return "".join(sbrows)
 
 
 def createComparisonNitpickTable(prover_dict):
