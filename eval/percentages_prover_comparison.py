@@ -29,7 +29,7 @@ def sumTotalStatus(prover_dict,stat):
                         continue
                     if systemprefix == "S5U" and systemsuffix != "sem":
                         continue
-                if prover == "nitpick":
+                if prover == "nitpick" or (prover == "satallax" and stat == "csa_single"):
                     if quantification != "constsem" and systemprefix != "S5U":
                         continue
                     if systemprefix == "S5":
@@ -48,7 +48,7 @@ def sumTotalStatus(prover_dict,stat):
                 if prover == "optho" :
                     pass # contains only the best encoding
                 #print(system,quantification,prover,len(set(statlist[stat])))
-                print(system,quantification,prover,stat)
+                #print(system,quantification,prover,stat)
                 ret[prover] += statlist[stat]
     return list(map(lambda kv: (kv[0],len(set(kv[1]))),ret.items()))
 
