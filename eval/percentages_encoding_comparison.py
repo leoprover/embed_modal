@@ -38,7 +38,7 @@ def compare_encodings(prover_dict,prover):
         problems = list(map(lambda k: d[sem][k],problemkeys))
         minimums[sem] = min(list(map(lambda l: len(set(l)),problems)))
         maximums[sem] = max(list(map(lambda l: len(set(l)),problems)))
-        averages[sem] = sum(list(map(lambda l: len(set(l)),problems))) / len(problems)
+        averages[sem] = sum(list(map(lambda l: len(set(l)),problems[1:]))) / len(problems[1:])
         second_maximums[sem] = sorted(list(map(lambda l: len(set(l)),problems)))[1]
         if "vary" in sem:
             semsems[sem] = len(set(d[sem]["semall"]))
@@ -60,7 +60,7 @@ def compare_encodings(prover_dict,prover):
         problems = list(map(lambda k: d[sem][k],problemkeys))
         minimums[sem] = min(list(map(lambda l: len(set(l)),problems)))
         maximums[sem] = max(list(map(lambda l: len(set(l)),problems)))
-        averages[sem] = sum(list(map(lambda l: len(set(l)),problems))) / len(problems)
+        averages[sem] = sum(list(map(lambda l: len(set(l)),problems[1:]))) / len(problems[1:])
     print(minimums)
     print(maximums)
     minimum_vs_S5U = {a:b for (a,b) in map(lambda k: (k,round(100.0/minimums[k]*(S5Ulen-minimums[k]),1)),minimums.keys())}
@@ -76,7 +76,28 @@ def compare_encodings(prover_dict,prover):
     }
     return ret
 
-
+def semsem_better_than_average(prover_dict,prover,timekind):
+    d = createSemanticsEncodingdict(prover_dict,prover,"avg_"+timekind+"_single_thm")
+    res = []
+    for sem,enclist in d.items():
+        if "vary" in sem:
+            besttime = enclist["semall"]
+        elif "S5" in sem and ("const" in sem):
+            besttime = d["S5Uconst"]["semsem"]
+        elif "S5" in sem and ("cumul" in sem):
+            besttime = d["S5Ucumul"]["semsem"]
+        else:
+            besttime = enclist["semsem"]
+        for enc,time in enclist.items():
+            if "all" in enc and "vary" not in sem:
+                continue
+            if enc == "allall":
+                continue
+            if enc != "semsem":
+                res.append(100/besttime*(time-besttime))
+            elif "S5" in sem and "S5U" not in sem and ("const" in sem or "cumul" in sem):
+                res.append(100/besttime*(time-besttime))
+    return sum(res)/len(res)
 
 def main(csv_file_list):
     problem_list = common.accumulate_csv(csv_file_list)
@@ -102,6 +123,10 @@ def main(csv_file_list):
         print()
         print("S5U minimally stronger that other encodings by %")
         print(ret["maximum_vs_S5U"])
+        print()
+        print("best encoding on average better than other encodings by %")
+        for timekind in ["wc","cpu"]:
+            print(timekind,semsem_better_than_average(prover_dict,prover,timekind))
         print("-----------------------------------------------------------")
     print("===========================================================")
 

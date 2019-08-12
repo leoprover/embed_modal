@@ -3,6 +3,39 @@ import common
 import table_single_provers
 from functools import reduce
 
+def timing_csa(embedding_prover_list,prover_dict,timekind):
+    timing = {"nitpick":{},"mleancop":{}}
+    for prover in ["nitpick"]:
+        timing[prover]["semsem"] = []
+        timing[prover]["synsem"] = []
+    timing["mleancop"]["all"] = []
+    for system,qlist in sorted(prover_dict["mleancop"].items(),key=table_single_provers.sortSystems):
+        for quantification,statlist in sorted(qlist.items(), key=table_single_provers.sortQuantification):
+            systemprefix = system[:len(system)-3]
+            systemsuffix = system[len(system)-3:]
+            quantificationprefix = quantification[:len(quantification)-3]
+            quantificationsuffix = quantification[len(quantification)-3:]
+
+            # filter
+            if quantificationprefix == "vary":
+                continue
+            if systemprefix == "S5":
+                continue
+            if systemprefix != "S5U" and quantificationprefix == "cumul":
+                continue
+
+            numbers = []
+            numbers.append(prover_dict["nitpick"][systemprefix+"sem"][quantificationprefix+"sem"]["avg_"+timekind+"_single_csa"])
+            if systemprefix != "S5U":
+                numbers.append(prover_dict["nitpick"][systemprefix+"syn"][quantificationprefix+"sem"]["avg_"+timekind+"_single_csa"])
+            else:
+                numbers.append(-1)
+
+            timing["nitpick"]["semsem"].append(numbers[0])
+            timing["nitpick"]["synsem"].append(numbers[1])
+            timing["mleancop"]["all"].append(prover_dict["mleancop"][systemprefix+"all"][quantificationprefix+"all"]["avg_"+timekind+"_single_csa"])
+    return timing
+
 def timing(embedding_prover_list,prover_dict,timekind):
     timing = {"leo":{},"satallax":{},"mleancop":{}}
     for prover in ["leo","satallax"]:
@@ -91,29 +124,13 @@ def calc_perc_of_mleancop(timing,provers):
             average[prover][enc] = round(sum(list(map(lambda en: 100.0/en[1]*(en[0]-en[1]),list(zip(timing[prover][enc],timing["mleancop"]["all"]))))),1)/len(timing[prover][enc])
     return perc_of_mleancop,average
 
-
-def calc_time(timing):
-    minimums = {}
-    maximums = {}
-    differences_minimum = {}
-    differences_maximum = {}
-    for prover,encodings in timing.items():
-        if prover not in minimums:
-            minimums[prover] = {}
-            maximums[prover] = {}
-            differences_minimum[prover] = {}
-            differences_maximum[prover] = {}
-        for encoding,l in encodings.items():
-            newl = reduce(lambda output, current: output if current == 0 else output + [current], l, [])
-            minimums[prover][encoding] = min(newl)
-            maximums[prover][encoding] = max(newl)
-            if encoding == "semsem" and prover in ["leo","satallax","nitpick"]:
-                differences = list(map(lambda en: en[0]-en[1],zip(l,timing["mleancop"]["all"])))
-                print(differences)
-            else:
-                print(encoding,prover)
-    return (minimums,maximums)
-
+def calc_average_better_than_other_encodings(timing,timekind):
+    for prover in timing.keys():
+        for enc in timing[prover]:
+            if enc == "semsem":
+                continue
+        if prover in ["leo"]:
+            pass
 def main(csv_file_list):
     problem_list = common.accumulate_csv(csv_file_list)
     prover_dict = table_single_provers.getTableData(problem_list)
@@ -132,7 +149,7 @@ def main(csv_file_list):
     for prover in perc_of_mleancop.keys():
         print("---------------------------")
         print(prover)
-        print("WC usage percent more than mleancop")
+        print("WC usage percent more than mleancop: encoding / average / [semantics]")
         for enc in perc_of_mleancop[prover]:
             print(enc,average[prover][enc],perc_of_mleancop[prover][enc])
         print("#######################################")
@@ -140,7 +157,26 @@ def main(csv_file_list):
     for prover in perc_of_mleancop.keys():
         print("---------------------------")
         print(prover)
-        print("CPU usage percent more than mleancop")
+        print("CPU usage percent more than mleancop: encoding / average / [semantics]")
+        for enc in perc_of_mleancop[prover]:
+            print(enc,average[prover][enc],perc_of_mleancop[prover][enc])
+
+    t_wc = timing_csa(["nitpick"],prover_dict,"wc")
+    t_cpu = timing_csa(["nitpick"],prover_dict,"cpu")
+    print("#######################################")
+    perc_of_mleancop,average = calc_perc_of_mleancop(t_wc,["nitpick"])
+    for prover in perc_of_mleancop.keys():
+        print("---------------------------")
+        print(prover)
+        print("WC usage percent more than mleancop: encoding / average / [semantics]")
+        for enc in perc_of_mleancop[prover]:
+            print(enc,average[prover][enc],perc_of_mleancop[prover][enc])
+        print("#######################################")
+    perc_of_mleancop,average = calc_perc_of_mleancop(t_cpu,["nitpick"])
+    for prover in perc_of_mleancop.keys():
+        print("---------------------------")
+        print(prover)
+        print("CPU usage percent more than mleancop: encoding / average / [semantics]")
         for enc in perc_of_mleancop[prover]:
             print(enc,average[prover][enc],perc_of_mleancop[prover][enc])
 
