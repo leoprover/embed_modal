@@ -5,9 +5,12 @@ import table_single_provers
 def sumTotalStatus(prover_dict,stat,excluded_semantics = [], included_semantics=[]):
     ret = {}
     ret["mleancopcsarestricted"] = []
+    ret_alt = {}
     for prover in prover_dict.keys():
         if prover not in ret:
             ret[prover] = []
+        if prover not in ret_alt:
+            ret_alt[prover] = {}
         for system,qlist in prover_dict[prover].items():
             for quantification,statlist in qlist.items():
                 systemprefix = system[:len(system)-3]
@@ -62,7 +65,8 @@ def sumTotalStatus(prover_dict,stat,excluded_semantics = [], included_semantics=
                         continue
                     else:
                         if len(excluded_semantics) != 0:
-                            print(prover,"inc",systemprefix,quantificationprefix)
+                            #print(prover,"inc",systemprefix,quantificationprefix)
+                            pass
                 #inc
                 if len(included_semantics) != 0:
                     cont = True
@@ -79,22 +83,27 @@ def sumTotalStatus(prover_dict,stat,excluded_semantics = [], included_semantics=
                             #print(prover,"ex",systemprefix,quantificationprefix)
                             pass
                 ret[prover] += statlist[stat]
+                if not quantificationprefix in ret_alt[prover]:
+                    ret_alt[prover][quantificationprefix] = {}
+                ret_alt[prover][quantificationprefix][systemprefix] = len(set(statlist[stat]))
+                #print(prover,system,quantification)
 
-    return list(map(lambda kv: (kv[0],len(set(kv[1]))),ret.items()))
+    return list(map(lambda kv: (kv[0],len(set(kv[1]))),ret.items())), ret_alt
 
 def main(csv_file_list):
     problem_list = common.accumulate_csv(csv_file_list)
     prover_dict = table_single_provers.getTableData(problem_list)
     table_single_provers.createOptHo(prover_dict)
 
-    total_THM = sumTotalStatus(prover_dict,"thm_single")
-    total_THM_S5U = sumTotalStatus(prover_dict,"thm_single",[],["S5U+const","S5U+cumul"])
-    total_THM_other_than_S5U = sumTotalStatus(prover_dict,"thm_single",["S5U+const","S5U+cumul"],[])
-    total_CSA = sumTotalStatus(prover_dict,"csa_single")
-    total_U_THM_vs_Embedding = sumTotalStatus(prover_dict,"thm_unique_compared_to_other_embedding_provers")
-    total_U_CSA_vs_Embedding = sumTotalStatus(prover_dict,"csa_unique_compared_to_other_embedding_provers")
-    total_U_THM_vs_MLeanCop = sumTotalStatus(prover_dict,"thm_unique_compared_to_mleancop")
-    total_U_CSA_vs_MleanCop = sumTotalStatus(prover_dict,"csa_unique_compared_to_mleancop")
+    total_THM,_ = sumTotalStatus(prover_dict,"thm_single")
+    total_THM_S5U_const,_ = sumTotalStatus(prover_dict,"thm_single",[],["S5U+const"])
+    total_THM_S5U_cumul,_ = sumTotalStatus(prover_dict,"thm_single",[],["S5U+cumul"])
+    total_THM_other_than_S5U,total_THM_other_than_S5U_quants = sumTotalStatus(prover_dict,"thm_single",["S5U+const","S5U+cumul"],[])
+    total_CSA,_ = sumTotalStatus(prover_dict,"csa_single")
+    total_U_THM_vs_Embedding,_ = sumTotalStatus(prover_dict,"thm_unique_compared_to_other_embedding_provers")
+    total_U_CSA_vs_Embedding,_ = sumTotalStatus(prover_dict,"csa_unique_compared_to_other_embedding_provers")
+    total_U_THM_vs_MLeanCop,_ = sumTotalStatus(prover_dict,"thm_unique_compared_to_mleancop")
+    total_U_CSA_vs_MleanCop,_ = sumTotalStatus(prover_dict,"csa_unique_compared_to_mleancop")
     print("Total THM for best encoding:")
     print(total_THM)
     print()
@@ -116,9 +125,32 @@ def main(csv_file_list):
     print("Total THM other than S5U for best encoding:")
     print(total_THM_other_than_S5U)
     print()
-    print("Total THM S5U for best encoding:")
-    print(total_THM_S5U)
+    print("Total THM S5U_const for best encoding:")
+    print(total_THM_S5U_const)
     print()
+    print("Total THM S5U_cumul for best encoding:")
+    print(total_THM_S5U_cumul)
+    print()
+
+    print("Total THM other than S5U for best encoding by quant:")
+    for p in total_THM_other_than_S5U_quants:
+        average = {}
+        minimum = {}
+        maximum = {}
+        if p in ["mleancop","qmltp","nitpick"]:
+            continue
+        for quant,sysdict in total_THM_other_than_S5U_quants[p].items():
+            average[quant] = round(100.0/sum(sysdict.values())*(sum(total_THM_other_than_S5U_quants["mleancop"][quant].values())-sum(sysdict.values())),1)
+            quant_sys_percentages = []
+            for sys,val in sysdict.items():
+                quant_sys_percentages.append(round(100.0/val*(total_THM_other_than_S5U_quants["mleancop"][quant][sys]-val),1))
+            minimum[quant] = min(quant_sys_percentages)
+            maximum[quant] = max(quant_sys_percentages)
+        print(p)
+        print("minimum",minimum)
+        print("average",average)
+        print("maximum",maximum)
+        print("------------------------")
 
 if __name__ == "__main__":
     main(sys.argv[1:])
