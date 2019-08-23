@@ -32,12 +32,16 @@ def filter_unknown_status(p):
 def main(csv_file_list):
     problem_list = common.accumulate_csv(csv_file_list)
     supported_csa = find_all_of_qmltp(problem_list,filter_supported_csa,"CounterSatisfiable")
-    supported_thm = find_all_of_qmltp(problem_list,None,"Theorem")
+    unsolved_supported_csa = find_all_of_qmltp(problem_list,filter_supported_csa,"Unsolved")
+    all_thm = find_all_of_qmltp(problem_list,None,"Theorem")
+    all_csa = find_all_of_qmltp(problem_list,None,"CounterSatisfiable")
     unsolved = find_all_of_qmltp(problem_list,None,"Unsolved")
     other = find_all_of_qmltp(problem_list,filter_unknown_status,None)
-    print("supported thm",len(supported_thm))
-    print("supported csa",len(supported_csa))
-    print("unsolved",len(unsolved))
+    print("THM all",len(all_thm))
+    print("CSA all",len(all_csa))
+    print("CSA supported",len(supported_csa))
+    print("Unsolved CSA supported",len(unsolved_supported_csa))
+    print("unsolved all",len(unsolved))
     print("other",len(other))
 
 if __name__ == "__main__":
