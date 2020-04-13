@@ -531,6 +531,13 @@ public class ModalTransformator {
                 }
                 thf_typed_variable.addChildAt(quant,0);
 
+                // add bracket left
+                Node bracketLeft2 = new Node("t_opening_bracket","(");
+                thf_typed_variable.addChildAt(bracketLeft2,0);
+
+                // add bracket right
+                Node bracketRight2 = new Node("t_closing_bracket",")");
+                n.addChild(bracketRight2);
             }else{
                 throw new TransformationException("Only typed variables are supported. " + thf_variable_list.toStringLeafs() + " does have untyped variables.");
             }
