@@ -69,19 +69,17 @@ public class Quantification {
     /***************************************************************************
      * Constant Quantification TH1
      ***************************************************************************/
-    /*
-    public static final String mforall_const_th1 = "" +
-            "thf( mforall_const_type , type , ( mforall_const : !> [T:$tType] : (T > " + w + " > $o) > " + w + " > $o ) ).\n" +
-            "thf( mforall_const , definition , ( mforall_const = (" +
-            "^ [A:T>" + w + ">$o,W:" + w + "] : ! [X:T] : (A @ X @ W)" +
-            "))).";
 
-    public static final String mexists_const_th1 = "" +
-            "thf( mforall_const_type , type , ( mexists_const : !> [T:$tType] : (T > " + w + " > $o) > " + w + " > $o ) ).\n" +
-            "thf( mforall_const , definition , ( mexists_const = (" +
-            "^ [A:T>" + w + ">$o,W:" + w + "] : ? [X:T] : (A @ X @ W)" +
-            "))).";
-    */
+    public static String embedded_forall_const_identifier_th1 = "mforall_const";
+    public static String embedded_exists_const_identifier_th1 = "mexists_const";
+
+    public static final String mforall_const_th1 = String.format(
+        "thf(mforall_const_type, type, mforall_const: !>[T:$tType]: ((T > %1$s > $o) > %1$s > $o)).\n" +
+        "thf(mforall_const, definition, mforall_const = ^[T:$tType, A:T>%1$s>$o, W:%1$s]: (\n" +
+        "    ![X:T]: (A @ X @ W)\n" +
+        "  )).", w);
+
+    public static final String mexists_const_th1 = mforall_const_th1.replaceAll("forall","exists").replaceAll("!\\[","?\\[");
 
     /***************************************************************************
      * Varying Quantification TH0
@@ -374,13 +372,64 @@ public class Quantification {
     /***************************************************************************
      * Varying Quantification TH1
      ***************************************************************************/
-    // TODO
-    // thf( mforall_const_type , type , ( mforall_const : !> [T:$tType] : (T > " + w + " > $o) > " + w + " > $o ) ).
-    // thf( mforall_const , definition , ( mforall_const = (
-    // ^ [A:T>" + w + ">$o,W:" + w + "] : ! [X:T] : ((eiw  @ X @ W) => (A @ X @ W))
-    //        ))).
-    // thf( mexists_const , definition , ( mexists_const = (
-    // ^ [A:T>" + w + ">$o,W:" + w + "] : ? [X:T] : ((eiw  @ X @ W) & (A @ X @ W))
-    //        ))).
+
+    public static String embedded_forall_vary_identifier_th1 = "mforall_vary";
+    public static String embedded_exists_vary_identifier_th1 = "mexists_vary";
+
+    public static final String eiw_th1 = String.format(
+      "thf(eiw_type, type, eiw: !>[T:$tType]: (T > %1$s > $o)).", w);
+
+    public static final String eiw_nonempty_th1 = String.format(
+       "thf(eiw_nonempty, axiom, ![T:$tType,W:%1$s]: ?[X:T]: (eiw @ T @ X @ W)).", w);
+
+    public static String constant_eiw_th1(String constant, Type type) {
+        return String.format(
+                "thf(eiw_%1$s, axiom, ![W:%2$s]: (eiw @ %3$s & %1$s @ W)).", constant, w, type.getliftedNormalizedType());
+    }
+
+    /* eiw is cumulative for all types */
+    public static String cumul_axiom_semantic_th1 = String.format(
+        "thf(eiw_cumul, axiom, (\n" +
+            "    ![T: $tType, W:%1$s, V:%1$s, C: T]: (((eiw @ T @ C @ W) & (%2$s @ W @ V)) => (eiw @ T @ C @ V))\n" +
+            "  )).", w, AccessibilityRelation.accessibility_relation_prefix);
+
+    /* eiw is decreasing for all types */
+    public static String decreasing_axiom_semantic_th1 = String.format(
+            "thf(eiw_decr, axiom, (\n" +
+                    "    ![T: $tType, W:%1$s, V:%1$s, C: T]: (((eiw @ T @ C @ V) & (%2$s @ W @ V)) => (eiw @ T @ C @ W))\n" +
+                    "  )).", w, AccessibilityRelation.accessibility_relation_prefix);
+
+    /* eiw cumulative for a given type */
+    public static String cumul_type_axiom_semantic_th1(Type type) {
+        return String.format(
+                "thf(eiw_cumul_%1$s, axiom, (\n" +
+                "    ![W:%2$s, V:%2$s, C: %3$s]: (((eiw @ %3$s @ C @ W) & (%4$s @ W @ V)) => (eiw @ %3$s @ C @ V))\n" +
+                "  )).", type.getLiftedEscapedType(), w, type.getliftedNormalizedType(), AccessibilityRelation.accessibility_relation_prefix);
+    }
+
+    /* eiw decreasing for a given type */
+    public static String decreasing_type_axiom_semantic_th1(Type type) {
+        return String.format(
+                "thf(eiw_decr_%1$s, axiom, (\n" +
+                        "    ![W:%2$s, V:%2$s, C: %3$s]: (((eiw @ %3$s @ C @ V) & (%4$s @ W @ V)) => (eiw @ %3$s @ C @ W))\n" +
+                        "  )).", type.getLiftedEscapedType(), w, type.getliftedNormalizedType(), AccessibilityRelation.accessibility_relation_prefix);
+    }
+
+    public static void main(String[] args) {
+        String res = decreasing_axiom_semantic_th1;
+        System.out.println(res);
+    }
+
+    public static final String mforall_vary_th1 = String.format(
+            "thf(mforall_vary_type, type, mforall_vary: !>[T:$tType]: ((T > %1$s > $o) > %1$s > $o)).\n" +
+                    "thf(mforall_vary, definition, mforall_vary = ^[T:$tType, A:T>%1$s>$o, W:%1$s]: (\n" +
+                    "    ![X:T]: ((eiw @ T @ X @ W) => (A @ X @ W))\n" +
+                    "  )).", w);
+
+    public static final String mexists_vary_th1 = String.format(
+            "thf(mexists_vary_type, type, mexists_vary: !>[T:$tType]: ((T > %1$s > $o) > %1$s > $o)).\n" +
+                    "thf(mexists_vary, definition, mexists_vary = ^[T:$tType, A:T>%1$s>$o, W:%1$s]: (\n" +
+                    "    ![X:T]: ((eiw @ T @ X @ W) & (A @ X @ W))\n" +
+                    "  )).", w);
 
 }
