@@ -48,6 +48,7 @@ public class EmbedModal {
         defaultCliTransformationParameters.add(ModalTransformator.TransformationParameter.SEMANTIC_CUMULATIVE_QUANTIFICATION);
         defaultCliTransformationParameters.add(ModalTransformator.TransformationParameter.SEMANTIC_DECREASING_QUANTIFICATION);
         defaultCliTransformationParameters.add(ModalTransformator.TransformationParameter.SEMANTIC_CONSTANT_QUANTIFICATION);
+        defaultCliTransformationParameters.add(ModalTransformator.TransformationParameter.MONOMORPHIC_TRANSFORMATION);
         for (ModalTransformator.TransformationParameter p : ModalTransformator.TransformationParameter.values()) {
             cliTransformationParameterNames.put(p.name().toLowerCase(),p);
         }
