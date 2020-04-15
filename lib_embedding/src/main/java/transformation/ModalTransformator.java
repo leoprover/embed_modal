@@ -500,11 +500,8 @@ public class ModalTransformator {
                         if (transformationParameters.contains(TransformationParameter.MONOMORPHIC_TRANSFORMATION)) {
                             quant = new Node("t_quantifier", Quantification.embedded_forall_const_identifier(type));
                         } else {
-                            // todo
-                            quant = new Node("t_th1_quant", "");  // ???
-                            quant.addChildAt(new Node("t_type", type.getliftedNormalizedType()), 0);
-                            quant.addChildAt(new Node("t_at","@"), 0);
-                            quant.addChildAt(new Node("t_quantifier", Quantification.embedded_forall_const_identifier_th1), 0);
+                            String label = Quantification.embedded_forall_const_identifier_th1 + " @ " + type.getliftedNormalizedType();
+                            quant = new Node("t_quantifier", label);
                         }
                     // cumulative/decreasing S5U case for exactly one modality
                     } else if (problemIsMonomodal() && // there is EXACTLY one modality actually in use
@@ -514,11 +511,8 @@ public class ModalTransformator {
                         if (transformationParameters.contains(TransformationParameter.MONOMORPHIC_TRANSFORMATION)) {
                             quant = new Node("t_quantifier", Quantification.embedded_forall_const_identifier(type));
                         } else {
-                            // todo
-                            quant = new Node("t_th1_quant", "");  // ???
-                            quant.addChildAt(new Node("t_type", type.getliftedNormalizedType()), 0);
-                            quant.addChildAt(new Node("t_at","@"), 0);
-                            quant.addChildAt(new Node("t_quantifier", Quantification.embedded_forall_const_identifier_th1), 0);
+                            String label = Quantification.embedded_forall_const_identifier_th1 + " @ " + type.getliftedNormalizedType();
+                            quant = new Node("t_quantifier", label);
                         }
 
                     // varying domain case and
@@ -529,11 +523,8 @@ public class ModalTransformator {
                         if (transformationParameters.contains(TransformationParameter.MONOMORPHIC_TRANSFORMATION)) {
                             quant = new Node("t_quantifier", Quantification.embedded_forall_varying_identifier(type));
                         } else {
-                            // todo
-                            quant = new Node("t_th1_quant", "");  // ???
-                            quant.addChildAt(new Node("t_type", type.getliftedNormalizedType()), 0);
-                            quant.addChildAt(new Node("t_at","@"), 0);
-                            quant.addChildAt(new Node("t_quantifier", Quantification.embedded_forall_vary_identifier_th1), 0);
+                            String label = Quantification.embedded_forall_vary_identifier_th1 + " @ " + type.getliftedNormalizedType();
+                            quant = new Node("t_quantifier", label);
                         }
                         typesForVaryingQuantifiers.add(type);
                     }
@@ -547,11 +538,8 @@ public class ModalTransformator {
                         if (transformationParameters.contains(TransformationParameter.MONOMORPHIC_TRANSFORMATION)) {
                             quant = new Node("t_quantifier", Quantification.embedded_exists_const_identifier(type));
                         } else {
-                            // todo
-                            quant = new Node("t_th1_quant", "");  // ???
-                            quant.addChildAt(new Node("t_type", type.getliftedNormalizedType()), 0);
-                            quant.addChildAt(new Node("t_at", "@"), 0);
-                            quant.addChildAt(new Node("t_quantifier", Quantification.embedded_exists_const_identifier_th1), 0);
+                            String label = Quantification.embedded_exists_const_identifier_th1 + " @ " + type.getliftedNormalizedType();
+                            quant = new Node("t_quantifier", label);
                         }
 
                     // cumulative/decreasing domain S5U case for exactly one modality
@@ -562,11 +550,8 @@ public class ModalTransformator {
                         if (transformationParameters.contains(TransformationParameter.MONOMORPHIC_TRANSFORMATION)) {
                             quant = new Node("t_quantifier", Quantification.embedded_exists_const_identifier(type));
                         } else {
-                            // todo
-                            quant = new Node("t_th1_quant", "");  // ???
-                            quant.addChildAt(new Node("t_type", type.getliftedNormalizedType()), 0);
-                            quant.addChildAt(new Node("t_at", "@"), 0);
-                            quant.addChildAt(new Node("t_quantifier", Quantification.embedded_exists_const_identifier_th1), 0);
+                            String label = Quantification.embedded_exists_const_identifier_th1 + " @ " + type.getliftedNormalizedType();
+                            quant = new Node("t_quantifier", label);
                         }
 
                     // varying domain case and
@@ -577,11 +562,8 @@ public class ModalTransformator {
                         if (transformationParameters.contains(TransformationParameter.MONOMORPHIC_TRANSFORMATION)) {
                             quant = new Node("t_quantifier", Quantification.embedded_exists_varying_identifier(type));
                         } else {
-                            // todo
-                            quant = new Node("t_th1_quant", "");  // ???
-                            quant.addChildAt(new Node("t_type", type.getliftedNormalizedType()), 0);
-                            quant.addChildAt(new Node("t_at", "@"), 0);
-                            quant.addChildAt(new Node("t_quantifier", Quantification.embedded_exists_vary_identifier_th1), 0);
+                            String label = Quantification.embedded_exists_vary_identifier_th1 + " @ " + type.getliftedNormalizedType();
+                            quant = new Node("t_quantifier", label);
                         }
 
                         typesForVaryingQuantifiers.add(type);
@@ -864,12 +846,21 @@ public class ModalTransformator {
 
                 // cumulative semantic embedding
                 if (domainType == SemanticsAnalyzer.DomainType.CUMULATIVE && transformationParameters.contains(TransformationParameter.SEMANTIC_CUMULATIVE_QUANTIFICATION) && !synS5UcumulOrDecr) {
-                    domRestr.add(Quantification.cumulative_semantic_axiom_th0(type));
+                    if (transformationParameters.contains(TransformationParameter.MONOMORPHIC_TRANSFORMATION)) {
+                        domRestr.add(Quantification.cumulative_semantic_axiom_th0(type));
+                    } else {
+                        domRestr.add(Quantification.cumul_type_axiom_semantic_th1(type));
+                    }
                 }
 
                 // decreasing semantic embedding
                 if (domainType == SemanticsAnalyzer.DomainType.DECREASING && transformationParameters.contains(TransformationParameter.SEMANTIC_DECREASING_QUANTIFICATION) && !synS5UcumulOrDecr) {
-                    domRestr.add(Quantification.decreasing_semantic_axiom_th0(type));
+                    if (transformationParameters.contains(TransformationParameter.MONOMORPHIC_TRANSFORMATION)) {
+                        domRestr.add(Quantification.decreasing_semantic_axiom_th0(type));
+                    } else {
+                        domRestr.add(Quantification.decreasing_type_axiom_semantic_th1(type));
+                    }
+
                 }
 
                 // cumulative syntactic or
@@ -932,8 +923,15 @@ public class ModalTransformator {
         eiw_nonempty_types.addAll(additionalVaryingForallQuantifiersFromSyntacticEmbedding);
         if (!eiw_nonempty_types.isEmpty()) {
             def.append("% define exists-in-world predicates for quantified types and non-emptiness axioms\n");
-            for (Type type : eiw_nonempty_types) {
-                def.append(Quantification.eiw_and_nonempty_th0(type));
+            if (transformationParameters.contains(TransformationParameter.MONOMORPHIC_TRANSFORMATION)) {
+                for (Type type : eiw_nonempty_types) {
+                    def.append(Quantification.eiw_and_nonempty_th0(type));
+                    def.append("\n");
+                }
+            } else {
+                def.append(Quantification.eiw_th1);
+                def.append("\n");
+                def.append(Quantification.eiw_nonempty_th1);
                 def.append("\n");
             }
             def.append("\n");
@@ -945,31 +943,40 @@ public class ModalTransformator {
         //typesExistsQuantifiersToDefine.addAll(additionalExistQuantifiersFromSyntacticEmbedding);
         if (!typesExistsQuantifiersToDefine.isEmpty()) {
             def.append("% define exists quantifiers\n");
-            for (Type type : typesExistsQuantifiers) {
-                SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(type.getNormalizedType());
+            if (transformationParameters.contains(TransformationParameter.MONOMORPHIC_TRANSFORMATION)) {
+                for (Type type : typesExistsQuantifiers) {
+                    SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(type.getNormalizedType());
 
-                // constant semantic domain case
-                if (domainType == SemanticsAnalyzer.DomainType.CONSTANT && transformationParameters.contains(TransformationParameter.SEMANTIC_CONSTANT_QUANTIFICATION)) {
-                    def.append(Quantification.mexists_const_th0(type));
-                }
+                    // constant semantic domain case
+                    if (domainType == SemanticsAnalyzer.DomainType.CONSTANT && transformationParameters.contains(TransformationParameter.SEMANTIC_CONSTANT_QUANTIFICATION)) {
+                        def.append(Quantification.mexists_const_th0(type));
+                    }
 
-                // cumulative/decreasing S5U case for exactly one modality
-                else if (problemIsMonomodal() && // there is EXACTLY one modality actually in use
-                        transformationParameters.contains(TransformationParameter.SEMANTIC_CONSTANT_QUANTIFICATION) && // constant quantification is semantically embedded
-                        theMonomodalProblemIsS5U() && // the modality is S5U
-                        (domainType == SemanticsAnalyzer.DomainType.CUMULATIVE || domainType == SemanticsAnalyzer.DomainType.DECREASING)) { // domains are either cumulative or decreasing
-                    def.append(Quantification.mexists_const_th0(type));
-                }
+                    // cumulative/decreasing S5U case for exactly one modality
+                    else if (problemIsMonomodal() && // there is EXACTLY one modality actually in use
+                            transformationParameters.contains(TransformationParameter.SEMANTIC_CONSTANT_QUANTIFICATION) && // constant quantification is semantically embedded
+                            theMonomodalProblemIsS5U() && // the modality is S5U
+                            (domainType == SemanticsAnalyzer.DomainType.CUMULATIVE || domainType == SemanticsAnalyzer.DomainType.DECREASING)) { // domains are either cumulative or decreasing
+                        def.append(Quantification.mexists_const_th0(type));
+                    }
 
-                // varying domain case and
-                // cumulative/decreasing domain case for non S5U and
-                // cumulative/decreasing domain case for S5U with SYNTACTIC_CONSTANT_QUANTIFICATION and
-                // constant domain case with SYNTACTIC_CONSTANT_QUANTIFICATION
-                else {
-                    def.append(Quantification.mexists_varying_th0(type));
+                    // varying domain case and
+                    // cumulative/decreasing domain case for non S5U and
+                    // cumulative/decreasing domain case for S5U with SYNTACTIC_CONSTANT_QUANTIFICATION and
+                    // constant domain case with SYNTACTIC_CONSTANT_QUANTIFICATION
+                    else {
+                        def.append(Quantification.mexists_varying_th0(type));
+                    }
+                    def.append("\n");
                 }
+            } else {
+                // just define both
+                def.append(Quantification.mexists_const_th1);
+                def.append("\n");
+                def.append(Quantification.mexists_vary_th1);
                 def.append("\n");
             }
+
             def.append("\n");
         }
 
@@ -978,42 +985,50 @@ public class ModalTransformator {
         Set<Type> typesForallVaryQuantifiersAlreadyDefined = new HashSet<>();
         if (!typesForAllQuantifiersToDefine.isEmpty() || !additionalVaryingForallQuantifiersFromSyntacticEmbedding.isEmpty()) {
             def.append("% define for all quantifiers\n");
+            if (transformationParameters.contains(TransformationParameter.MONOMORPHIC_TRANSFORMATION)) {
+                // quantifiers for the problem
+                for (Type type : typesForAllQuantifiers) {
+                    SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(type.getNormalizedType());
 
-            // quantifiers for the problem
-            for (Type type : typesForAllQuantifiers) {
-                SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(type.getNormalizedType());
+                    // constant domain case
+                    if (domainType == SemanticsAnalyzer.DomainType.CONSTANT && transformationParameters.contains(TransformationParameter.SEMANTIC_CONSTANT_QUANTIFICATION)) {
+                        def.append(Quantification.mforall_const_th0(type));
+                    }
 
-                // constant domain case
-                if (domainType == SemanticsAnalyzer.DomainType.CONSTANT && transformationParameters.contains(TransformationParameter.SEMANTIC_CONSTANT_QUANTIFICATION)) {
-                    def.append(Quantification.mforall_const_th0(type));
+                    // cumulative/decreasing S5U case for exactly one modality
+                    else if (problemIsMonomodal() && // there is EXACTLY one modality actually in use
+                            transformationParameters.contains(TransformationParameter.SEMANTIC_CONSTANT_QUANTIFICATION) && // constant quantification is semantically embedded
+                            theMonomodalProblemIsS5U() && // the modality is S5U
+                            (domainType == SemanticsAnalyzer.DomainType.CUMULATIVE || domainType == SemanticsAnalyzer.DomainType.DECREASING)) { // domains are either cumulative or decreasing
+                        def.append(Quantification.mforall_const_th0(type));
+                    }
+
+                    // varying domain case and
+                    // cumulative/decreasing domain case for non S5U and
+                    // cumulative/decreasing domain case for S5U with SYNTACTIC_CONSTANT_QUANTIFICATION and
+                    // constant domain case with SYNTACTIC_CONSTANT_QUANTIFICATION
+                    else {
+                        def.append(Quantification.mforall_varying_th0(type));
+                        typesForallVaryQuantifiersAlreadyDefined.add(type);
+                    }
+                    def.append("\n");
                 }
 
-                // cumulative/decreasing S5U case for exactly one modality
-                else if (problemIsMonomodal() && // there is EXACTLY one modality actually in use
-                        transformationParameters.contains(TransformationParameter.SEMANTIC_CONSTANT_QUANTIFICATION) && // constant quantification is semantically embedded
-                        theMonomodalProblemIsS5U() && // the modality is S5U
-                        (domainType == SemanticsAnalyzer.DomainType.CUMULATIVE || domainType == SemanticsAnalyzer.DomainType.DECREASING)) { // domains are either cumulative or decreasing
-                    def.append(Quantification.mforall_const_th0(type));
+                // additional quantifiers needed for syntactic cumul/decr/const quantification embedding (varying quantifiers)
+                for (Type type : additionalVaryingForallQuantifiersFromSyntacticEmbedding) {
+                    if (!typesForallVaryQuantifiersAlreadyDefined.contains(type)) { // only vary quantifiers that have not been already defined above
+                        def.append(Quantification.mforall_varying_th0(type));
+                    }
+                    def.append("\n");
                 }
-
-                // varying domain case and
-                // cumulative/decreasing domain case for non S5U and
-                // cumulative/decreasing domain case for S5U with SYNTACTIC_CONSTANT_QUANTIFICATION and
-                // constant domain case with SYNTACTIC_CONSTANT_QUANTIFICATION
-                else {
-                    def.append(Quantification.mforall_varying_th0(type));
-                    typesForallVaryQuantifiersAlreadyDefined.add(type);
-                }
+            } else {
+                // just define both
+                def.append(Quantification.mforall_const_th1);
+                def.append("\n");
+                def.append(Quantification.mforall_vary_th1);
                 def.append("\n");
             }
 
-            // additional quantifiers needed for syntactic cumul/decr/const quantification embedding (varying quantifiers)
-            for (Type type : additionalVaryingForallQuantifiersFromSyntacticEmbedding) {
-                if (!typesForallVaryQuantifiersAlreadyDefined.contains(type)) { // only vary quantifiers that have not been already defined above
-                    def.append(Quantification.mforall_varying_th0(type));
-                }
-                def.append("\n");
-            }
 
             def.append("\n");
         }
