@@ -384,7 +384,7 @@ public class Quantification {
 
     public static String constant_eiw_th1(String constant, Type type) {
         return String.format(
-                "thf(eiw_%1$s, axiom, ![W:%2$s]: (eiw @ %3$s & %1$s @ W)).", constant, w, type.getliftedNormalizedType());
+                "thf(eiw_%1$s, axiom, ![W:%2$s]: (eiw @ %3$s @ %1$s @ W)).", constant, w, type.getliftedNormalizedType());
     }
 
     /* eiw is cumulative for all types */
