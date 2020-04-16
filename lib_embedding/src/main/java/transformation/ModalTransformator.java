@@ -953,7 +953,7 @@ public class ModalTransformator {
                     if (transformationParameters.contains(TransformationParameter.MONOMORPHIC_TRANSFORMATION)) {
                         def.append(Quantification.mexists_const_th0(type));
                     } else {
-                        defConstQuant = true
+                        defConstQuant = true;
                     }
                 }
 
@@ -965,7 +965,7 @@ public class ModalTransformator {
                     if (transformationParameters.contains(TransformationParameter.MONOMORPHIC_TRANSFORMATION)) {
                         def.append(Quantification.mexists_const_th0(type));
                     } else {
-                        defConstQuant = true
+                        defConstQuant = true;
                     }
                 }
 
@@ -977,7 +977,7 @@ public class ModalTransformator {
                     if (transformationParameters.contains(TransformationParameter.MONOMORPHIC_TRANSFORMATION)) {
                         def.append(Quantification.mexists_varying_th0(type));
                     } else {
-                        defVaryQuant = true
+                        defVaryQuant = true;
                     }
                 }
 
@@ -1118,16 +1118,29 @@ public class ModalTransformator {
                         // an eiw-predicate of type q already exists, we can just postulate an axiom
                         // that these constants exist at all worlds
                         for (String constant : declaredUserConstants.get(type)) {
-                            postDefinitions.append(Quantification.constant_eiw_th0(constant, type));
+                            if (transformationParameters.contains(TransformationParameter.MONOMORPHIC_TRANSFORMATION)) {
+                                postDefinitions.append(Quantification.constant_eiw_th0(constant, type));
+                            } else {
+                                postDefinitions.append(Quantification.constant_eiw_th1(constant, type));
+                            }
                             postDefinitions.append("\n");
                         }
                     } else {
                         // define eiw_predicate of that type first
-                        postDefinitions.append(Quantification.eiw_and_nonempty_th0(type));
+                        if (transformationParameters.contains(TransformationParameter.MONOMORPHIC_TRANSFORMATION)) {
+                            postDefinitions.append(Quantification.eiw_and_nonempty_th0(type));
+                        } else {
+                            // TODO: Is there something do to here?
+                        }
+
                         postDefinitions.append("\n");
                         // now postulate as anbove
                         for (String constant : declaredUserConstants.get(type)) {
-                            postDefinitions.append(Quantification.constant_eiw_th0(constant, type));
+                            if (transformationParameters.contains(TransformationParameter.MONOMORPHIC_TRANSFORMATION)) {
+                                postDefinitions.append(Quantification.constant_eiw_th0(constant, type));
+                            } else {
+                                postDefinitions.append(Quantification.constant_eiw_th1(constant, type));
+                            }
                             postDefinitions.append("\n");
                         }
                     }
