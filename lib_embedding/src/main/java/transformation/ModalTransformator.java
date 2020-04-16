@@ -1129,11 +1129,11 @@ public class ModalTransformator {
                         // define eiw_predicate of that type first
                         if (transformationParameters.contains(TransformationParameter.MONOMORPHIC_TRANSFORMATION)) {
                             postDefinitions.append(Quantification.eiw_and_nonempty_th0(type));
+                            postDefinitions.append("\n");
                         } else {
                             // TODO: Is there something do to here?
                         }
 
-                        postDefinitions.append("\n");
                         // now postulate as anbove
                         for (String constant : declaredUserConstants.get(type)) {
                             if (transformationParameters.contains(TransformationParameter.MONOMORPHIC_TRANSFORMATION)) {
