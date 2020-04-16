@@ -942,70 +942,57 @@ public class ModalTransformator {
         Set<Type> typesExistsQuantifiersToDefine = new HashSet<>(typesExistsQuantifiers);
         //typesExistsQuantifiersToDefine.addAll(additionalExistQuantifiersFromSyntacticEmbedding);
         if (!typesExistsQuantifiersToDefine.isEmpty()) {
+            boolean defConstQuant = false;
+            boolean defVaryQuant = false;
             def.append("% define exists quantifiers\n");
-            if (transformationParameters.contains(TransformationParameter.MONOMORPHIC_TRANSFORMATION)) {
-                for (Type type : typesExistsQuantifiers) {
-                    SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(type.getNormalizedType());
+            for (Type type : typesExistsQuantifiers) {
+                SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(type.getNormalizedType());
 
-                    // constant semantic domain case
-                    if (domainType == SemanticsAnalyzer.DomainType.CONSTANT && transformationParameters.contains(TransformationParameter.SEMANTIC_CONSTANT_QUANTIFICATION)) {
+                // constant semantic domain case
+                if (domainType == SemanticsAnalyzer.DomainType.CONSTANT && transformationParameters.contains(TransformationParameter.SEMANTIC_CONSTANT_QUANTIFICATION)) {
+                    if (transformationParameters.contains(TransformationParameter.MONOMORPHIC_TRANSFORMATION)) {
                         def.append(Quantification.mexists_const_th0(type));
+                    } else {
+                        defConstQuant = true
                     }
+                }
 
-                    // cumulative/decreasing S5U case for exactly one modality
-                    else if (problemIsMonomodal() && // there is EXACTLY one modality actually in use
-                            transformationParameters.contains(TransformationParameter.SEMANTIC_CONSTANT_QUANTIFICATION) && // constant quantification is semantically embedded
-                            theMonomodalProblemIsS5U() && // the modality is S5U
-                            (domainType == SemanticsAnalyzer.DomainType.CUMULATIVE || domainType == SemanticsAnalyzer.DomainType.DECREASING)) { // domains are either cumulative or decreasing
+                // cumulative/decreasing S5U case for exactly one modality
+                else if (problemIsMonomodal() && // there is EXACTLY one modality actually in use
+                        transformationParameters.contains(TransformationParameter.SEMANTIC_CONSTANT_QUANTIFICATION) && // constant quantification is semantically embedded
+                        theMonomodalProblemIsS5U() && // the modality is S5U
+                        (domainType == SemanticsAnalyzer.DomainType.CUMULATIVE || domainType == SemanticsAnalyzer.DomainType.DECREASING)) { // domains are either cumulative or decreasing
+                    if (transformationParameters.contains(TransformationParameter.MONOMORPHIC_TRANSFORMATION)) {
                         def.append(Quantification.mexists_const_th0(type));
+                    } else {
+                        defConstQuant = true
                     }
+                }
 
-                    // varying domain case and
-                    // cumulative/decreasing domain case for non S5U and
-                    // cumulative/decreasing domain case for S5U with SYNTACTIC_CONSTANT_QUANTIFICATION and
-                    // constant domain case with SYNTACTIC_CONSTANT_QUANTIFICATION
-                    else {
+                // varying domain case and
+                // cumulative/decreasing domain case for non S5U and
+                // cumulative/decreasing domain case for S5U with SYNTACTIC_CONSTANT_QUANTIFICATION and
+                // constant domain case with SYNTACTIC_CONSTANT_QUANTIFICATION
+                else {
+                    if (transformationParameters.contains(TransformationParameter.MONOMORPHIC_TRANSFORMATION)) {
                         def.append(Quantification.mexists_varying_th0(type));
+                    } else {
+                        defVaryQuant = true
                     }
+                }
+
+                if (transformationParameters.contains(TransformationParameter.MONOMORPHIC_TRANSFORMATION))
                     def.append("\n");
-                }
-            } else {
-                boolean defConstQuant = false;
-                boolean defVaryQuant = false;
+            }
 
-                for (Type type : typesExistsQuantifiers) { // lol
-                    SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(type.getNormalizedType());
-
-                    // constant semantic domain case
-                    if (domainType == SemanticsAnalyzer.DomainType.CONSTANT && transformationParameters.contains(TransformationParameter.SEMANTIC_CONSTANT_QUANTIFICATION)) {
-                        defConstQuant = true;
-                    }
-
-                    // cumulative/decreasing S5U case for exactly one modality
-                    else if (problemIsMonomodal() && // there is EXACTLY one modality actually in use
-                            transformationParameters.contains(TransformationParameter.SEMANTIC_CONSTANT_QUANTIFICATION) && // constant quantification is semantically embedded
-                            theMonomodalProblemIsS5U() && // the modality is S5U
-                            (domainType == SemanticsAnalyzer.DomainType.CUMULATIVE || domainType == SemanticsAnalyzer.DomainType.DECREASING)) { // domains are either cumulative or decreasing
-                        defConstQuant = true;
-                    }
-
-                    // varying domain case and
-                    // cumulative/decreasing domain case for non S5U and
-                    // cumulative/decreasing domain case for S5U with SYNTACTIC_CONSTANT_QUANTIFICATION and
-                    // constant domain case with SYNTACTIC_CONSTANT_QUANTIFICATION
-                    else {
-                        defVaryQuant = true;
-                    }
-                }
-                if (defConstQuant) {
-                    def.append(Quantification.mexists_const_th1);
-                    def.append("\n");
-                }
-                if (defVaryQuant) {
-                    def.append(Quantification.mexists_vary_th1);
-                    def.append("\n");
-                }
-
+            // for polymorphic embedding
+            if (defConstQuant) {
+                def.append(Quantification.mexists_const_th1);
+                def.append("\n");
+            }
+            if (defVaryQuant) {
+                def.append(Quantification.mexists_vary_th1);
+                def.append("\n");
             }
 
             def.append("\n");
@@ -1015,81 +1002,72 @@ public class ModalTransformator {
         Set<Type> typesForAllQuantifiersToDefine = new HashSet<>(typesForAllQuantifiers);
         Set<Type> typesForallVaryQuantifiersAlreadyDefined = new HashSet<>();
         if (!typesForAllQuantifiersToDefine.isEmpty() || !additionalVaryingForallQuantifiersFromSyntacticEmbedding.isEmpty()) {
+            boolean defConstQuant = false;
+            boolean defVaryQuant = false;
             def.append("% define for all quantifiers\n");
-            if (transformationParameters.contains(TransformationParameter.MONOMORPHIC_TRANSFORMATION)) {
-                // quantifiers for the problem
-                for (Type type : typesForAllQuantifiers) {
-                    SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(type.getNormalizedType());
+            // quantifiers for the problem
+            for (Type type : typesForAllQuantifiers) {
+                SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(type.getNormalizedType());
 
-                    // constant domain case
-                    if (domainType == SemanticsAnalyzer.DomainType.CONSTANT && transformationParameters.contains(TransformationParameter.SEMANTIC_CONSTANT_QUANTIFICATION)) {
+                // constant domain case
+                if (domainType == SemanticsAnalyzer.DomainType.CONSTANT && transformationParameters.contains(TransformationParameter.SEMANTIC_CONSTANT_QUANTIFICATION)) {
+                    if (transformationParameters.contains(TransformationParameter.MONOMORPHIC_TRANSFORMATION)) {
                         def.append(Quantification.mforall_const_th0(type));
+                    } else {
+                        defConstQuant = true;
                     }
-
-                    // cumulative/decreasing S5U case for exactly one modality
-                    else if (problemIsMonomodal() && // there is EXACTLY one modality actually in use
-                            transformationParameters.contains(TransformationParameter.SEMANTIC_CONSTANT_QUANTIFICATION) && // constant quantification is semantically embedded
-                            theMonomodalProblemIsS5U() && // the modality is S5U
-                            (domainType == SemanticsAnalyzer.DomainType.CUMULATIVE || domainType == SemanticsAnalyzer.DomainType.DECREASING)) { // domains are either cumulative or decreasing
-                        def.append(Quantification.mforall_const_th0(type));
-                    }
-
-                    // varying domain case and
-                    // cumulative/decreasing domain case for non S5U and
-                    // cumulative/decreasing domain case for S5U with SYNTACTIC_CONSTANT_QUANTIFICATION and
-                    // constant domain case with SYNTACTIC_CONSTANT_QUANTIFICATION
-                    else {
-                        def.append(Quantification.mforall_varying_th0(type));
-                        typesForallVaryQuantifiersAlreadyDefined.add(type);
-                    }
-                    def.append("\n");
                 }
 
-                // additional quantifiers needed for syntactic cumul/decr/const quantification embedding (varying quantifiers)
-                for (Type type : additionalVaryingForallQuantifiersFromSyntacticEmbedding) {
+                // cumulative/decreasing S5U case for exactly one modality
+                else if (problemIsMonomodal() && // there is EXACTLY one modality actually in use
+                        transformationParameters.contains(TransformationParameter.SEMANTIC_CONSTANT_QUANTIFICATION) && // constant quantification is semantically embedded
+                        theMonomodalProblemIsS5U() && // the modality is S5U
+                        (domainType == SemanticsAnalyzer.DomainType.CUMULATIVE || domainType == SemanticsAnalyzer.DomainType.DECREASING)) { // domains are either cumulative or decreasing
+                    if (transformationParameters.contains(TransformationParameter.MONOMORPHIC_TRANSFORMATION)) {
+                        def.append(Quantification.mforall_const_th0(type));
+                    } else {
+                        defConstQuant = true;
+                    }
+                }
+
+                // varying domain case and
+                // cumulative/decreasing domain case for non S5U and
+                // cumulative/decreasing domain case for S5U with SYNTACTIC_CONSTANT_QUANTIFICATION and
+                // constant domain case with SYNTACTIC_CONSTANT_QUANTIFICATION
+                else {
+                    if (transformationParameters.contains(TransformationParameter.MONOMORPHIC_TRANSFORMATION)) {
+                        def.append(Quantification.mforall_varying_th0(type));
+                        typesForallVaryQuantifiersAlreadyDefined.add(type);
+                    } else {
+                        defVaryQuant = true;
+                    }
+                }
+
+                if (transformationParameters.contains(TransformationParameter.MONOMORPHIC_TRANSFORMATION))
+                    def.append("\n");
+            }
+
+            // additional quantifiers needed for syntactic cumul/decr/const quantification embedding (varying quantifiers)
+            for (Type type : additionalVaryingForallQuantifiersFromSyntacticEmbedding) {
+                if (transformationParameters.contains(TransformationParameter.MONOMORPHIC_TRANSFORMATION)) {
                     if (!typesForallVaryQuantifiersAlreadyDefined.contains(type)) { // only vary quantifiers that have not been already defined above
                         def.append(Quantification.mforall_varying_th0(type));
                     }
                     def.append("\n");
-                }
-            } else {
-                boolean defConstQuant = false;
-                boolean defVaryQuant = false;
-
-                for (Type type : typesForAllQuantifiers) { // lol
-                    SemanticsAnalyzer.DomainType domainType = getDomainTypeFromNormalizedType(type.getNormalizedType());
-
-                    // constant semantic domain case
-                    if (domainType == SemanticsAnalyzer.DomainType.CONSTANT && transformationParameters.contains(TransformationParameter.SEMANTIC_CONSTANT_QUANTIFICATION)) {
-                        defConstQuant = true;
-                    }
-
-                    // cumulative/decreasing S5U case for exactly one modality
-                    else if (problemIsMonomodal() && // there is EXACTLY one modality actually in use
-                            transformationParameters.contains(TransformationParameter.SEMANTIC_CONSTANT_QUANTIFICATION) && // constant quantification is semantically embedded
-                            theMonomodalProblemIsS5U() && // the modality is S5U
-                            (domainType == SemanticsAnalyzer.DomainType.CUMULATIVE || domainType == SemanticsAnalyzer.DomainType.DECREASING)) { // domains are either cumulative or decreasing
-                        defConstQuant = true;
-                    }
-
-                    // varying domain case and
-                    // cumulative/decreasing domain case for non S5U and
-                    // cumulative/decreasing domain case for S5U with SYNTACTIC_CONSTANT_QUANTIFICATION and
-                    // constant domain case with SYNTACTIC_CONSTANT_QUANTIFICATION
-                    else {
-                        defVaryQuant = true;
-                    }
-                }
-                if (defConstQuant) {
-                    def.append(Quantification.mforall_const_th1);
-                    def.append("\n");
-                }
-                if (defVaryQuant) {
-                    def.append(Quantification.mforall_vary_th1);
-                    def.append("\n");
+                } else {
+                    defVaryQuant = true;
                 }
             }
 
+            // for polymorphic embedding
+            if (defConstQuant) {
+                def.append(Quantification.mforall_const_th1);
+                def.append("\n");
+            }
+            if (defVaryQuant) {
+                def.append(Quantification.mforall_vary_th1);
+                def.append("\n");
+            }
 
             def.append("\n");
         }
