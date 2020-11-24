@@ -22,7 +22,7 @@ public class Wrapper {
 
     private static final Logger log = Logger.getLogger( "default" );
 
-    public static void convertQmfTraverseDirectories(Path inPath, String oPath, boolean dotin, boolean dotout, String dotBin ){
+    public static void convertQmfTraverseDirectories(Path inPath, String oPath, boolean dotin, boolean dotout, String dotBin, boolean modalIntTransform){
         log.info("traversing directories.");
         AtomicInteger totalProblems = new AtomicInteger();
         AtomicInteger parseErrors = new AtomicInteger();
@@ -60,7 +60,7 @@ public class Wrapper {
                         if (!dotin) inDot = null;
                         if (!dotout) outDot = null;
                         try {
-                            boolean success = convertQmfToThf(f,outPath,inDot,outDot,dotBin );
+                            boolean success = convertQmfToThf(f,outPath,inDot,outDot,dotBin, modalIntTransform);
                             if (!success){
                                 log.warning("Parse error in problem " + f.toString());
                                 missedProblemsParseError.add(f.toString());
@@ -119,7 +119,7 @@ public class Wrapper {
         }
     }
 
-    public static boolean convertQmfToThf(Path inPath, Path oPath, Path dotin, Path dotout, String dotBin) throws IOException, ParseException, ConversionException {
+    public static boolean convertQmfToThf(Path inPath, Path oPath, Path dotin, Path dotout, String dotBin, boolean modalIntTransform) throws IOException, ParseException, ConversionException {
         if (!Files.isRegularFile(inPath)){
             log.info("Not a regular file:" + inPath.toString());
             return false;
@@ -150,7 +150,7 @@ public class Wrapper {
         if ( parseContext.hasParseError()) return false;
 
         // convert
-        Converter c = new Converter(root,inPath.toString());
+        Converter c = new Converter(root,inPath.toString(), modalIntTransform);
         ConvertContext context = c.convert();
         //System.out.println(context.getNewProblem());
 
