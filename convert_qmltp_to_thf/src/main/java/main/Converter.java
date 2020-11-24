@@ -151,7 +151,7 @@ public class Converter {
         StringBuilder definitions = new StringBuilder();
         // convert semantics
         definitions.append("% semantics\n");
-        List<Node> semantics = converted.dfsRuleAll("tpi_sem_formula");
+        final List<Node> semantics = converted.dfsRuleAll("tpi_sem_formula");
         for (Node s : semantics){
             definitions.append("thf(");
             definitions.append(getUnusedName("semantics"));
@@ -184,7 +184,11 @@ public class Converter {
                 if (i != modality_pairs.size()) definitions.append(" , ");
             }
             definitions.append("]])).\n\n");
-            s.getParent().delChild(s);
+            // s  ->  the specification formula
+            // s.getParent -> the TPI statement
+            // s.getParent().getParent() -> collection of formulas
+            // remove from that the TPI statement
+            s.getParent().getParent().delChild(s.getParent());
         }
         // declare multimodal accessibility relations
         definitions.append("% modalities\n");
