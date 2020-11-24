@@ -97,12 +97,15 @@ public class Converter {
             n.delChildAt(4); // remove :
             if (modalIntTransform) {
                 n.replaceChildAt(2, new Node("t_modal_index", getModalityNameAsIntString.apply(n.getChild(2).getFirstLeaf().getLabel())));
+                n.addChildAt(new Node("t_left_paren", "("), 4);
             } else {
                 Node index_type = new Node("t_modal_index_type",defaultIndexType);
                 n.addChildAt(index_type,1);
                 Node at_index_type = new Node("t_modal_index_type_at","@");
                 n.addChildAt(at_index_type,1);
+                n.addChildAt(new Node("t_left_paren", "("), 6);
             }
+            n.addChild(new Node("t_right_paren", ")"));
         });
 
         // add types to all quantified variables
