@@ -128,12 +128,7 @@ fof_logic_formula    : fof_binary_formula | fof_unitary_formula | fof_modal | fo
 
 fof_modal: MODAL_OPERATOR ':' fof_modal_body;
 fof_multimodal : MODAL_OPERATOR L_PAREN fof_modal_identifier R_PAREN ':' fof_modal_body;
-fof_modal_body : L_PAREN fof_logic_formula R_PAREN
-         //| MODAL_OPERATOR ':' fof_logic_formula;
-         | constant
-         | defined_constant
-         | system_constant
-         | plain_term;
+fof_modal_body : fof_unitary_formula;
 MODAL_OPERATOR : '#box'|'#dia';
 
 //----Future answer variable ideas | <answer_formula
