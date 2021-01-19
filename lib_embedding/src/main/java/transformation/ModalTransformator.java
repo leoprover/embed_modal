@@ -365,7 +365,12 @@ public class ModalTransformator {
                 usedConnectives.add("mfalse");
                 break;
             case "~":
-                leaf.setLabel("mnot @");
+                Node operatorTree = leaf.getNextTopBranchingNode(); // should be thf_unary_formula
+                if (!operatorTree.getRule().equals("thf_unary_formula")) throw new ImplementationError("~ ... is not a thf_unary_formula.");
+                operatorTree.replaceChildAt(0, new Node("t_mnot", "mnot @"));
+                operatorTree.addChildAt(new Node("t_left_paren", "("), 0);
+                operatorTree.addChild(new Node("t_right_paren", ")"));
+//                leaf.setLabel("mnot @");
                 usedConnectives.add("mnot");
                 break;
             // embed simple modality
