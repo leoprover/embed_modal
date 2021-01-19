@@ -306,7 +306,7 @@ public class Wrappers {
                                                     Path outDot, String dotBin,
                                                     String semantics,
                                                     TransformationParameter... params) throws ParseException, IOException, TransformationException, AnalysisException {
-        return convertModalStringToContext(problem,name,inDot,outDot,dotBin,semantics,params).getProblemIncludingOld();
+        return convertModalStringToContext(problem,name,inDot,outDot,dotBin,semantics,params).getProblem();
     }
 
     /*
