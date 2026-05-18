@@ -1,3 +1,9 @@
+-------
+
+**⚠️ This repository is archived, its functionality is superseded by the logic embedding tool at [github.com/leoprover/logic-embedding](https://github.com/leoprover/logic-embedding).**
+
+-------
+
 # Contents
 A set of tools to semantically embed (multi-modal) higher-order modal logic problems formulated
 in the TPTP [1] dialect THF into higher-order logic formulated in THF. It contains
